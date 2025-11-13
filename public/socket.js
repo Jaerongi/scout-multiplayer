@@ -1,52 +1,38 @@
 // ================================
 // SCOUT – SINGLE SOCKET ENGINE
-// SPA (start/room/game) 구조 핵심 파일
 // ================================
 
-import "./roomUI.js";
-import "./gameUI.js";
-
-export const socket = io({
-  autoConnect: true,
-  transports: ["websocket"],   // Railway 안정성 증가
-});
-
-console.log("SOCKET INIT…");
-
-// ======================================
-// GLOBAL STATE
-// ======================================
 export let myUid = null;
 export let myName = null;
 export let roomId = null;
 
+// Socket을 가장 먼저 초기화
+export const socket = io({
+  autoConnect: true,
+  transports: ["websocket"],
+});
+
+// 연결되면 uid 저장
 socket.on("connect", () => {
   myUid = socket.id;
   console.log("SOCKET CONNECTED:", myUid);
 });
 
-// ======================================
-// PAGE SWITCHER (SPA 핵심)
-// ======================================
+// SPA 페이지 전환기
 export function showPage(page) {
-  document.getElementById("startPage").style.display = "none";
-  document.getElementById("roomPage").style.display = "none";
-  document.getElementById("gamePage").style.display = "none";
-
+  document.querySelectorAll(".page").forEach(p => p.style.display = "none");
   document.getElementById(page).style.display = "block";
 }
 
-// ======================================
-// START PAGE – 버튼 이벤트
-// ======================================
+// ============================
+// START PAGE 이벤트
+// ============================
 document.getElementById("makeRoomBtn").onclick = () => {
   const name = document.getElementById("nicknameInput").value.trim();
   if (!name) return alert("닉네임을 입력하세요.");
 
   myName = name;
   roomId = generateRoomId();
-
-  console.log("CREATE ROOM:", roomId);
 
   socket.emit("joinRoom", { roomId, nickname: myName });
 
@@ -77,14 +63,15 @@ document.getElementById("enterRoomBtn").onclick = () => {
   }
 };
 
-// ======================================
-// 방 ID 생성 – 랜덤 6글자
-// ======================================
 function generateRoomId() {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  let r = "";
-  for (let i = 0; i < 6; i++) {
-    r += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return r;
+  return Array.from({length: 6}, () =>
+    chars[Math.floor(Math.random() * chars.length)]
+  ).join("");
 }
+
+// ============================
+// 모든 UI 파일들은 socket 초기화 후 로드
+// ============================
+import "./roomUI.js";
+import "./gameUI.js";
