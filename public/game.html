@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<title>SCOUT MULTIPLAYER</title>
+
+<link rel="stylesheet" href="style.css" />
+<script src="/socket.io/socket.io.js"></script>
+<script type="module">
+import { drawScoutCard, flipCard, COLOR_MAP } from "./cardEngine.js";
+import {
+  getComboType,
+  isStrongerCombo
+} from "./shared.js";
+
+/* ============================================================
+   URL PARAM
+============================================================ */
+const params = new URLSearchParams(location.search);
+const roomId = params.get("room");
+const myName = params.get("name");
+
+if (!roomId || !myName) {
+  alert("방ID 또는 닉네임이 없습니다.");
+  location.href = "lobby.html";
+}
+
+/* ============================================================
+   SOCKET INIT
+============================================================ */
+const socket = io();
+socket.emit("joinRoom", { roomId, nickname: myName });
+
+/* ============================================================
+   DOM TARGETS
+============================================================ */
+const playerListDiv = document.getElementById("playerList");
+const tableAreaDiv = document.getElementById("tableArea");
+const handAreaDiv = document.getElementById("handArea");
+const myCountSpan = document.getElementById("myCount");
+const statusBar = document.getElementById("statusBar");
+
+const roundPopup = document.getElementById("roundPopup");
+const gameEndPopup = document.getElementById("gameEndPopup");
+const popupRoundResult = document.getElementById("popupRoundResult");
+const popupFinalResult = document.getElementById("popupFinalResult");
+
+/* ============================================================
+   GAME STATE (LOCAL)
+============================================================ */
+let players = {};          // 서버에서 받은 플레이어 목록
+let myUid = null;          // socket.id
+let tableCards = [];       // 현재 테이블 묶음
+let myHand = [];           // 내 손패 (전체 카드)
+let selected = new Set();  // 선택된 카드 index
+let flipState = {};        // index: "top"|"bottom"
+let myTurn = false;        // 내 턴인지 여부
+
+/* ============================================================
+   SOCKET EVENT HANDLERS
+============================================================ */
+
+//내 아이디 받기
+socket.on("connect", () => {
+  myUid = socket.id;
+});
+
+/* -----------------------------------------
+   플레이어 리스트 업데이트
+------------------------------------------*/
+socket.on("playerListUpdate", (pl) => {
+  players = pl;
+  renderPlayerList();
+});
+
+/* -----------------------------------------
+   라운드 시작
+------------------------------------------*/
+socket.on("roundStart", (info) => {
+  const { round, players: p, startingPlayer } = info;
+
+  players = p;
+  tableCards = [];
+
+  document.getElementById("roundInfo").innerText = `라운드 ${round}`;
+  highlightTurn(startingPlayer);
+
+  // 내 패는 서버가 직접 보내지 않으므로
+  // handCount만 갱신, 실제 카드는 서버 별도 이벤트로 전달
+});
+
+/* -----------------------------------------
+   내 실제 손패 수 (비공개)
+------------------------------------------*/
+socket.on("yourHand", (handData) => {
+  myHand = handData;
+  renderHand();
+});
+
+/* -----------------------------------------
+   손패 개수 업데이트
+------------------------------------------*/
+socket.on("handCountUpdate", (counts) => {
+  for (const uid in players) {
+    players[uid].handCount = counts[uid];
+  }
+  renderPlayerList();
+});
+
+/* -----------------------------------------
+   테이블 업데이트
+------------------------------------------*/
+socket.on("tableUpdate", (cards) => {
+  tableCards = cards;
+  renderTable();
+});
+
+/* -----------------------------------------
+   턴 변경
+------------------------------------------*/
+socket.on("turnChange", (uid) => {
+  myTurn = (uid === myUid);
+  highlightTurn(uid);
+});
+
+/* -----------------------------------------
+   에러 메시지
+------------------------------------------*/
+socket.on("errorMessage", (msg) => {
+  alert(msg);
+});
+
+/* -----------------------------------------
+   라운드 종료
+------------------------------------------*/
+socket.on("roundEnded", ({ winner, players }) => {
+  popupRoundResult.innerHTML =
+    `<b>${winner}</b> 님이 라운드 승리! <br><br>점수표:<br>` +
+    Object.values(players)
+      .map(p => `${p.nickname}: ${p.score}`)
+      .join("<br>");
+
+  roundPopup.style.display = "block";
+});
+
+/* -----------------------------------------
+   게임 종료
+------------------------------------------*/
+socket.on("gameEnd", ({ players }) => {
+  const ranking = Object.values(players)
+    .sort((a,b) => b.score - a.score)
+    .map((p,i)=> `${i+1}등: ${p.nickname} (${p.score}점)`)
+    .join("<br>");
+
+  popupFinalResult.innerHTML = ranking;
+  gameEndPopup.style.display = "block";
+});
+
+/* ============================================================
+   UI RENDERING
+============================================================ */
+
+function renderPlayerList() {
+  playerListDiv.innerHTML = "";
+
+  Object.values(players).forEach((p) => {
+    const box = document.createElement("div");
+    box.className = "playerBox";
+    if (p.uid === myUid) box.style.background = "#333";
+
+    box.innerHTML = `
+      <div class="name">${p.nickname}</div>
+      <div class="score">점수: ${p.score}</div>
+      <div class="handCount">패: ${p.handCount}장</div>
+    `;
+
+    playerListDiv.appendChild(box);
+  });
+}
+
+function highlightTurn(uid) {
+  const boxes = document.getElementsByClassName("playerBox");
+  const list = Object.values(players);
+
+  for (let i = 0; i < boxes.length; i++) {
+    const p = list[i];
+    if (p.uid === uid) boxes[i].classList.add("currentTurn");
+    else boxes[i].classList.remove("currentTurn");
+  }
+}
+
+function renderTable() {
+  tableAreaDiv.innerHTML = "";
+
+  if (tableCards.length === 0) {
+    tableAreaDiv.innerHTML = `<span style="color:#777">(빈 테이블)</span>`;
+    return;
+  }
+
+  tableCards.forEach((c) => {
+    const card = drawScoutCard(c.top, c.bottom, 90, 130);
+    tableAreaDiv.appendChild(card);
+  });
+}
+
+function renderHand() {
+  handAreaDiv.innerHTML = "";
+  myCountSpan.innerText = myHand.length;
+
+  myHand.forEach((card, idx) => {
+    const isBottom = flipState[idx] === "bottom";
+    const cdata = isBottom
+      ? { top: card.bottom, bottom: card.top }
+      : card;
+
+    const cardDiv = document.createElement("div");
+    cardDiv.className = "card-wrapper";
+    if (selected.has(idx)) cardDiv.classList.add("selected");
+
+    const canvas = drawScoutCard(cdata.top, cdata.bottom);
+    cardDiv.appendChild(canvas);
+
+    //flip 버튼
+    const flipBtn = document.createElement("div");
+    flipBtn.className = "flip-btn";
+    flipBtn.innerText = "↻";
+
+    flipBtn.onclick = (e) => {
+      e.stopPropagation();
+      flipState[idx] = isBottom ? "top" : "bottom";
+      renderHand();
+    };
+    cardDiv.appendChild(flipBtn);
+
+    cardDiv.onclick = () => {
+      if (selected.has(idx)) selected.delete(idx);
+      else selected.add(idx);
+      renderHand();
+    };
+
+    handAreaDiv.appendChild(cardDiv);
+  });
+}
+
+/* ============================================================
+   ACTION BUTTONS (SHOW / SCOUT / PASS)
+============================================================ */
+
+window.doShow = function () {
+  if (!myTurn) return alert("당신의 턴이 아닙니다.");
+  if (selected.size === 0) return alert("카드를 선택하세요.");
+
+  const selectedCards = [...selected].map(i => {
+    const card = myHand[i];
+    if (flipState[i] === "bottom")
+      return { top: card.bottom, bottom: card.top };
+    return { top: card.top, bottom: card.bottom };
+  });
+
+  const type = getComboType(selectedCards);
+  if (type === "invalid") return alert("세트 또는 런이 아닙니다.");
+
+  if (!isStrongerCombo(selectedCards, tableCards)) {
+    return alert("기존 테이블보다 약합니다.");
+  }
+
+  socket.emit("show", { roomId, cards: selectedCards });
+  selected.clear();
+  flipState = {};
+};
+
+/* ---------------------------------------
+   SCOUT
+---------------------------------------- */
+window.doScout = function () {
+  if (!myTurn) return alert("당신의 턴이 아닙니다.");
+  if (tableCards.length !== 1) return alert("테이블에 1장일 때만 가능합니다.");
+
+  const t = tableCards[0];
+  const chooseBottom = confirm(
+    `스카우트 방향 선택\n확인: bottom(${t.bottom})\n취소: top(${t.top})`
+  );
+
+  const chosenValue = chooseBottom ? "bottom" : "top";
+
+  socket.emit("scout", { roomId, chosenValue });
+
+  selected.clear();
+};
+
+/* ---------------------------------------
+   PASS
+---------------------------------------- */
+window.doPass = function () {
+  if (!myTurn) return alert("당신의 턴이 아닙니다.");
+  socket.emit("pass", { roomId });
+};
+
+/* ============================================================
+   POPUP CONTROLS
+============================================================ */
+
+window.closeRoundPopup = function () {
+  roundPopup.style.display = "none";
+};
+
+</script>
+
+</head>
+
+<body>
+
+<div id="topBar">
+  <div class="roundInfo" id="roundInfo">라운드 -</div>
+  <div class="turnInfo" id="turnInfo"></div>
+</div>
+
+<div id="playerList"></div>
+
+<h2 id="tableHeader">테이블</h2>
+<div id="tableArea"></div>
+
+<h2 id="handHeader">내 패 (<span id="myCount"></span>장)</h2>
+<div id="handArea"></div>
+
+<div id="actionArea">
+  <button id="btnShow" onclick="doShow()">SHOW</button>
+  <button id="btnScout" onclick="doScout()">SCOUT</button>
+  <button id="btnPass" onclick="doPass()">PASS</button>
+</div>
+
+<!-- 라운드 종료 팝업 -->
+<div id="roundPopup">
+  <div class="resultTitle">라운드 종료</div>
+  <div id="popupRoundResult"></div>
+  <button onclick="closeRoundPopup()">확인</button>
+</div>
+
+<!-- 게임 종료 팝업 -->
+<div id="gameEndPopup">
+  <div class="resultTitle">게임 종료</div>
+  <div id="popupFinalResult"></div>
+</div>
+
+</body>
+</html>

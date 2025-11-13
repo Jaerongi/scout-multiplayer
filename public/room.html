@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>SCOUT – 대기실</title>
+<link rel="stylesheet" href="style.css">
+
+<style>
+#roomBox {
+  background:#222;
+  padding:20px;
+  max-width:420px;
+  margin:0 auto;
+  border-radius:15px;
+  text-align:center;
+  margin-top:40px;
+}
+
+.playerItem {
+  background:#333;
+  padding:12px;
+  border-radius:10px;
+  margin:10px 0;
+}
+
+.ready {
+  color:#00ff99;
+  font-weight:bold;
+}
+
+.notReady {
+  color:#ff5555;
+  font-weight:bold;
+}
+</style>
+</head>
+<body>
+
+<div id="roomBox">
+  <h2>🎴 SCOUT – 대기실</h2>
+
+  <div style="margin-bottom:10px;">방 ID: <span id="roomId"></span></div>
+
+  <button id="copyBtn">초대 링크 복사</button>
+
+  <h3 style="margin-top:20px;">참여자 목록</h3>
+  <div id="playerList"></div>
+
+  <button id="readyBtn" style="margin-top:20px;">준비</button>
+  <button id="startBtn" disabled style="background:#00c853; margin-top:10px;">
+    게임 시작
+  </button>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script type="module">
+
+/* ---------------------------------------------------------
+   URL 파라미터 읽기
+---------------------------------------------------------*/
+const params = new URLSearchParams(location.search);
+const roomId = params.get("room");
+let nickname = params.get("name");
+
+if (!roomId) {
+  alert("방 ID가 없습니다.");
+  location.href = "start.html";
+}
+
+document.getElementById("roomId").innerText = roomId;
+
+/* ---------------------------------------------------------
+   SOCKET.IO 연결
+---------------------------------------------------------*/
+const socket = io();
+socket.emit("joinRoom", { roomId, nickname });
+
+let players = {};
+let myUid = null;
+
+/* ---------------------------------------------------------
+   내 UID 받기
+---------------------------------------------------------*/
+socket.on("connect", () => {
+  myUid = socket.id;
+});
+
+/* ---------------------------------------------------------
+   초대링크 복사
+---------------------------------------------------------*/
+document.getElementById("copyBtn").onclick = () => {
+  const link = `${location.origin}/room.html?room=${roomId}`;
+  navigator.clipboard.writeText(link);
+  alert("초대 링크가 복사되었습니다!\n" + link);
+};
+
+/* ---------------------------------------------------------
+   참가자 목록 갱신
+---------------------------------------------------------*/
+socket.on("playerListUpdate", (p) => {
+  players = p;
+  renderPlayers();
+
+  const everyoneReady = Object.values(players).every(pl => pl.ready);
+  const isHost = players[myUid]?.isHost === true;
+
+  document.getElementById("startBtn").disabled = !(everyoneReady && isHost);
+});
+
+/* ---------------------------------------------------------
+   참가자 목록 렌더링
+---------------------------------------------------------*/
+function renderPlayers() {
+  const box = document.getElementById("playerList");
+  box.innerHTML = "";
+
+  Object.values(players).forEach(p => {
+    const div = document.createElement("div");
+    div.className = "playerItem";
+    
+    div.innerHTML = `
+      <b>${p.nickname}</b><br>
+      <span class="${p.ready ? 'ready' : 'notReady'}">
+        ${p.ready ? 'READY' : 'WAIT'}
+      </span>
+      ${p.isHost ? ' (방장)' : ''}
+    `;
+
+    box.appendChild(div);
+  });
+}
+
+/* ---------------------------------------------------------
+   READY 버튼
+---------------------------------------------------------*/
+document.getElementById("readyBtn").onclick = () => {
+  socket.emit("playerReady", { roomId });
+};
+
+/* ---------------------------------------------------------
+   방장 → 게임 시작
+---------------------------------------------------------*/
+document.getElementById("startBtn").onclick = () => {
+  socket.emit("forceStartGame", { roomId });
+};
+
+/* ---------------------------------------------------------
+   서버에서 게임 시작 신호(goGame) 받으면 → game.html 이동
+---------------------------------------------------------*/
+socket.on("goGame", () => {
+  location.href = `game.html?room=${roomId}&name=${nickname}`;
+});
+
+</script>
+</body>
+</html>
