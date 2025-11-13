@@ -1,6 +1,5 @@
 // =========================================
 // SCOUT – ROOM PAGE LOGIC (대기실 UI)
-// (싱글 소켓 + SPA 구조)
 // =========================================
 
 import { socket, showPage, myUid, myName, roomId } from "./socket.js";
@@ -11,11 +10,11 @@ const readyBtn = document.getElementById("readyBtn");
 const startGameBtn = document.getElementById("startGameBtn");
 const copyInviteBtn = document.getElementById("copyInviteBtn");
 
-// 현재 방 정보 저장
+// 현재 방 정보
 let players = {};
 
 // =========================================
-// PLAYERS LIST 업데이트
+// 플레이어 리스트 업데이트
 // =========================================
 socket.on("playerListUpdate", (p) => {
   players = p;
@@ -24,7 +23,7 @@ socket.on("playerListUpdate", (p) => {
 });
 
 // =========================================
-// PLAYER LIST 렌더링
+// 플레이어 리스트 렌더링
 // =========================================
 function renderPlayerList() {
   playerListDiv.innerHTML = "";
@@ -37,28 +36,23 @@ function renderPlayerList() {
 
     box.innerHTML = `
       <b>${p.nickname}</b><br>
-      상태: ${p.ready ? "✔ READY" : "…" }<br>
-      방장: ${p.isHost ? "⭐" : ""}
+      상태: ${p.ready ? "✔ READY" : "대기중"}<br>
+      ${p.isHost ? "방장" : ""}
     `;
 
-    playerListDiv.appendChild(box);
+    playerListDiv.append(box);
   });
 }
 
 // =========================================
-// READY 버튼
+// READY 버튼 토글
 // =========================================
 readyBtn.onclick = () => {
-  if (!roomId) return;
-
   socket.emit("playerReady", { roomId });
 };
 
 // =========================================
-// 게임 시작 버튼 활성화 조건
-//   - 방장만 보임
-//   - 방장은 READY 필요 없음
-//   - 나머지 모든 플레이어가 READY여야 함
+// 게임 시작 버튼 활성화 상태 체크
 // =========================================
 function updateStartButtonState() {
   const me = players[myUid];
@@ -69,7 +63,6 @@ function updateStartButtonState() {
     return;
   }
 
-  // 나(방장)를 제외하고 모두 READY인지 체크
   const others = Object.values(players).filter(p => !p.isHost);
 
   const allReady = others.length > 0 && others.every(p => p.ready);
@@ -94,7 +87,7 @@ startGameBtn.onclick = () => {
 };
 
 // =========================================
-// 서버가 "goGame" 보내면 → 게임 화면으로 이동
+// 게임 페이지로 전환
 // =========================================
 socket.on("goGame", () => {
   showPage("gamePage");
