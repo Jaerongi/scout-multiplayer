@@ -2,21 +2,28 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<title>게임 화면</title>
+<title>SCOUT – 게임</title>
 <link rel="stylesheet" href="style.css" />
 <script src="/socket.io/socket.io.js"></script>
 <script type="module">
+
+/* ===============================
+   IMPORT
+================================= */
 import { drawScoutCard } from "./cardEngine.js";
 import { getComboType, isStrongerCombo } from "./shared.js";
 
+/* ===============================
+   URL PARAM
+================================= */
 const params = new URLSearchParams(location.search);
 const roomId = params.get("room");
 const myName = params.get("name");
 
+/* ===============================
+   SOCKET INIT
+================================= */
 const socket = io();
-
-// 게임 화면에서도 방 재입장 필수
-socket.emit("joinRoom", { roomId, nickname: myName });
 
 let myUid = null;
 let players = {};
@@ -26,24 +33,43 @@ let selected = new Set();
 let flipState = {};
 let myTurn = false;
 
+/* ===============================
+   방 재입장 (가장 중요!)
+================================= */
 socket.on("connect", () => {
   myUid = socket.id;
+  socket.emit("joinRoom", { roomId, nickname: myName });
 });
 
-// -----------------------------------
+/* ===============================
+   DOM
+================================= */
+const roundInfo = document.getElementById("roundInfo");
+const playerListDiv = document.getElementById("playerList");
+const tableAreaDiv = document.getElementById("tableArea");
+const handAreaDiv = document.getElementById("handArea");
+const myCountSpan = document.getElementById("myCount");
+
+/* ===============================
+   이벤트 핸들러
+================================= */
+
+// 플레이어 목록 갱신
 socket.on("playerListUpdate", (p) => {
   players = p;
   renderPlayers();
 });
 
-socket.on("roundStart", ({ round, players: p }) => {
+// 라운드 시작
+socket.on("roundStart", ({ round, players: p, startingPlayer }) => {
   players = p;
   tableCards = [];
-  document.getElementById("roundInfo").innerText = `라운드 ${round}`;
+  roundInfo.innerText = `라운드 ${round}`;
   renderPlayers();
   renderTable();
 });
 
+// 내 패 받음
 socket.on("yourHand", (hand) => {
   myHand = hand;
   selected.clear();
@@ -51,73 +77,97 @@ socket.on("yourHand", (hand) => {
   renderHand();
 });
 
-socket.on("handCountUpdate", (obj) => {
-  Object.keys(obj).forEach(uid => {
-    players[uid].handCount = obj[uid];
+// 손패 숫자 갱신
+socket.on("handCountUpdate", (countObj) => {
+  Object.keys(countObj).forEach(uid => {
+    players[uid].handCount = countObj[uid];
   });
   renderPlayers();
 });
 
+// 테이블 갱신
 socket.on("tableUpdate", (cards) => {
   tableCards = cards;
   renderTable();
 });
 
+// 턴 전환
 socket.on("turnChange", (uid) => {
   myTurn = (uid === myUid);
+  highlightTurn(uid);
 });
 
-// -------------------------------------
+/* ===============================
+   렌더링 - Player List
+================================= */
 function renderPlayers() {
-  const div = document.getElementById("playerList");
-  div.innerHTML = "";
+  playerListDiv.innerHTML = "";
 
   Object.values(players).forEach(p => {
     const box = document.createElement("div");
     box.className = "playerBox";
+    if (p.uid === myUid) box.style.background = "#333";
     box.innerHTML = `
       <b>${p.nickname}</b><br>
       패: ${p.handCount}장<br>
       점수: ${p.score}
     `;
-    div.append(box);
+    playerListDiv.appendChild(box);
   });
 }
 
+function highlightTurn(uid) {
+  const boxes = playerListDiv.children;
+  const list = Object.values(players);
+
+  for (let i = 0; i < list.length; i++) {
+    if (list[i].uid === uid)
+      boxes[i].classList.add("currentTurn");
+    else
+      boxes[i].classList.remove("currentTurn");
+  }
+}
+
+/* ===============================
+   렌더링 - Table
+================================= */
 function renderTable() {
-  const div = document.getElementById("tableArea");
-  div.innerHTML = "";
+  tableAreaDiv.innerHTML = "";
   if (tableCards.length === 0) {
-    div.innerHTML = "<span style='color:#777'>(비어 있음)</span>";
+    tableAreaDiv.innerHTML = "<span style='color:#777'>(비어 있음)</span>";
     return;
   }
-  tableCards.forEach(c => {
-    div.append(drawScoutCard(c.top, c.bottom, 90, 130));
+  tableCards.forEach(card => {
+    tableAreaDiv.append(drawScoutCard(card.top, card.bottom, 90, 130));
   });
 }
 
+/* ===============================
+   렌더링 - Hand
+================================= */
 function renderHand() {
-  const div = document.getElementById("handArea");
-  div.innerHTML = "";
-  document.getElementById("myCount").innerText = myHand.length;
+  handAreaDiv.innerHTML = "";
+  myCountSpan.innerText = myHand.length;
 
   myHand.forEach((card, idx) => {
-    const useBottom = flipState[idx] === "bottom";
-    const c = useBottom ? { top: card.bottom, bottom: card.top } : card;
+    const flipped = flipState[idx] === "bottom";
+    const c = flipped
+      ? { top: card.bottom, bottom: card.top }
+      : card;
 
     const wrap = document.createElement("div");
     wrap.className = "card-wrapper";
-
     if (selected.has(idx)) wrap.classList.add("selected");
 
-    wrap.append(drawScoutCard(c.top, c.bottom));
+    const canvas = drawScoutCard(c.top, c.bottom);
+    wrap.append(canvas);
 
     const flipBtn = document.createElement("div");
     flipBtn.className = "flip-btn";
     flipBtn.innerText = "↻";
     flipBtn.onclick = (e) => {
       e.stopPropagation();
-      flipState[idx] = useBottom ? "top" : "bottom";
+      flipState[idx] = flipped ? "top" : "bottom";
       renderHand();
     };
     wrap.append(flipBtn);
@@ -129,15 +179,16 @@ function renderHand() {
       renderHand();
     };
 
-    div.append(wrap);
+    handAreaDiv.append(wrap);
   });
 }
 
-// -------------------------------------
-// Buttons
-// -------------------------------------
+/* ===============================
+   SHOW
+================================= */
 window.doShow = function () {
-  if (!myTurn) return alert("turn 아님");
+  if (!myTurn) return alert("당신의 턴이 아닙니다.");
+  if (selected.size === 0) return alert("카드를 선택하세요.");
 
   const cards = [...selected].map(i => {
     const c = myHand[i];
@@ -147,32 +198,45 @@ window.doShow = function () {
   });
 
   if (getComboType(cards) === "invalid")
-    return alert("세트/런 아님");
+    return alert("세트/런이 아닙니다.");
 
   if (!isStrongerCombo(cards, tableCards))
-    return alert("더 약함");
+    return alert("기존 테이블보다 약합니다.");
 
   socket.emit("show", { roomId, cards });
 
   selected.clear();
+  flipState = {};
 };
 
+/* ===============================
+   SCOUT
+================================= */
 window.doScout = function () {
-  if (!myTurn) return alert("turn 아님");
-  if (tableCards.length !== 1) return alert("1장일 때만 스카우트");
+  if (!myTurn) return alert("당신의 턴이 아닙니다.");
+  if (tableCards.length !== 1)
+    return alert("스카우트는 테이블에 1장일 때만 가능합니다.");
 
-  const c = tableCards[0];
-  const choose = confirm(`bottom(${c.bottom})?`);
-  const chosenValue = choose ? "bottom" : "top";
+  const t = tableCards[0];
+  const chooseBottom = confirm(`bottom(${t.bottom})을 가져갈까요?\n취소 = top(${t.top})`);
 
+  const chosenValue = chooseBottom ? "bottom" : "top";
   socket.emit("scout", { roomId, chosenValue });
+
+  selected.clear();
 };
 
+/* ===============================
+   PASS
+================================= */
 window.doPass = function () {
-  if (!myTurn) return alert("turn 아님");
+  if (!myTurn) return alert("당신의 턴이 아닙니다.");
   socket.emit("pass", { roomId });
 };
+
 </script>
+</head>
+
 
 <body>
 
@@ -180,13 +244,16 @@ window.doPass = function () {
 
 <div class="gameLayout">
 
+  <!-- 왼쪽 플레이어 목록 -->
   <div id="playerList" class="sidePanel"></div>
 
+  <!-- 오른쪽 메인 -->
   <div class="mainPanel">
+
     <h3>테이블</h3>
     <div id="tableArea" class="tablePanel"></div>
 
-    <h3>내 패 (<span id="myCount"></span>)</h3>
+    <h3>내 패 (<span id="myCount">0</span>)</h3>
     <div id="handArea" class="handPanel"></div>
 
     <div class="buttonRow">
@@ -194,8 +261,8 @@ window.doPass = function () {
       <button onclick="doScout()">SCOUT</button>
       <button onclick="doPass()">PASS</button>
     </div>
-  </div>
 
+  </div>
 </div>
 
 </body>
