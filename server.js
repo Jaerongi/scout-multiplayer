@@ -35,41 +35,53 @@ io.on("connection", (socket) => {
      방 입장 (start.html → room.html)
   ---------------------------------------------------------*/
   socket.on("joinRoom", ({ roomId, nickname }) => {
-    socket.join(roomId);
 
-    // 방 없으면 생성
-    if (!rooms[roomId]) {
-      rooms[roomId] = {
-        roomId,
-        round: 1,
-        players: {},
-        deck: [],
-        tableCards: [],
-        turnOrder: [],
-        currentTurnIndex: 0,
-        startingPlayerIndex: 0,
-        maxRounds: 0
-      };
-    }
+  // 🚫 roomId 비정상 → 방 생성 금지
+  if (!roomId || roomId.trim() === "" || roomId === "undefined") {
+    socket.emit("errorMessage", "잘못된 방 코드입니다.");
+    return;
+  }
 
-    // 방 첫 번째 유저 → 방장
-    const isHost = Object.keys(rooms[roomId].players).length === 0;
+  // 🚫 nickname 비정상 → join 중단
+  if (!nickname || nickname.trim() === "") {
+    socket.emit("errorMessage", "닉네임이 없습니다.");
+    return;
+  }
 
-    rooms[roomId].players[socket.id] = {
-      uid: socket.id,
-      nickname,
-      ready: false,
-      isHost,
-      hand: [],
-      handCount: 0,
-      coins: 0,
-      score: 0
+  socket.join(roomId);
+
+  // 방 없으면 생성
+  if (!rooms[roomId]) {
+    rooms[roomId] = {
+      roomId,
+      round: 1,
+      players: {},
+      deck: [],
+      tableCards: [],
+      turnOrder: [],
+      currentTurnIndex: 0,
+      startingPlayerIndex: 0,
+      maxRounds: 0
     };
+  }
 
-    rooms[roomId].maxRounds = Object.keys(rooms[roomId].players).length;
+  // 방 첫 유저만 방장
+  const isHost = Object.keys(rooms[roomId].players).length === 0;
 
-    io.to(roomId).emit("playerListUpdate", rooms[roomId].players);
-  });
+  rooms[roomId].players[socket.id] = {
+    uid: socket.id,
+    nickname,
+    ready: false,
+    isHost,
+    hand: [],
+    handCount: 0,
+    coins: 0,
+    score: 0
+  };
+
+  io.to(roomId).emit("playerListUpdate", rooms[roomId].players);
+});
+
 
   /* ---------------------------------------------------------
      READY
@@ -305,3 +317,4 @@ function updateHandCounts(room) {
 server.listen(3000, "0.0.0.0", () => {
   console.log("🔥 SCOUT Multiplayer server running on :3000");
 });
+
