@@ -1,10 +1,11 @@
-// shared.js
-// 모든 공통 게임 로직을 담은 파일
-// 서버와 클라이언트에서 동일하게 사용됨
+// ===========================================
+//  SCOUT – 공통 로직 (서버/클라이언트 통합 엔진)
+//  v3 – 공식 덱 + 족보 판정 + 조합 비교 + 점수 계산
+// ===========================================
 
-/* -----------------------------
-   🎴 44장 SCOUT 공식 덱
-------------------------------*/
+/* ---------------------------------------
+   🎴 공식 44장 SCOUT 덱
+---------------------------------------- */
 export const SCOUT_DECK = [
   {top:1,bottom:7},{top:1,bottom:9},{top:1,bottom:5},{top:1,bottom:4},
   {top:2,bottom:6},{top:2,bottom:8},{top:2,bottom:9},{top:2,bottom:5},
@@ -19,21 +20,21 @@ export const SCOUT_DECK = [
   {top:1,bottom:3},{top:2,bottom:4},{top:5,bottom:7},{top:8,bottom:9},
 ];
 
-/* -----------------------------
-   🔀 셔플 (Fisher–Yates)
-------------------------------*/
+/* ---------------------------------------
+   🔀 셔플
+---------------------------------------- */
 export function shuffle(deck) {
   const arr = [...deck];
   for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i+1));
+    const j = Math.floor(Math.random() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
 }
 
-/* ----------------------------------------
-   🃏 멀티플레이 배분 (플레이어당 11장)
------------------------------------------*/
+/* ---------------------------------------
+   🃏 멀티플레이 패 배분 (1인당 11장)
+---------------------------------------- */
 export function dealForMultiplayer(playerCount) {
   let deck = shuffle(SCOUT_DECK);
   const hands = [];
@@ -43,29 +44,37 @@ export function dealForMultiplayer(playerCount) {
   }
 
   deck = deck.slice(playerCount * 11);
-
   return { hands, deck };
 }
 
-/* -----------------------------
-   🎯 세트/런 판정 보조
-------------------------------*/
-function getValues(cards) {
-  // top 숫자 기준으로 판단
+/* ---------------------------------------
+   🔁 카드 뒤집기 지원
+   (game.html에서 flip된 카드 처리 시 사용 가능)
+---------------------------------------- */
+export function applyFlip(card, flipped) {
+  return flipped
+    ? { top: card.bottom, bottom: card.top }
+    : { top: card.top, bottom: card.bottom };
+}
+
+/* ---------------------------------------
+   🎯 값 추출(top 기준)
+---------------------------------------- */
+export function getValues(cards) {
   return cards.map(c => c.top);
 }
 
-/* -----------------------------
-   🟦 SET 판정: 모두 같은 숫자
-------------------------------*/
+/* ---------------------------------------
+   🟦 SET 판정 (모두 같은 숫자)
+---------------------------------------- */
 export function isSet(cards) {
   const v = getValues(cards);
-  return v.every(x => x === v[0]);
+  return v.every(n => n === v[0]);
 }
 
-/* -----------------------------
-   🟩 RUN 판정: 연속 숫자
-------------------------------*/
+/* ---------------------------------------
+   🟩 RUN 판정 (연속 숫자)
+---------------------------------------- */
 export function isRun(cards) {
   let arr = getValues(cards).sort((a,b)=>a-b);
 
@@ -75,21 +84,22 @@ export function isRun(cards) {
   return true;
 }
 
-/* -----------------------------
-   🧩 조합 타입 반환
-------------------------------*/
+/* ---------------------------------------
+   🧩 조합 타입
+---------------------------------------- */
 export function getComboType(cards) {
-  if (cards.length === 0) return "invalid";
+  if (!cards || cards.length === 0) return "invalid";
+  if (cards.length === 1) return "single"; // 1장은 항상 OK
   if (isSet(cards)) return "set";
   if (isRun(cards)) return "run";
   return "invalid";
 }
 
-/* -----------------------------
-   ⚔ 조합 비교 (테이블보다 강한가?)
-------------------------------*/
+/* ---------------------------------------
+   ⚔ 조합 비교 (규칙 기반)
+---------------------------------------- */
 export function isStrongerCombo(newCards, oldCards) {
-  if (oldCards.length === 0) return true;  // 테이블이 비었으면 무조건 OK
+  if (oldCards.length === 0) return true;
 
   const typeNew = getComboType(newCards);
   const typeOld = getComboType(oldCards);
@@ -97,17 +107,47 @@ export function isStrongerCombo(newCards, oldCards) {
   if (typeNew !== typeOld) return false;
   if (newCards.length !== oldCards.length) return false;
 
-  // set 비교 → 숫자가 더 큰지
+  // SET → 숫자가 더 큰지
   if (typeNew === "set") {
     return newCards[0].top > oldCards[0].top;
   }
 
-  // run 비교 → 마지막 숫자 비교
+  // RUN → 마지막 숫자 비교
   if (typeNew === "run") {
     const maxNew = Math.max(...newCards.map(c => c.top));
     const maxOld = Math.max(...oldCards.map(c => c.top));
     return maxNew > maxOld;
   }
 
+  // SINGLE → 큰 숫자
+  if (typeNew === "single") {
+    return newCards[0].top > oldCards[0].top;
+  }
+
   return false;
+}
+
+/* ---------------------------------------
+   🧮 라운드 점수 계산
+---------------------------------------- */
+export function calculateRoundScore(player) {
+  // 손패 남은 수: -1점씩
+  let score = -player.handCount;
+
+  // 스카우트 코인 1개당 +1
+  score += player.coins;
+
+  return score;
+}
+
+/* ---------------------------------------
+   🧮 전체 라운드 종료 후 점수 적용
+---------------------------------------- */
+export function applyRoundScores(players) {
+  Object.values(players).forEach(p => {
+    const roundScore = calculateRoundScore(p);
+    p.score += roundScore;
+  });
+
+  return players;
 }
