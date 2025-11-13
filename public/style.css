@@ -1,37 +1,67 @@
 body {
   background:#111;
   color:white;
-  font-family:sans-serif;
+  font-family:Arial, sans-serif;
 }
 
 .center {
   text-align:center;
-  padding-top:60px;
-}
-
-.btn {
-  padding:12px 20px;
-  margin:8px;
-  font-size:18px;
-  border:none;
-  border-radius:12px;
-  background:#00c853;
-  color:white;
-  cursor:pointer;
+  margin-top:80px;
 }
 
 .input {
   padding:12px;
   font-size:18px;
-  margin:8px;
-  width:70%;
+  width:60%;
   border-radius:12px;
+  border:none;
+  margin-bottom:10px;
+}
+
+.btn {
+  padding:12px 20px;
+  font-size:18px;
+  margin:6px;
+  background:#00c853;
+  border:none;
+  border-radius:12px;
+  color:white;
+  cursor:pointer;
+}
+
+.playerList {
+  margin:10px auto;
+  width:300px;
 }
 
 .playerBox {
+  background:#222;
   padding:10px;
-  background:#333;
-  margin:5px;
+  margin:6px 0;
+  border-radius:10px;
+}
+
+.gameLayout {
+  display:flex;
+  padding:20px;
+}
+
+.sidePanel {
+  width:180px;
+  background:#222;
+  padding:10px;
+  border-radius:10px;
+}
+
+.mainPanel {
+  flex:1;
+  margin-left:20px;
+}
+
+.tablePanel, .handPanel {
+  background:#222;
+  min-height:120px;
+  padding:10px;
   border-radius:10px;
 }
 
@@ -54,4 +84,8 @@ body {
   font-size:14px;
   border-radius:6px;
   cursor:pointer;
+}
+
+.buttonRow {
+  margin-top:12px;
 }
