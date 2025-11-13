@@ -1,248 +1,57 @@
-/* ===========================
-   GLOBAL STYLE
-=========================== */
 body {
-  background: #1a1a1a;
-  color: #ffffff;
-  font-family: "Pretendard", "Noto Sans KR", sans-serif;
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;
+  background:#111;
+  color:white;
+  font-family:sans-serif;
 }
 
-h1, h2, h3 {
-  font-weight: 700;
-  margin: 10px 0;
+.center {
+  text-align:center;
+  padding-top:60px;
 }
 
-button {
-  padding: 12px 20px;
-  font-size: 18px;
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-  font-weight: bold;
-  margin: 5px;
-  transition: 0.15s;
+.btn {
+  padding:12px 20px;
+  margin:8px;
+  font-size:18px;
+  border:none;
+  border-radius:12px;
+  background:#00c853;
+  color:white;
+  cursor:pointer;
 }
 
-button:hover {
-  opacity: 0.85;
-  transform: translateY(-3px);
-}
-
-button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* ===========================
-   TOP STATUS BAR
-=========================== */
-#topBar {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 20px;
-  background: #111;
-  border-bottom: 2px solid #333;
-}
-
-#topBar .roundInfo {
-  font-size: 20px;
-  font-weight: bold;
-}
-
-#topBar .turnInfo {
-  font-size: 18px;
-  opacity: 0.8;
-}
-
-/* ===========================
-   PLAYER LIST
-=========================== */
-#playerList {
-  display: flex;
-  justify-content: center;
-  gap: 18px;
-  margin: 15px 0;
-  flex-wrap: wrap;
+.input {
+  padding:12px;
+  font-size:18px;
+  margin:8px;
+  width:70%;
+  border-radius:12px;
 }
 
 .playerBox {
-  background: #222;
-  padding: 10px 14px;
-  border-radius: 10px;
-  min-width: 140px;
-  text-align: center;
-  border: 2px solid #333;
-  transition: 0.2s;
-}
-
-.playerBox.currentTurn {
-  border: 2px solid #00f0ff;
-  box-shadow: 0 0 10px #00f0ff55;
-}
-
-.playerBox .name {
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.playerBox .score {
-  font-size: 16px;
-  margin-top: 4px;
-  opacity: 0.8;
-}
-
-.playerBox .handCount {
-  font-size: 14px;
-  opacity: 0.7;
-}
-
-/* ===========================
-   TABLE AREA (중앙)
-=========================== */
-
-#tableHeader {
-  text-align: center;
-  margin: 20px 0 10px;
-  font-size: 22px;
-  font-weight: bold;
-}
-
-#tableArea {
-  display: flex;
-  gap: 12px;
-  padding: 20px;
-  margin: 0 auto;
-  justify-content: center;
-  align-items: center;
-  min-height: 180px;
-  max-width: 900px;
-  border: 2px dashed #555;
-  border-radius: 16px;
-}
-
-/* ===========================
-   HAND AREA (내 패)
-=========================== */
-
-#handHeader {
-  margin-top: 25px;
-  font-size: 22px;
-  font-weight: bold;
-}
-
-#handArea {
-  display: flex;
-  gap: 15px;
-  padding: 18px;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-#handArea::-webkit-scrollbar {
-  display: none;
+  padding:10px;
+  background:#333;
+  margin:5px;
+  border-radius:10px;
 }
 
 .card-wrapper {
-  transition: 0.15s;
-  position: relative;
+  display:inline-block;
+  margin:4px;
+  position:relative;
 }
 
-.card-wrapper:hover {
-  transform: translateY(-8px);
-}
-
-/* 선택된 카드 */
 .card-wrapper.selected {
-  outline: 4px solid #00ff99;
-  border-radius: 14px;
+  outline:3px solid yellow;
 }
 
-/* 뒤집기 버튼 */
 .flip-btn {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background: #0009;
-  color: white;
-  padding: 4px 6px;
-  border-radius: 50%;
-  font-weight: bold;
-  cursor: pointer;
-  z-index: 10;
-  font-size: 14px;
-}
-
-/* ===========================
-   ACTION BUTTONS (SHOW/SCOUT)
-=========================== */
-
-#actionArea {
-  margin-top: 15px;
-  text-align: center;
-}
-
-#btnShow {
-  background: #00aaff;
-}
-
-#btnScout {
-  background: #ffa726;
-}
-
-#btnPass {
-  background: #777;
-}
-
-#btnShowScout {
-  background: #ba68c8;
-}
-
-/* ===========================
-   ROUND RESULT POPUP
-=========================== */
-#roundPopup, #gameEndPopup {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  width: 360px;
-  transform: translate(-50%, -50%);
-  background: #222;
-  color: white;
-  padding: 20px;
-  border-radius: 20px;
-  text-align: center;
-  display: none;
-  z-index: 999;
-  border: 3px solid #555;
-}
-
-.resultTitle {
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 12px;
-}
-
-#roundPopup button,
-#gameEndPopup button {
-  background: #00c853;
-  width: 100%;
-  margin-top: 18px;
-}
-
-/* ===========================
-   MOBILE SUPPORT
-=========================== */
-@media (max-width: 600px) {
-  #tableArea {
-    flex-wrap: wrap;
-    min-height: 140px;
-  }
-
-  #handArea {
-    gap: 10px;
-  }
+  position:absolute;
+  bottom:0;
+  right:0;
+  background:#444;
+  padding:4px;
+  font-size:14px;
+  border-radius:6px;
+  cursor:pointer;
 }
