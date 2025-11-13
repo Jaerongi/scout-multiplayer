@@ -1,10 +1,17 @@
 // =============================
-// SCOUT MULTIPLAYER v2 – SERVER
+// SCOUT MULTIPLAYER v3 – SERVER
+// shared.js와 완전 통합된 최신 안정판
 // =============================
 
 import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
+import { 
+  SCOUT_DECK,
+  shuffle,
+  dealForMultiplayer,
+  applyRoundScores
+} from "./public/shared.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -14,46 +21,13 @@ app.use(express.static("public"));
 
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
-  console.log("SCOUT SERVER STARTED:", PORT);
+  console.log("SCOUT SERVER START:", PORT);
 });
 
 // --------------------------------------
-// 방 정보 저장
+// 방 목록
 // --------------------------------------
 const rooms = {};
-
-// --------------------------------------
-// 카드 44장 생성
-// --------------------------------------
-function createDeck() {
-  const deck = [];
-  for (let t = 1; t <= 10; t++) {
-    for (let b = 1; b <= 10; b++) {
-      if (t !== b) deck.push({ top: t, bottom: b });
-    }
-  }
-  return deck;
-}
-
-// --------------------------------------
-function shuffle(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
-// --------------------------------------
-function dealForMultiplayer(playerCount) {
-  const deck = shuffle(createDeck());
-  const handSize = Math.floor(deck.length / playerCount);
-  const hands = [];
-  for (let i = 0; i < playerCount; i++) {
-    hands.push(deck.splice(0, handSize));
-  }
-  return { hands, deck };
-}
 
 // ======================================
 // SOCKET.IO
@@ -117,8 +91,8 @@ io.on("connection", (socket) => {
 
     io.to(roomId).emit("goGame");
 
-    // game.html 로 페이지 이동 후 joinRoom 재실행 → 500ms 지연 후 라운드 시작
-    setTimeout(() => startRound(room), 500);
+    // game.html 로딩 시간을 고려해 지연
+    setTimeout(() => startRound(room), 600);
   });
 
   // ------------------------------
@@ -132,7 +106,7 @@ io.on("connection", (socket) => {
     room.tableCards = cards;
 
     room.players[uid].hand = room.players[uid].hand.filter(c =>
-      !cards.some(cs => cs.top === c.top && cs.bottom === c.bottom)
+      !cards.some(cc => cc.top === c.top && cc.bottom === c.bottom)
     );
     room.players[uid].handCount = room.players[uid].hand.length;
 
@@ -151,12 +125,16 @@ io.on("connection", (socket) => {
     if (room.tableCards.length !== 1) return;
 
     const base = room.tableCards[0];
-    const card = chosenValue === "bottom"
-      ? { top: base.bottom, bottom: base.top }
-      : { top: base.top, bottom: base.bottom };
+
+    const card =
+      chosenValue === "bottom"
+        ? { top: base.bottom, bottom: base.top }
+        : { top: base.top, bottom: base.bottom };
 
     room.players[socket.id].hand.push(card);
     room.players[socket.id].handCount++;
+
+    room.players[socket.id].coins++;
 
     room.tableCards = [];
     io.to(roomId).emit("tableUpdate", room.tableCards);
@@ -178,11 +156,12 @@ io.on("connection", (socket) => {
   // 연결 종료
   // ------------------------------
   socket.on("disconnect", () => {
-    for (const id in rooms) {
-      const room = rooms[id];
+    for (const r in rooms) {
+      const room = rooms[r];
+
       if (room.players[socket.id]) {
         delete room.players[socket.id];
-        io.to(id).emit("playerListUpdate", room.players);
+        io.to(r).emit("playerListUpdate", room.players);
       }
     }
   });
@@ -215,8 +194,8 @@ function startRound(room) {
     startingPlayer: room.turnOrder[0]
   });
 
-  // 각 플레이어에게 자기 패 전달
-  for (let uid of uids) {
+  // 자기 패 전송
+  for (const uid of uids) {
     io.to(uid).emit("yourHand", room.players[uid].hand);
   }
 
