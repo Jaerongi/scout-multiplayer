@@ -1,161 +1,86 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<title>SCOUT – 대기실</title>
-<link rel="stylesheet" href="style.css">
-
-<style>
-#roomBox {
-  background:#222;
-  padding:20px;
-  max-width:420px;
-  margin:0 auto;
-  border-radius:15px;
-  text-align:center;
-  margin-top:40px;
-}
-
-.playerItem {
-  background:#333;
-  padding:12px;
-  border-radius:10px;
-  margin:10px 0;
-}
-
-.ready {
-  color:#00ff99;
-  font-weight:bold;
-}
-
-.notReady {
-  color:#ff5555;
-  font-weight:bold;
-}
-</style>
-
-<script>
-// =====================================================
-// 🔥 방장 꼬임 완전 방지: room.html 직접 접근 방지
-// =====================================================
-const params = new URLSearchParams(location.search);
-const roomId = params.get("room");
-const nickname = params.get("name");
-
-// ❌ roomId 없음 → start.html로
-if (!roomId || roomId.trim() === "" || roomId === "undefined") {
-  alert("잘못된 접근입니다. 방을 생성하거나 초대 링크로 들어오세요.");
-  location.href = "start.html";
-}
-
-// ❌ nickname 없음 → enter.html로
-if (!nickname || nickname.trim() === "") {
-  location.href = `enter.html?room=${roomId}`;
-}
-</script>
-
+<meta charset="UTF-8" />
+<title>대기방</title>
+<link rel="stylesheet" href="style.css" />
+<script src="/socket.io/socket.io.js"></script>
 </head>
+
 <body>
+<div class="center">
 
-<div id="roomBox">
-  <h2>🎴 SCOUT – 대기실</h2>
+  <h2 id="roomTitle"></h2>
 
-  <div style="margin-bottom:10px;">방 ID: <span id="roomIdSpan"></span></div>
-
-  <button id="copyBtn">초대 링크 복사</button>
-
-  <h3 style="margin-top:20px;">참여자 목록</h3>
   <div id="playerList"></div>
 
-  <button id="readyBtn" style="margin-top:20px;">준비</button>
-  <button id="startBtn" disabled style="background:#00c853; margin-top:10px;">
-    게임 시작
-  </button>
+  <button id="readyBtn" class="btn">READY</button>
+  <button id="startBtn" class="btn" disabled>게임 시작</button>
+
+  <button id="copyBtn" class="btn">초대 링크 복사</button>
+
 </div>
 
-<script src="/socket.io/socket.io.js"></script>
-<script type="module">
+<script>
+const params = new URLSearchParams(location.search);
+const roomId = params.get("room");
+const myName = params.get("name");
 
-document.getElementById("roomIdSpan").innerText = roomId;
+document.getElementById("roomTitle").innerText =
+  `방 ID: ${roomId}`;
 
 const socket = io();
-socket.emit("joinRoom", { roomId, nickname });
 
 let players = {};
 let myUid = null;
 
 socket.on("connect", () => {
   myUid = socket.id;
+  socket.emit("joinRoom", { roomId, nickname: myName });
 });
 
-/* ---------------------------------------------------------
-   초대 링크 복사 → enter.html로 초대
----------------------------------------------------------*/
-document.getElementById("copyBtn").onclick = () => {
-  const link = `${location.origin}/enter.html?room=${roomId}`;
-  navigator.clipboard.writeText(link);
-  alert("초대 링크가 복사되었습니다!\n" + link);
-};
-
-/* ---------------------------------------------------------
-   참가자 목록 갱신
----------------------------------------------------------*/
 socket.on("playerListUpdate", (p) => {
   players = p;
   renderPlayers();
 
   const allReady = Object.values(players).every(pl => pl.ready);
-  const isHost = players[myUid]?.isHost === true;
+  const isHost = players[myUid]?.isHost;
 
   document.getElementById("startBtn").disabled = !(allReady && isHost);
 });
 
-
-/* ---------------------------------------------------------
-   리스트 렌더
----------------------------------------------------------*/
 function renderPlayers() {
-  const box = document.getElementById("playerList");
-  box.innerHTML = "";
+  const list = document.getElementById("playerList");
+  list.innerHTML = "";
 
   Object.values(players).forEach(p => {
     const div = document.createElement("div");
-    div.className = "playerItem";
-    
+    div.className = "playerBox";
     div.innerHTML = `
       <b>${p.nickname}</b><br>
-      <span class="${p.ready ? 'ready' : 'notReady'}">
-        ${p.ready ? 'READY' : 'WAIT'}
-      </span>
-      ${p.isHost ? ' (방장)' : ''}
+      READY: ${p.ready}
     `;
-    box.appendChild(div);
+    list.append(div);
   });
 }
 
-/* ---------------------------------------------------------
-   READY
----------------------------------------------------------*/
 document.getElementById("readyBtn").onclick = () => {
   socket.emit("playerReady", { roomId });
 };
 
-/* ---------------------------------------------------------
-   방장 → 게임 시작
----------------------------------------------------------*/
 document.getElementById("startBtn").onclick = () => {
   socket.emit("forceStartGame", { roomId });
 };
 
-/* ---------------------------------------------------------
-   게임 이동
----------------------------------------------------------*/
-socket.on("goGame", () => {
-  location.href = `game.html?room=${roomId}&name=${nickname}`;
-});
+document.getElementById("copyBtn").onclick = () => {
+  const link = `${location.origin}/enter.html?room=${roomId}`;
+  navigator.clipboard.writeText(link);
+  alert("초대링크 복사됨:\n" + link);
+};
 
+socket.on("goGame", () => {
+  location.href = `game.html?room=${roomId}&name=${myName}`;
+});
 </script>
 </body>
 </html>
-
-
