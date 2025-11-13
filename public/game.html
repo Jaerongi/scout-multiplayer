@@ -61,8 +61,6 @@ let myTurn = false;
 /* ============================================================
    JOIN ROOM (게임 화면 진입)
 ============================================================ */
-socket.emit("joinRoom", { roomId, nickname: myName });
-
 socket.on("connect", () => {
   myUid = socket.id;
 });
@@ -318,3 +316,4 @@ window.closeRoundPopup = function () {
 
 </body>
 </html>
+
