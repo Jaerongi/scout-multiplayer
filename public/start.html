@@ -1,46 +1,53 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<title>SCOUT – 시작하기</title>
+<meta charset="UTF-8" />
+<title>SCOUT – 시작</title>
+
 <style>
 body {
   background:#111;
   color:white;
   text-align:center;
+  padding-top:100px;
   font-family:sans-serif;
-  margin-top:100px;
 }
 input, button {
   padding:15px;
   font-size:18px;
+  margin:10px;
   border-radius:12px;
   border:none;
-  margin:10px;
 }
-button { background:#00c853; color:white; cursor:pointer; }
+button {
+  background:#00c853;
+  color:white;
+  cursor:pointer;
+}
+#container {
+  max-width:400px;
+  margin:auto;
+}
 </style>
 </head>
 <body>
 
-<h1>🎴 SCOUT ONLINE</h1>
+<div id="container">
+  <h2>🎴 SCOUT MULTIPLAYER</h2>
 
-<input id="nickname" placeholder="닉네임 입력" />
+  <input id="nickname" placeholder="닉네임 입력" />
 
-<br>
-
-<button onclick="createRoom()">방 만들기</button>
+  <button onclick="createRoom()">방 만들기</button>
+</div>
 
 <script>
 function createRoom() {
-  const nickname = document.getElementById("nickname").value.trim();
-  if (!nickname) return alert("닉네임을 입력하세요!");
+  const name = document.getElementById("nickname").value.trim();
+  if (!name) return alert("닉네임을 입력하세요!");
 
-  // 랜덤 방 ID 생성
-  const roomId = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const roomId = Math.random().toString(36).substring(2,8).toUpperCase();
 
-  // 방장으로 대기실로 이동
-  location.href = `room.html?room=${roomId}&name=${nickname}`;
+  location.href = `room.html?room=${roomId}&name=${name}`;
 }
 </script>
 
