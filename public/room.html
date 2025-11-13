@@ -35,16 +35,21 @@
 </style>
 
 <script>
-/* ---------------------------------------------------------
-   🔥 첫 진입 시 nick(name)이 없으면 자동으로 enter.html로 보내기
----------------------------------------------------------*/
-const query = new URLSearchParams(location.search);
-const roomId = query.get("room");
-const nickname = query.get("name");
+// =====================================================
+// 🔥 방장 꼬임 완전 방지: room.html 직접 접근 방지
+// =====================================================
+const params = new URLSearchParams(location.search);
+const roomId = params.get("room");
+const nickname = params.get("name");
 
-// ❌ nickname 없는 상태로 room.html에 들어온 경우
+// ❌ roomId 없음 → start.html로
+if (!roomId || roomId.trim() === "" || roomId === "undefined") {
+  alert("잘못된 접근입니다. 방을 생성하거나 초대 링크로 들어오세요.");
+  location.href = "start.html";
+}
+
+// ❌ nickname 없음 → enter.html로
 if (!nickname || nickname.trim() === "") {
-  // enter.html 로 강제 이동
   location.href = `enter.html?room=${roomId}`;
 }
 </script>
@@ -55,7 +60,7 @@ if (!nickname || nickname.trim() === "") {
 <div id="roomBox">
   <h2>🎴 SCOUT – 대기실</h2>
 
-  <div style="margin-bottom:10px;">방 ID: <span id="roomId"></span></div>
+  <div style="margin-bottom:10px;">방 ID: <span id="roomIdSpan"></span></div>
 
   <button id="copyBtn">초대 링크 복사</button>
 
@@ -71,21 +76,14 @@ if (!nickname || nickname.trim() === "") {
 <script src="/socket.io/socket.io.js"></script>
 <script type="module">
 
-const params = new URLSearchParams(location.search);
-const roomId2 = params.get("room");
-const nickname2 = params.get("name");
-
-document.getElementById("roomId").innerText = roomId2;
+document.getElementById("roomIdSpan").innerText = roomId;
 
 const socket = io();
-socket.emit("joinRoom", { roomId: roomId2, nickname: nickname2 });
+socket.emit("joinRoom", { roomId, nickname });
 
 let players = {};
 let myUid = null;
 
-/* ---------------------------------------------------------
-   내 UID
----------------------------------------------------------*/
 socket.on("connect", () => {
   myUid = socket.id;
 });
@@ -94,7 +92,7 @@ socket.on("connect", () => {
    초대 링크 복사 → enter.html로 초대
 ---------------------------------------------------------*/
 document.getElementById("copyBtn").onclick = () => {
-  const link = `${location.origin}/enter.html?room=${roomId2}`;
+  const link = `${location.origin}/enter.html?room=${roomId}`;
   navigator.clipboard.writeText(link);
   alert("초대 링크가 복사되었습니다!\n" + link);
 };
@@ -138,21 +136,21 @@ function renderPlayers() {
    READY
 ---------------------------------------------------------*/
 document.getElementById("readyBtn").onclick = () => {
-  socket.emit("playerReady", { roomId: roomId2 });
+  socket.emit("playerReady", { roomId });
 };
 
 /* ---------------------------------------------------------
    방장 → 게임 시작
 ---------------------------------------------------------*/
 document.getElementById("startBtn").onclick = () => {
-  socket.emit("forceStartGame", { roomId: roomId2 });
+  socket.emit("forceStartGame", { roomId });
 };
 
 /* ---------------------------------------------------------
    게임 이동
 ---------------------------------------------------------*/
 socket.on("goGame", () => {
-  location.href = `game.html?room=${roomId2}&name=${nickname2}`;
+  location.href = `game.html?room=${roomId}&name=${nickname}`;
 });
 
 </script>
