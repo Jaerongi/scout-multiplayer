@@ -3,7 +3,6 @@
 // (싱글 소켓 + SPA 구조)
 // ==========================================
 
-import { socket, showPage, myUid, myName, roomId } from "./socket.js";
 import { drawScoutCard } from "./cardEngine.js";
 import { getComboType, isStrongerCombo } from "./shared.js";
 
@@ -237,3 +236,4 @@ passBtn.onclick = () => {
   if (!myTurn) return alert("당신의 턴이 아닙니다.");
   socket.emit("pass", { roomId });
 };
+
