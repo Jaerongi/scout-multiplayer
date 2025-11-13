@@ -8,19 +8,20 @@
 
 <body>
 <div class="center">
-  <h2>🎴 SCOUT MULTIPLAYER</h2>
+  <h1>🎴 SCOUT MULTIPLAYER</h1>
 
-  <input id="nickname" placeholder="닉네임 입력" class="input"/>
-  <button onclick="createRoom()" class="btn">방 만들기</button>
+  <input id="nickname" placeholder="닉네임 입력" class="input" />
+
+  <button class="btn" onclick="createRoom()">방 만들기</button>
 </div>
 
 <script>
 function createRoom() {
   const name = document.getElementById("nickname").value.trim();
-  if (!name) return alert("닉네임을 입력하세요!");
+  if (!name) return alert("닉네임 입력!");
 
-  const roomId = Math.random().toString(36).substring(2,8).toUpperCase();
-  location.href = `room.html?room=${roomId}&name=${name}`;
+  const id = Math.random().toString(36).substring(2, 8).toUpperCase();
+  location.href = `room.html?room=${id}&name=${name}`;
 }
 </script>
 </body>
