@@ -89,7 +89,7 @@ socket.on("connect", () => {
    초대링크 복사
 ---------------------------------------------------------*/
 document.getElementById("copyBtn").onclick = () => {
-  const link = `${location.origin}/room.html?room=${roomId}`;
+  const link = `${location.origin}/enter.html?room=${roomId}`;
   navigator.clipboard.writeText(link);
   alert("초대 링크가 복사되었습니다!\n" + link);
 };
@@ -154,3 +154,4 @@ socket.on("goGame", () => {
 </script>
 </body>
 </html>
+
