@@ -98,19 +98,19 @@ io.on("connection", (socket) => {
   /* ---------------------------------------------------------
      방장 → 게임 시작
   ---------------------------------------------------------*/
-  socket.on("forceStartGame", ({ roomId }) => {
-    const room = rooms[roomId];
-    if (!room) return;
+socket.on("forceStartGame", ({ roomId }) => {
+  const room = rooms[roomId];
+  if (!room) return;
 
-    const allReady = Object.values(room.players).every(p => p.ready);
-    if (!allReady) return;
+  // 1) 먼저 게임 화면으로 이동
+  io.to(roomId).emit("goGame");
 
-    // 모든 사람에게 game.html로 이동하라는 신호
-    io.to(roomId).emit("goGame");
+  // 2) 조금 딜레이 후 라운드 시작
+  setTimeout(() => {
+    startRound(room);
+  }, 300); // 화면 로딩을 위한 0.3초 딜레이
+});
 
-    // 딜레이 후 실제 라운드 시작
-    setTimeout(() => startRound(room), 300);
-  });
 
   /* ---------------------------------------------------------
      SHOW
@@ -317,4 +317,5 @@ function updateHandCounts(room) {
 server.listen(3000, "0.0.0.0", () => {
   console.log("🔥 SCOUT Multiplayer server running on :3000");
 });
+
 
