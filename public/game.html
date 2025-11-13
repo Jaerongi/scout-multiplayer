@@ -13,20 +13,15 @@ const params = new URLSearchParams(location.search);
 const roomId = params.get("room");
 const myName = params.get("name");
 
-if (!roomId || !myName) {
-  alert("잘못된 접근");
-  location.href = "start.html";
-}
-
 const socket = io();
 
-// 게임 화면에서도 반드시 joinRoom 해야 socket이 방에 속함
+// 게임 화면에서도 방 재입장 필수
 socket.emit("joinRoom", { roomId, nickname: myName });
 
 let myUid = null;
 let players = {};
-let myHand = [];
 let tableCards = [];
+let myHand = [];
 let selected = new Set();
 let flipState = {};
 let myTurn = false;
@@ -35,41 +30,20 @@ socket.on("connect", () => {
   myUid = socket.id;
 });
 
-// ------------------- player list -------------------
-const playerListDiv = document.getElementById("playerList");
-const tableAreaDiv = document.getElementById("tableArea");
-const handAreaDiv = document.getElementById("handArea");
-const roundInfo = document.getElementById("roundInfo");
-const myCountSpan = document.getElementById("myCount");
-
+// -----------------------------------
 socket.on("playerListUpdate", (p) => {
   players = p;
   renderPlayers();
 });
 
-function renderPlayers() {
-  playerListDiv.innerHTML = "";
-  Object.values(players).forEach(p => {
-    const div = document.createElement("div");
-    div.className = "playerBox";
-    div.innerHTML = `
-      <b>${p.nickname}</b><br>
-      패: ${p.handCount}장<br>
-      점수: ${p.score}
-    `;
-    playerListDiv.append(div);
-  });
-}
-
-// ------------------- round -------------------
-socket.on("roundStart", ({ round, players: pl, startingPlayer }) => {
-  players = pl;
-  roundInfo.innerText = `라운드 ${round}`;
+socket.on("roundStart", ({ round, players: p }) => {
+  players = p;
   tableCards = [];
+  document.getElementById("roundInfo").innerText = `라운드 ${round}`;
+  renderPlayers();
   renderTable();
 });
 
-// ------------------- hand -------------------
 socket.on("yourHand", (hand) => {
   myHand = hand;
   selected.clear();
@@ -84,35 +58,51 @@ socket.on("handCountUpdate", (obj) => {
   renderPlayers();
 });
 
-// ------------------- table -------------------
 socket.on("tableUpdate", (cards) => {
   tableCards = cards;
   renderTable();
 });
 
-// ------------------- turn -------------------
 socket.on("turnChange", (uid) => {
   myTurn = (uid === myUid);
 });
 
-// ------------------- render functions -------------------
+// -------------------------------------
+function renderPlayers() {
+  const div = document.getElementById("playerList");
+  div.innerHTML = "";
+
+  Object.values(players).forEach(p => {
+    const box = document.createElement("div");
+    box.className = "playerBox";
+    box.innerHTML = `
+      <b>${p.nickname}</b><br>
+      패: ${p.handCount}장<br>
+      점수: ${p.score}
+    `;
+    div.append(box);
+  });
+}
+
 function renderTable() {
-  tableAreaDiv.innerHTML = "";
+  const div = document.getElementById("tableArea");
+  div.innerHTML = "";
   if (tableCards.length === 0) {
-    tableAreaDiv.innerHTML = "<span style='color:#aaa'>(비어있음)</span>";
+    div.innerHTML = "<span style='color:#777'>(비어 있음)</span>";
     return;
   }
   tableCards.forEach(c => {
-    tableAreaDiv.append(drawScoutCard(c.top, c.bottom, 90, 130));
+    div.append(drawScoutCard(c.top, c.bottom, 90, 130));
   });
 }
 
 function renderHand() {
-  handAreaDiv.innerHTML = "";
-  myCountSpan.innerText = myHand.length;
+  const div = document.getElementById("handArea");
+  div.innerHTML = "";
+  document.getElementById("myCount").innerText = myHand.length;
 
   myHand.forEach((card, idx) => {
-    const useBottom = (flipState[idx] === "bottom");
+    const useBottom = flipState[idx] === "bottom";
     const c = useBottom ? { top: card.bottom, bottom: card.top } : card;
 
     const wrap = document.createElement("div");
@@ -133,18 +123,21 @@ function renderHand() {
     wrap.append(flipBtn);
 
     wrap.onclick = () => {
-      selected.has(idx) ? selected.delete(idx) : selected.add(idx);
+      selected.has(idx)
+        ? selected.delete(idx)
+        : selected.add(idx);
       renderHand();
     };
 
-    handAreaDiv.append(wrap);
+    div.append(wrap);
   });
 }
 
-// ------------------- buttons -------------------
+// -------------------------------------
+// Buttons
+// -------------------------------------
 window.doShow = function () {
-  if (!myTurn) return alert("당신의 턴이 아닙니다.");
-  if (selected.size === 0) return alert("카드를 선택하세요");
+  if (!myTurn) return alert("turn 아님");
 
   const cards = [...selected].map(i => {
     const c = myHand[i];
@@ -154,29 +147,29 @@ window.doShow = function () {
   });
 
   if (getComboType(cards) === "invalid")
-    return alert("세트/런이 아닙니다.");
+    return alert("세트/런 아님");
 
   if (!isStrongerCombo(cards, tableCards))
-    return alert("더 강한 족보가 아닙니다.");
+    return alert("더 약함");
 
   socket.emit("show", { roomId, cards });
+
   selected.clear();
 };
 
 window.doScout = function () {
-  if (!myTurn) return alert("당신의 턴이 아닙니다.");
-  if (tableCards.length !== 1)
-    return alert("스카우트는 한 장일 때만 가능합니다.");
+  if (!myTurn) return alert("turn 아님");
+  if (tableCards.length !== 1) return alert("1장일 때만 스카우트");
 
   const c = tableCards[0];
-  const bottom = confirm(`스카우트 방향 선택?\n확인: bottom(${c.bottom})`);
-  const chosenValue = bottom ? "bottom" : "top";
+  const choose = confirm(`bottom(${c.bottom})?`);
+  const chosenValue = choose ? "bottom" : "top";
 
   socket.emit("scout", { roomId, chosenValue });
 };
 
 window.doPass = function () {
-  if (!myTurn) return alert("당신의 턴이 아닙니다.");
+  if (!myTurn) return alert("turn 아님");
   socket.emit("pass", { roomId });
 };
 </script>
@@ -185,18 +178,24 @@ window.doPass = function () {
 
 <h2 id="roundInfo">라운드 -</h2>
 
-<div id="playerList"></div>
+<div class="gameLayout">
 
-<h3>테이블</h3>
-<div id="tableArea"></div>
+  <div id="playerList" class="sidePanel"></div>
 
-<h3>내 패 (<span id="myCount"></span>)</h3>
-<div id="handArea"></div>
+  <div class="mainPanel">
+    <h3>테이블</h3>
+    <div id="tableArea" class="tablePanel"></div>
 
-<div id="actionArea">
-  <button onclick="doShow()">SHOW</button>
-  <button onclick="doScout()">SCOUT</button>
-  <button onclick="doPass()">PASS</button>
+    <h3>내 패 (<span id="myCount"></span>)</h3>
+    <div id="handArea" class="handPanel"></div>
+
+    <div class="buttonRow">
+      <button onclick="doShow()">SHOW</button>
+      <button onclick="doScout()">SCOUT</button>
+      <button onclick="doPass()">PASS</button>
+    </div>
+  </div>
+
 </div>
 
 </body>
