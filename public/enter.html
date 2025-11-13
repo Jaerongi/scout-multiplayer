@@ -8,25 +8,21 @@
 
 <body>
 <div class="center">
-
   <h2>닉네임 설정</h2>
-  <input id="nickname" placeholder="닉네임 입력" class="input"/>
+  <input id="nickname" class="input" placeholder="닉네임 입력" />
 
-  <button onclick="join()" class="btn">입장</button>
-
+  <button class="btn" onclick="enter()">입장</button>
 </div>
 
 <script>
-const params = new URLSearchParams(location.search);
-const roomId = params.get("room");
+const roomId = new URLSearchParams(location.search).get("room");
 
-function join() {
-  const name = document.getElementById("nickname").value.trim();
-  if (!name) return alert("닉네임 입력!");
+function enter() {
+  const n = document.getElementById("nickname").value.trim();
+  if (!n) return alert("닉네임 입력!");
 
-  location.href = `room.html?room=${roomId}&name=${name}`;
+  location.href = `room.html?room=${roomId}&name=${n}`;
 }
 </script>
-
 </body>
 </html>
