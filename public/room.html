@@ -33,6 +33,22 @@
   font-weight:bold;
 }
 </style>
+
+<script>
+/* ---------------------------------------------------------
+   🔥 첫 진입 시 nick(name)이 없으면 자동으로 enter.html로 보내기
+---------------------------------------------------------*/
+const query = new URLSearchParams(location.search);
+const roomId = query.get("room");
+const nickname = query.get("name");
+
+// ❌ nickname 없는 상태로 room.html에 들어온 경우
+if (!nickname || nickname.trim() === "") {
+  // enter.html 로 강제 이동
+  location.href = `enter.html?room=${roomId}`;
+}
+</script>
+
 </head>
 <body>
 
@@ -55,41 +71,30 @@
 <script src="/socket.io/socket.io.js"></script>
 <script type="module">
 
-/* ---------------------------------------------------------
-   URL 파라미터 읽기
----------------------------------------------------------*/
 const params = new URLSearchParams(location.search);
-const roomId = params.get("room");
-let nickname = params.get("name");
+const roomId2 = params.get("room");
+const nickname2 = params.get("name");
 
-if (!roomId) {
-  alert("방 ID가 없습니다.");
-  location.href = "start.html";
-}
+document.getElementById("roomId").innerText = roomId2;
 
-document.getElementById("roomId").innerText = roomId;
-
-/* ---------------------------------------------------------
-   SOCKET.IO 연결
----------------------------------------------------------*/
 const socket = io();
-socket.emit("joinRoom", { roomId, nickname });
+socket.emit("joinRoom", { roomId: roomId2, nickname: nickname2 });
 
 let players = {};
 let myUid = null;
 
 /* ---------------------------------------------------------
-   내 UID 받기
+   내 UID
 ---------------------------------------------------------*/
 socket.on("connect", () => {
   myUid = socket.id;
 });
 
 /* ---------------------------------------------------------
-   초대링크 복사
+   초대 링크 복사 → enter.html로 초대
 ---------------------------------------------------------*/
 document.getElementById("copyBtn").onclick = () => {
-  const link = `${location.origin}/enter.html?room=${roomId}`;
+  const link = `${location.origin}/enter.html?room=${roomId2}`;
   navigator.clipboard.writeText(link);
   alert("초대 링크가 복사되었습니다!\n" + link);
 };
@@ -108,7 +113,7 @@ socket.on("playerListUpdate", (p) => {
 });
 
 /* ---------------------------------------------------------
-   참가자 목록 렌더링
+   리스트 렌더
 ---------------------------------------------------------*/
 function renderPlayers() {
   const box = document.getElementById("playerList");
@@ -125,33 +130,31 @@ function renderPlayers() {
       </span>
       ${p.isHost ? ' (방장)' : ''}
     `;
-
     box.appendChild(div);
   });
 }
 
 /* ---------------------------------------------------------
-   READY 버튼
+   READY
 ---------------------------------------------------------*/
 document.getElementById("readyBtn").onclick = () => {
-  socket.emit("playerReady", { roomId });
+  socket.emit("playerReady", { roomId: roomId2 });
 };
 
 /* ---------------------------------------------------------
    방장 → 게임 시작
 ---------------------------------------------------------*/
 document.getElementById("startBtn").onclick = () => {
-  socket.emit("forceStartGame", { roomId });
+  socket.emit("forceStartGame", { roomId: roomId2 });
 };
 
 /* ---------------------------------------------------------
-   서버에서 게임 시작 신호(goGame) 받으면 → game.html 이동
+   게임 이동
 ---------------------------------------------------------*/
 socket.on("goGame", () => {
-  location.href = `game.html?room=${roomId}&name=${nickname}`;
+  location.href = `game.html?room=${roomId2}&name=${nickname2}`;
 });
 
 </script>
 </body>
 </html>
-
