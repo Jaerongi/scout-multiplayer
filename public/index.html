@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<title>SCOUT MULTIPLAYER</title>
+<link rel="stylesheet" href="style.css" />
+<script src="/socket.io/socket.io.js"></script>
+<script type="module" src="./socket.js"></script>
+</head>
+
+<body>
+
+<!-- =======================
+     START 화면
+======================= -->
+<div id="startPage">
+  <h2>닉네임을 입력하세요</h2>
+  <input id="nicknameInput" placeholder="닉네임">
+  <button id="makeRoomBtn">방 만들기</button>
+  <button id="enterRoomBtn">초대 링크 입장</button>
+</div>
+
+<!-- =======================
+     ROOM 화면
+======================= -->
+<div id="roomPage" style="display:none;">
+  <h2 id="roomTitle"></h2>
+  <div id="playerList"></div>
+  
+  <button id="readyBtn">READY</button>
+  <button id="startGameBtn" style="display:none;">게임 시작</button>
+
+  <button id="copyInviteBtn">초대 링크 복사</button>
+</div>
+
+<!-- =======================
+     GAME 화면
+======================= -->
+<div id="gamePage" style="display:none;">
+  <h2 id="roundInfo">라운드 -</h2>
+
+  <div class="gameLayout">
+    <div id="gamePlayerList" class="sidePanel"></div>
+
+    <div class="mainPanel">
+      <h3>테이블</h3>
+      <div id="tableArea"></div>
+
+      <h3>내 패 (<span id="myCount">0</span>)</h3>
+      <div id="handArea"></div>
+
+      <div class="buttonRow">
+        <button id="showBtn">SHOW</button>
+        <button id="scoutBtn">SCOUT</button>
+        <button id="passBtn">PASS</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
