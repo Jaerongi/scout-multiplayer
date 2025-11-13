@@ -1,55 +1,30 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<title>닉네임 입력</title>
-
-<style>
-body {
-  background:#111;
-  color:white;
-  text-align:center;
-  margin-top:100px;
-  font-family:sans-serif;
-}
-input, button {
-  padding:15px;
-  font-size:18px;
-  margin:10px;
-  border-radius:12px;
-  border:none;
-}
-button {
-  background:#00c853;
-  color:white;
-  cursor:pointer;
-}
-</style>
+<meta charset="UTF-8" />
+<title>방 입장</title>
+<link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
+<div class="center">
 
-<h2>🎴 SCOUT – 닉네임 입력</h2>
+  <h2>닉네임 설정</h2>
+  <input id="nickname" placeholder="닉네임 입력" class="input"/>
 
-<input id="nickname" placeholder="닉네임" />
+  <button onclick="join()" class="btn">입장</button>
 
-<br>
-
-<button onclick="goRoom()">입장하기</button>
+</div>
 
 <script>
-function goRoom() {
-  const nickname = document.getElementById("nickname").value.trim();
-  if (!nickname) return alert("닉네임을 입력하세요!");
+const params = new URLSearchParams(location.search);
+const roomId = params.get("room");
 
-  const params = new URLSearchParams(location.search);
-  const roomId = params.get("room");
+function join() {
+  const name = document.getElementById("nickname").value.trim();
+  if (!name) return alert("닉네임 입력!");
 
-  if (!roomId) {
-    alert("방 ID가 없습니다.");
-    return;
-  }
-
-  location.href = `room.html?room=${roomId}&name=${nickname}`;
+  location.href = `room.html?room=${roomId}&name=${name}`;
 }
 </script>
 
