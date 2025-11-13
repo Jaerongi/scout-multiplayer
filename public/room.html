@@ -104,15 +104,12 @@ socket.on("playerListUpdate", (p) => {
   players = p;
   renderPlayers();
 
+  const allReady = Object.values(players).every(pl => pl.ready);
   const isHost = players[myUid]?.isHost === true;
 
-  // 방장 제외 모두 READY하면 true
-  const othersReady = Object.values(players)
-    .filter(pl => !pl.isHost)
-    .every(pl => pl.ready);
-
-  document.getElementById("startBtn").disabled = !(othersReady && isHost);
+  document.getElementById("startBtn").disabled = !(allReady && isHost);
 });
+
 
 /* ---------------------------------------------------------
    리스트 렌더
@@ -160,4 +157,5 @@ socket.on("goGame", () => {
 </script>
 </body>
 </html>
+
 
