@@ -2,7 +2,6 @@
 // SCOUT – ROOM PAGE LOGIC (대기실 UI)
 // =========================================
 
-import { socket, showPage, myUid, myName, roomId } from "./socket.js";
 
 // DOM
 const playerListDiv = document.getElementById("playerList");
@@ -92,3 +91,4 @@ startGameBtn.onclick = () => {
 socket.on("goGame", () => {
   showPage("gamePage");
 });
+
