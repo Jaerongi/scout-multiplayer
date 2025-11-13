@@ -21,9 +21,9 @@ const params = new URLSearchParams(location.search);
 const roomId = params.get("room");
 const myName = params.get("name");
 
-// ❗ lobby.html 없음 → start.html로 되돌리기
+// 잘못된 진입 보호
 if (!roomId || !myName) {
-  alert("방ID 또는 닉네임 정보가 없습니다.");
+  alert("방 정보가 없습니다.");
   location.href = "start.html";
 }
 
@@ -59,7 +59,7 @@ let flipState = {};
 let myTurn = false;
 
 /* ============================================================
-   JOIN ROOM (게임 화면 진입)
+   CONNECT
 ============================================================ */
 socket.on("connect", () => {
   myUid = socket.id;
@@ -69,7 +69,7 @@ socket.on("connect", () => {
    SOCKET EVENTS
 ============================================================ */
 
-// 플레이어 목록
+// 플레이어 리스트 갱신
 socket.on("playerListUpdate", (p) => {
   players = p;
   renderPlayerList();
@@ -85,7 +85,7 @@ socket.on("roundStart", ({ round, players: p, startingPlayer }) => {
   renderTable();
 });
 
-// 🔥 내 손패 전달
+// 내 손패 전달
 socket.on("yourHand", (handData) => {
   myHand = handData;
   selected.clear();
@@ -95,13 +95,11 @@ socket.on("yourHand", (handData) => {
 
 // 손패 개수 갱신
 socket.on("handCountUpdate", (counts) => {
-  for (const uid in players) {
-    players[uid].handCount = counts[uid];
-  }
+  for (const uid in players) players[uid].handCount = counts[uid];
   renderPlayerList();
 });
 
-// 테이블 카드 갱신
+// 테이블 갱신
 socket.on("tableUpdate", (cards) => {
   tableCards = cards;
   renderTable();
@@ -123,7 +121,6 @@ socket.on("roundEnded", ({ winner, players }) => {
     Object.values(players)
       .map(p => `${p.nickname}: ${p.score}`)
       .join("<br>");
-
   roundPopup.style.display = "block";
 });
 
@@ -155,7 +152,6 @@ function renderPlayerList() {
       <div class="score">점수: ${p.score}</div>
       <div class="handCount">패: ${p.handCount}장</div>
     `;
-
     playerListDiv.appendChild(div);
   });
 }
@@ -225,7 +221,6 @@ function renderHand() {
 /* ============================================================
    ACTION BUTTONS
 ============================================================ */
-
 window.doShow = function () {
   if (!myTurn) return alert("당신의 턴이 아닙니다.");
   if (selected.size === 0) return alert("카드를 선택하세요.");
@@ -256,13 +251,12 @@ window.doScout = function () {
 
   const t = tableCards[0];
   const choose = confirm(
-    `스카우트 방향 선택\n확인: bottom(${t.bottom})\n취소: top(${t.top})`
+    `스카우트 선택\n확인: bottom(${t.bottom})\n취소: top(${t.top})`
   );
 
   const chosenValue = choose ? "bottom" : "top";
 
   socket.emit("scout", { roomId, chosenValue });
-
   selected.clear();
 };
 
@@ -316,4 +310,3 @@ window.closeRoundPopup = function () {
 
 </body>
 </html>
-
