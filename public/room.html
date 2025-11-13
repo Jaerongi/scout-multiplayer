@@ -10,15 +10,13 @@
 <body>
 <div class="center">
 
-  <h2 id="roomTitle"></h2>
+  <h2 id="roomTitle">ROOM</h2>
 
-  <div id="playerList"></div>
+  <div id="playerList" class="playerList"></div>
 
   <button id="readyBtn" class="btn">READY</button>
   <button id="startBtn" class="btn" disabled>게임 시작</button>
-
-  <button id="copyBtn" class="btn">초대 링크 복사</button>
-
+  <button id="copyBtn" class="btn">초대링크 복사</button>
 </div>
 
 <script>
@@ -30,7 +28,6 @@ document.getElementById("roomTitle").innerText =
   `방 ID: ${roomId}`;
 
 const socket = io();
-
 let players = {};
 let myUid = null;
 
@@ -45,7 +42,6 @@ socket.on("playerListUpdate", (p) => {
 
   const allReady = Object.values(players).every(pl => pl.ready);
   const isHost = players[myUid]?.isHost;
-
   document.getElementById("startBtn").disabled = !(allReady && isHost);
 });
 
@@ -73,9 +69,9 @@ document.getElementById("startBtn").onclick = () => {
 };
 
 document.getElementById("copyBtn").onclick = () => {
-  const link = `${location.origin}/enter.html?room=${roomId}`;
-  navigator.clipboard.writeText(link);
-  alert("초대링크 복사됨:\n" + link);
+  const url = `${location.origin}/enter.html?room=${roomId}`;
+  navigator.clipboard.writeText(url);
+  alert("초대 링크 복사됨:\n" + url);
 };
 
 socket.on("goGame", () => {
