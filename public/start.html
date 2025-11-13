@@ -3,41 +3,15 @@
 <head>
 <meta charset="UTF-8" />
 <title>SCOUT – 시작</title>
-
-<style>
-body {
-  background:#111;
-  color:white;
-  text-align:center;
-  padding-top:100px;
-  font-family:sans-serif;
-}
-input, button {
-  padding:15px;
-  font-size:18px;
-  margin:10px;
-  border-radius:12px;
-  border:none;
-}
-button {
-  background:#00c853;
-  color:white;
-  cursor:pointer;
-}
-#container {
-  max-width:400px;
-  margin:auto;
-}
-</style>
+<link rel="stylesheet" href="style.css" />
 </head>
-<body>
 
-<div id="container">
+<body>
+<div class="center">
   <h2>🎴 SCOUT MULTIPLAYER</h2>
 
-  <input id="nickname" placeholder="닉네임 입력" />
-
-  <button onclick="createRoom()">방 만들기</button>
+  <input id="nickname" placeholder="닉네임 입력" class="input"/>
+  <button onclick="createRoom()" class="btn">방 만들기</button>
 </div>
 
 <script>
@@ -46,10 +20,8 @@ function createRoom() {
   if (!name) return alert("닉네임을 입력하세요!");
 
   const roomId = Math.random().toString(36).substring(2,8).toUpperCase();
-
   location.href = `room.html?room=${roomId}&name=${name}`;
 }
 </script>
-
 </body>
 </html>
