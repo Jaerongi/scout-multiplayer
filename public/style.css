@@ -243,3 +243,14 @@ body {
   color: #fff;
 }
 
+.card-wrapper canvas {
+  width: 90px !important;
+  height: 130px !important;
+}
+
+.handBoard {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
