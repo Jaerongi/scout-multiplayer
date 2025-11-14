@@ -1,5 +1,5 @@
 // ================================
-// GLOBAL SOCKET (전역에서 접근 가능)
+// GLOBAL SOCKET (전역)
 // ================================
 window.socket = io({
   autoConnect: true,
@@ -27,12 +27,6 @@ window.showPage = function(page) {
 };
 
 // ================================
-// ROOM UI 및 GAME UI 로드
-// ================================
-import "./roomUI.js";
-import "./gameUI.js";
-
-// ================================
 // START PAGE 이벤트
 // ================================
 document.getElementById("makeRoomBtn").onclick = () => {
@@ -43,6 +37,7 @@ document.getElementById("makeRoomBtn").onclick = () => {
   window.roomId = generateRoomId();
 
   socket.emit("joinRoom", { roomId, nickname: myName });
+
   document.getElementById("roomTitle").innerText =
     `방번호: ${roomId}`;
 
@@ -68,9 +63,18 @@ document.getElementById("enterRoomBtn").onclick = () => {
   showPage("roomPage");
 };
 
+// ================================
+// 랜덤 방 ID 생성
+// ================================
 function generateRoomId() {
   const s = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   let r = "";
   for (let i = 0; i < 6; i++) r += s[Math.floor(Math.random()*s.length)];
   return r;
 }
+
+// ================================
+// ROOM + GAME UI 파일 로드 (중요!!)
+// ================================
+import "./roomUI.js";
+import "./gameUI.js";
