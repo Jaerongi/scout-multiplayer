@@ -1,5 +1,5 @@
 // ================================
-// GLOBAL SOCKET
+// GLOBAL SOCKET (전역)
 // ================================
 window.socket = io({
   autoConnect: true,
@@ -9,6 +9,9 @@ window.socket = io({
 window.myUid = null;
 window.myName = null;
 window.roomId = null;
+
+// 패 방향 확정 여부
+window.handConfirmed = false;
 
 socket.on("connect", () => {
   window.myUid = socket.id;
@@ -27,7 +30,7 @@ window.showPage = function(page) {
 };
 
 // ================================
-// START PAGE EVENTS
+// 방 생성
 // ================================
 document.getElementById("makeRoomBtn").onclick = () => {
   const name = nicknameInput.value.trim();
@@ -35,12 +38,17 @@ document.getElementById("makeRoomBtn").onclick = () => {
 
   myName = name;
   roomId = generateRoomId();
+  window.handConfirmed = false;
 
   socket.emit("joinRoom", { roomId, nickname: myName });
+
   roomTitle.innerText = `방번호: ${roomId}`;
   showPage("roomPage");
 };
 
+// ================================
+// 초대 링크 입장
+// ================================
 document.getElementById("enterRoomBtn").onclick = () => {
   const link = prompt("초대 링크를 입력하세요:");
   if (!link) return;
@@ -54,16 +62,59 @@ document.getElementById("enterRoomBtn").onclick = () => {
 
     myName = nickname;
     roomId = id;
+    window.handConfirmed = false;
 
     socket.emit("joinRoom", { roomId, nickname: myName });
 
     roomTitle.innerText = `방번호: ${roomId}`;
     showPage("roomPage");
+
   } catch {
     alert("유효하지 않은 링크입니다.");
   }
 };
 
+// ================================
+// handConfirmed 이벤트 (내가 확정했을 때 서버로 전송)
+// ================================
+window.confirmHandDirection = function() {
+  window.handConfirmed = true;
+
+  socket.emit("handConfirmed", {
+    roomId,
+    uid: myUid
+  });
+};
+
+// ================================
+// 서버가 알려주는: 누가 패 방향 확정했는가?
+// ================================
+socket.on("handConfirmUpdate", (playerList) => {
+  window.currentPlayers = playerList;
+
+  // UI 업데이트 (roomUI.js 내부 함수 호출)
+  if (typeof window.renderRoomHandConfirm === "function") {
+    window.renderRoomHandConfirm(playerList);
+  }
+});
+
+// ================================
+// 서버가 알려주는: 모든 플레이어가 패 방향 확정 완료
+// ================================
+socket.on("allHandsConfirmed", () => {
+  console.log("모든 플레이어 패 확정 완료!");
+
+  // gameUI.js 에 신호 전달하여 SHOW/SCOUT 활성화
+  window.allHandsReady = true;
+
+  if (typeof window.enableActionsAfterHandConfirm === "function") {
+    window.enableActionsAfterHandConfirm();
+  }
+});
+
+// ================================
+// 방 ID 생성
+// ================================
 function generateRoomId() {
   const s = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   let r = "";
