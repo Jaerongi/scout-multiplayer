@@ -1,56 +1,66 @@
-// ================================
-// ROOM PAGE LOGIC (대기실)
-// ================================
+// ==========================================
+// SCOUT – ROOM PAGE LOGIC (대기실 UI)
+// ==========================================
 
-// 전역 socket 사용
+// 🔥 socket.js에서 전역(window)에 등록된 socket을 가져옴
 const socket = window.socket;
+
+// 🔥 전역 변수 접근용 (window.myXXX 사용)
+function myUid()   { return window.myUid; }
+function myName()  { return window.myName; }
+function roomId()  { return window.roomId; }
 
 // DOM
 const playerListDiv = document.getElementById("playerList");
-const readyBtn = document.getElementById("readyBtn");
-const startGameBtn = document.getElementById("startGameBtn");
-const copyInviteBtn = document.getElementById("copyInviteBtn");
+const readyBtn       = document.getElementById("readyBtn");
+const startGameBtn   = document.getElementById("startGameBtn");
+const copyInviteBtn  = document.getElementById("copyInviteBtn");
 
 let players = {};
 
-// ================================
+
+// ==========================================
 // 플레이어 목록 업데이트
-// ================================
+// ==========================================
 socket.on("playerListUpdate", (p) => {
   players = p;
   renderPlayerList();
   updateStartButtonState();
 });
 
-// ================================
+
+// ==========================================
 // READY 버튼
-// ================================
+// ==========================================
 readyBtn.onclick = () => {
-  socket.emit("playerReady", { roomId: window.roomId });
+  socket.emit("playerReady", { roomId: roomId() });
 };
 
-// ================================
-// 게임 시작 (방장만 가능)
-// ================================
-startGameBtn.onclick = () => {
-  socket.emit("forceStartGame", { roomId: window.roomId });
 
-  // 게임 페이지 전환
+// ==========================================
+// 게임 시작 (방장만 가능)
+// ==========================================
+startGameBtn.onclick = () => {
+  socket.emit("forceStartGame", { roomId: roomId() });
+
+  // 게임 페이지로 이동
   window.showPage("gamePage");
 };
 
-// ================================
+
+// ==========================================
 // 초대 링크 복사
-// ================================
+// ==========================================
 copyInviteBtn.onclick = () => {
-  const link = `${location.origin}/index.html?room=${window.roomId}`;
+  const link = `${location.origin}/index.html?room=${roomId()}`;
   navigator.clipboard.writeText(link);
   alert("초대 링크가 복사되었습니다!\n" + link);
 };
 
-// ================================
+
+// ==========================================
 // UI 렌더링
-// ================================
+// ==========================================
 function renderPlayerList() {
   playerListDiv.innerHTML = "";
 
@@ -65,16 +75,17 @@ function renderPlayerList() {
       <div>${readyTxt}</div>
     `;
 
-    playerListDiv.append(div);
+    playerListDiv.appendChild(div);
   });
 }
 
-// ================================
-// 스타트 버튼 활성화
-// ================================
+
+// ==========================================
+// 스타트 버튼 활성화/비활성화
+// ==========================================
 function updateStartButtonState() {
-  const my = players[window.myUid];
-  if (!my || !my.isHost) {
+  const host = players[myUid()];
+  if (!host || !host.isHost) {
     startGameBtn.style.display = "none";
     return;
   }
