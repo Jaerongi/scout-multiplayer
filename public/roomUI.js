@@ -1,60 +1,69 @@
+// ================================
+// ROOM UI LOGIC
+// ================================
+
 const playerListDiv = document.getElementById("playerList");
 const readyBtn = document.getElementById("readyBtn");
 const startGameBtn = document.getElementById("startGameBtn");
 const copyInviteBtn = document.getElementById("copyInviteBtn");
 
-let players = {};
-
-socket.on("playerListUpdate", (p) => {
-  players = p;
-  renderPlayerList();
-  updateStartButton();
+// 플레이어 목록 업데이트
+window.socket.on("playerListUpdate", (players) => {
+  renderRoomPlayers(players);
+  updateStartButtonState(players);
 });
 
-function renderPlayerList() {
+function renderRoomPlayers(players) {
   playerListDiv.innerHTML = "";
 
   Object.values(players).forEach((p) => {
-    const box = document.createElement("div");
-    box.className = "playerBox";
+    const div = document.createElement("div");
+    div.className = "playerBox";
 
-    if (p.uid === myUid) box.style.background = "#383838";
-    if (p.isTurn) box.classList.add("turn-now");
+    let crown = p.isHost ? "👑 " : "";
+    let readyText = p.isHost ? "(방장)" : (p.ready ? "✔ READY" : "대기중…");
 
-    box.innerHTML = `
-      <div><b>${p.nickname}</b></div>
-      <div>패: ${p.handCount}장</div>
-      <div>점수: ${p.score}</div>
+    div.innerHTML = `
+      <b>${crown}${p.nickname}</b>
+      <div style="font-size:14px; margin-top:5px;">${readyText}</div>
     `;
-    playerListDiv.appendChild(box);
+
+    playerListDiv.appendChild(div);
   });
 }
 
+// READY 버튼
 readyBtn.onclick = () => {
-  socket.emit("toggleReady", { roomId });
+  socket.emit("playerReady", { roomId });
 };
 
-function updateStartButton() {
-  const host = Object.values(players).find((p) => p.isHost);
-  if (!host) return;
-
-  const allReady = Object.values(players)
-    .filter((p) => !p.isHost)
-    .every((p) => p.ready);
-
-  if (host.uid === myUid && allReady) {
-    startGameBtn.style.display = "inline-block";
-  } else {
-    startGameBtn.style.display = "none";
-  }
-}
-
+// 게임 시작 버튼 — 방장 전용
 startGameBtn.onclick = () => {
-  socket.emit("startGame", { roomId });
+  socket.emit("forceStartGame", { roomId });
 };
 
+// 초대 링크 복사
 copyInviteBtn.onclick = () => {
   const link = `${location.origin}/index.html?room=${roomId}`;
   navigator.clipboard.writeText(link);
-  alert("초대 링크가 복사되었습니다!");
+  alert("초대 링크 복사됨:\n" + link);
 };
+
+// 게임 시작 버튼 상태
+function updateStartButtonState(players) {
+  const list = Object.values(players);
+  const host = list.find(p => p.isHost);
+
+  if (host?.uid !== window.myUid) {
+    startGameBtn.style.display = "none";
+    return;
+  }
+
+  startGameBtn.style.display = "inline-block";
+
+  const allReady = list
+    .filter(p => !p.isHost)
+    .every(p => p.ready);
+
+  startGameBtn.disabled = !allReady;
+}
