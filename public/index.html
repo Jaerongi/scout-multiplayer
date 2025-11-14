@@ -4,7 +4,6 @@
 <meta charset="UTF-8" />
 <title>SCOUT MULTIPLAYER</title>
 <link rel="stylesheet" href="style.css" />
-<link rel="preconnect" href="https://fonts.gstatic.com">
 </head>
 
 <body>
@@ -54,10 +53,8 @@
 
   <div class="game-layout">
 
-    <!-- 왼쪽 플레이어 목록 -->
     <div id="gamePlayerList" class="sideBoard"></div>
 
-    <!-- 오른쪽 메인 -->
     <div class="mainBoard">
 
       <h3 class="section-title">테이블</h3>
@@ -77,10 +74,9 @@
 
 </div>
 
-
-<!-- =========================================================
-     🚀 Socket + UI Logic (항상 가장 마지막에 넣어야 함!)
-========================================================= -->
+<!-- ==========================================
+     🚀 Socket.io & SPA Controller (항상 맨 아래)
+=========================================== -->
 <script src="/socket.io/socket.io.js"></script>
 <script type="module" src="./socket.js"></script>
 
