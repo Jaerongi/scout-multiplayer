@@ -39,18 +39,21 @@ function renderPlayerList() {
   Object.values(players).forEach((p) => {
     const box = document.createElement("div");
     box.className = "playerBox";
-    if (p.uid === myUid) box.style.background = "#383838";
 
-    if (p.isTurn) box.classList.add("turn-now");
+    if (p.uid === myUid) box.classList.add("mePlayer");
+
+    if (p.isTurn) box.classList.add("turnGlow");
 
     box.innerHTML = `
-      <b>${p.nickname}</b><br>
-      패: ${p.handCount}장<br>
-      점수: ${p.score}
+      <div class="pName">${p.nickname}</div>
+      <div>패: ${p.handCount}장</div>
+      <div>점수: ${p.score}</div>
     `;
 
     gamePlayerList.appendChild(box);
   });
+}
+
 }
 
 // =========================================
@@ -302,3 +305,4 @@ function renderInsertCancelButton() {
   div.append(btn);
   handArea.append(div);
 }
+
