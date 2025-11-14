@@ -1,34 +1,47 @@
 // ================================
-// ROOM UI LOGIC
+// ROOM UI LOGIC (최종)
 // ================================
 
+// DOM
 const playerListDiv = document.getElementById("playerList");
 const readyBtn = document.getElementById("readyBtn");
 const startGameBtn = document.getElementById("startGameBtn");
 const copyInviteBtn = document.getElementById("copyInviteBtn");
 
 // 플레이어 목록 업데이트
-window.socket.on("playerListUpdate", (players) => {
+socket.on("playerListUpdate", (players) => {
   renderRoomPlayers(players);
   updateStartButtonState(players);
 });
 
+// 플레이어 목록 렌더링
 function renderRoomPlayers(players) {
   playerListDiv.innerHTML = "";
 
   Object.values(players).forEach((p) => {
-    const div = document.createElement("div");
-    div.className = "playerBox";
+    const box = document.createElement("div");
+    box.className = "playerLine";
 
-    let crown = p.isHost ? "👑 " : "";
-    let readyText = p.isHost ? "(방장)" : (p.ready ? "✔ READY" : "대기중…");
+    // LED 표시
+    const ledColor = p.isHost ? "#39FF14" : (p.ready ? "#39FF14" : "#777");
+    const led = `<span class="player-led" style="background:${ledColor};"></span>`;
 
-    div.innerHTML = `
-      <b>${crown}${p.nickname}</b>
-      <div style="font-size:14px; margin-top:5px;">${readyText}</div>
+    const crown = p.isHost ? "👑" : "";
+    const tagHost = p.isHost ? `<span class="tag-host">방장</span>` : "";
+    const stateText = p.isHost ? "준비완료" : (p.ready ? "준비완료" : "대기중");
+
+    box.innerHTML = `
+      <div class="player-left">
+        ${crown} <b>${p.nickname}</b> ${tagHost}
+      </div>
+
+      <div class="player-right">
+        ${led}
+        <span class="state-text">${stateText}</span>
+      </div>
     `;
 
-    playerListDiv.appendChild(div);
+    playerListDiv.appendChild(box);
   });
 }
 
@@ -37,7 +50,7 @@ readyBtn.onclick = () => {
   socket.emit("playerReady", { roomId });
 };
 
-// 게임 시작 버튼 — 방장 전용
+// 게임 시작 버튼 (방장 전용)
 startGameBtn.onclick = () => {
   socket.emit("forceStartGame", { roomId });
 };
@@ -46,21 +59,23 @@ startGameBtn.onclick = () => {
 copyInviteBtn.onclick = () => {
   const link = `${location.origin}/index.html?room=${roomId}`;
   navigator.clipboard.writeText(link);
-  alert("초대 링크 복사됨:\n" + link);
+  alert("초대 링크가 복사되었습니다!\n" + link);
 };
 
-// 게임 시작 버튼 상태
+// 게임 시작 버튼 활성화 조건
 function updateStartButtonState(players) {
   const list = Object.values(players);
   const host = list.find(p => p.isHost);
 
-  if (host?.uid !== window.myUid) {
+  // 방장만 버튼 보임
+  if (host?.uid !== myUid) {
     startGameBtn.style.display = "none";
     return;
   }
 
   startGameBtn.style.display = "inline-block";
 
+  // 모든 인원이 READY여야 함 (방장 제외)
   const allReady = list
     .filter(p => !p.isHost)
     .every(p => p.ready);
