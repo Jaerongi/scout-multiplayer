@@ -95,7 +95,7 @@ body {
 
 .btn-main {
   background: #ffdb58;
-  color: #fff;
+  color: #0087fa;
 }
 .btn-main:hover {
   background: #ffe88b;
@@ -321,6 +321,7 @@ body {
   cursor: pointer;
   border-radius: 8px;
 }
+
 
 
 
