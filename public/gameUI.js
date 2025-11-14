@@ -2,7 +2,9 @@
 // SCOUT – GAME PAGE LOGIC (최종본)
 // ================================
 
-// 카드 렌더 엔진 + 조합 규칙
+// 🔥 socket 가져오기 (가장 중요)
+import { socket, myUid, roomId } from "./socket.js";
+
 import { drawScoutCard } from "./cardEngine.js";
 import { getComboType, isStrongerCombo } from "./shared.js";
 
@@ -245,9 +247,9 @@ scoutBtn.onclick = () => {
 };
 
 // ===============================================
-// SHOW & SCOUT(추후 완성 가능)
+// SHOW & SCOUT (추후 구현)
 // ===============================================
 showScoutBtn.onclick = () => {
   if (!myTurn) return alert("당신의 턴이 아닙니다.");
-  alert("Show & Scout 기능은 다음 단계에서 구현 가능합니다!");
+  alert("Show & Scout 기능은 다음 단계에서 구현됩니다!");
 };
