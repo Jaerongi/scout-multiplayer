@@ -211,5 +211,27 @@ socket.on("roundStart", ({ round, players: p, startingPlayer }) => {
   renderTable();
 });
 
+// 첫 패 받을 때 실행
+socket.on("yourHand", (hand) => {
+  myHand = hand;
+  selected.clear();
+  flipState = {};
+
+  // 🔥 최초 1회만 방향 선택
+  if (!window.initialHandChosen) {
+    window.initialHandChosen = true;
+
+    const ask = confirm("카드를 반대로 시작하시겠습니까?\n\n확인 = 반대로\n취소 = 그대로");
+
+    if (ask) {
+      myHand = myHand.map(c => ({ top: c.bottom, bottom: c.top }));
+    }
+  }
+
+  renderHand();
+});
+
+
+
 
 
