@@ -49,8 +49,7 @@ function renderGamePlayers(players) {
 
     box.innerHTML = `
       <div><b>${crown}${p.nickname}</b></div>
-      <div>패: ${p.handCount}</div>
-      <div>점수: ${p.score}</div>
+      <div>패: ${p.handCount} & 점수: ${p.score}</div>
     `;
 
     gamePlayerList.appendChild(box);
@@ -212,4 +211,5 @@ socket.on("roundStart", ({ round, players: p, startingPlayer }) => {
   renderGamePlayers(players);
   renderTable();
 });
+
 
