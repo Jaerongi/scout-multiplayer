@@ -247,36 +247,68 @@ body {
   color: #fff;
 }
 
-.card-wrapper canvas {
-  width: 90px !important;
-  height: 130px !important;
-}
-
+/* 내 패 박스 */
 .handBoard {
+  width: 100%;
+  min-height: 180px;
+  background: #2f2f2f;
+  border-radius: 10px;
+  padding: 12px;
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  justify-content: center;
+  align-items: flex-start;
+  overflow-y: auto;        /* 카드 넘칠 때 스크롤 가능 */
 }
+
+/* 카드 wrapper */
 .card-wrapper {
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+  width: 90px;
+  height: 130px;
   cursor: pointer;
+  transition: transform 0.15s;
 }
 
 .card-wrapper:hover {
-  transform: scale(1.08);
-  box-shadow: 0 3px 12px rgba(255,255,255,0.25);
+  transform: translateY(-5px);
 }
 
+/* 선택된 카드 */
 .card-wrapper.selected {
-  transform: translateY(-8px);
-  box-shadow: 0 0 12px #ffdb58;
-  border-radius: 14px;
-  outline: 3px solid #ffdb58;
+  outline: 3px solid #ffd54f;
+  border-radius: 8px;
 }
 
-.card-wrapper canvas {
-  border-radius: 14px;
+/* flip 버튼 */
+.flip-btn {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-size: 10px;
+  cursor: pointer;
 }
+
+/* drawScoutCard()가 넣는 카드 이미지(STYLE 리셋) */
+.card {
+  width: 90px !important;
+  height: 130px !important;
+  border-radius: 8px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: bold;
+  color: #222;
+}
+
+
 
 
 
