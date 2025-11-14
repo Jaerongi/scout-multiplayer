@@ -3,7 +3,8 @@
 // ==========================================
 
 // 🔥 socket.js에서 만든 전역 socket을 받음
-const socket = window.socket;
+window.socket = window.socket || io();
+const socket = window.socket;   // 중복 선언 아님 (안전)
 
 let players = {};
 
@@ -82,3 +83,4 @@ function updateStartButtonState() {
 
   startGameBtn.style.display = allReady ? "block" : "none";
 }
+
