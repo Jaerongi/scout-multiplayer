@@ -61,13 +61,16 @@
 </div>
 
 <!-- ===============================
-     🔥 SCRIPT 로딩 순서 (중요)
+     🔥 SCRIPT 로딩 순서 (정답)
 ================================ -->
+
+<!-- socket.io 먼저 로드 -->
 <script src="/socket.io/socket.io.js"></script>
 
-<script src="./socket.js"></script>   <!-- 전역 socket 생성 -->
-<script src="./roomUI.js"></script>  <!-- socket.js 이후 실행 -->
-<script src="./gameUI.js"></script>  <!-- roomUI 보다 나중 -->
+<!-- 아래 3개는 반드시 module 로 로드해야 함 -->
+<script type="module" src="./socket.js"></script>
+<script type="module" src="./roomUI.js"></script>
+<script type="module" src="./gameUI.js"></script>
 
 </body>
 </html>
