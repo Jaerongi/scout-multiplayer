@@ -70,5 +70,27 @@
 <script src="./roomUI.js"></script>
 <script src="./gameUI.js"></script>
 
+<!-- 🔥🔥 초대 링크 자동 입장 기능: 반드시 마지막에 위치해야 함 -->
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+  const params = new URLSearchParams(location.search);
+  const invitedRoom = params.get("room");
+
+  if (invitedRoom) {
+    const nickname = prompt("닉네임을 입력하세요:");
+    if (!nickname) return alert("닉네임이 필요합니다!");
+
+    window.roomId = invitedRoom;
+    window.myName = nickname;
+
+    // socket.js 에서 만든 전역 socket 사용
+    socket.emit("joinRoom", { roomId, nickname: myName });
+
+    document.getElementById("roomTitle").innerText = `방번호: ${roomId}`;
+    showPage("roomPage");
+  }
+});
+</script>
+
 </body>
 </html>
