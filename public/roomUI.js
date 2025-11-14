@@ -1,94 +1,98 @@
-// =========================================
+// ==========================================
 // SCOUT – ROOM PAGE LOGIC (대기실 UI)
-// =========================================
+// window.socket / window.myUid 구조 대응 버전
+// ==========================================
 
-
-// DOM
+// DOM 요소
 const playerListDiv = document.getElementById("playerList");
 const readyBtn = document.getElementById("readyBtn");
 const startGameBtn = document.getElementById("startGameBtn");
 const copyInviteBtn = document.getElementById("copyInviteBtn");
 
-// 현재 방 정보
+// 현재 방의 플레이어 목록 (로컬 저장)
 let players = {};
 
-// =========================================
-// 플레이어 리스트 업데이트
-// =========================================
-socket.on("playerListUpdate", (p) => {
+// =============================
+// 플레이어 목록 업데이트
+// =============================
+window.socket.on("playerListUpdate", (p) => {
   players = p;
   renderPlayerList();
   updateStartButtonState();
 });
 
-// =========================================
-// 플레이어 리스트 렌더링
-// =========================================
-function renderPlayerList() {
-  playerListDiv.innerHTML = "";
+// =============================
+// 게임 시작 신호
+// =============================
+window.socket.on("goGame", () => {
+  window.showPage("gamePage");
+});
 
-  Object.values(players).forEach((p) => {
-    const box = document.createElement("div");
-    box.className = "playerBox";
-
-    if (p.uid === myUid) box.style.background = "#555";
-
-    box.innerHTML = `
-      <b>${p.nickname}</b><br>
-      상태: ${p.ready ? "✔ READY" : "대기중"}<br>
-      ${p.isHost ? "방장" : ""}
-    `;
-
-    playerListDiv.append(box);
-  });
-}
-
-// =========================================
-// READY 버튼 토글
-// =========================================
+// =============================
+// Ready 버튼
+// =============================
 readyBtn.onclick = () => {
-  socket.emit("playerReady", { roomId });
+  if (!window.roomId) return;
+
+  window.socket.emit("playerReady", { roomId: window.roomId });
 };
 
-// =========================================
-// 게임 시작 버튼 활성화 상태 체크
-// =========================================
-function updateStartButtonState() {
-  const me = players[myUid];
-  if (!me) return;
+// =============================
+// 게임 시작 버튼 (방장만 가능)
+// =============================
+startGameBtn.onclick = () => {
+  if (!window.roomId) return;
 
-  if (!me.isHost) {
+  window.socket.emit("forceStartGame", { roomId: window.roomId });
+};
+
+// =============================
+// 초대 링크 복사
+// =============================
+copyInviteBtn.onclick = () => {
+  const link = `${location.origin}/?room=${window.roomId}`;
+  navigator.clipboard.writeText(link);
+  alert("초대 링크가 복사되었습니다!\n" + link);
+};
+
+// =============================
+// START 버튼 활성화 여부
+// =============================
+function updateStartButtonState() {
+  const myInfo = players[window.myUid];
+  if (!myInfo) return;
+
+  const isHost = myInfo.isHost;
+
+  if (!isHost) {
     startGameBtn.style.display = "none";
     return;
   }
 
-  const others = Object.values(players).filter(p => !p.isHost);
-
-  const allReady = others.length > 0 && others.every(p => p.ready);
-
+  const allReady = Object.values(players).every(p => p.ready);
   startGameBtn.style.display = allReady ? "inline-block" : "none";
 }
 
-// =========================================
-// 초대 링크 복사
-// =========================================
-copyInviteBtn.onclick = () => {
-  const link = `${location.origin}/?room=${roomId}`;
-  navigator.clipboard.writeText(link);
-  alert("초대 링크 복사됨:\n" + link);
-};
+// =============================
+// 플레이어 리스트 렌더링
+// =============================
+function renderPlayerList() {
+  playerListDiv.innerHTML = "";
 
-// =========================================
-// 게임 시작
-// =========================================
-startGameBtn.onclick = () => {
-  socket.emit("forceStartGame", { roomId });
-};
+  Object.values(players).forEach(p => {
+    const div = document.createElement("div");
+    div.className = "playerBox";
 
-// =========================================
-// 게임 페이지로 전환
-// =========================================
-socket.on("goGame", () => {
-  showPage("gamePage");
-});
+    if (p.uid === window.myUid)
+      div.style.background = "#333";
 
+    div.innerHTML = `
+      <b>${p.nickname}</b><br>
+      Ready: ${p.ready ? "✔" : "❌"}<br>
+      점수: ${p.score}<br>
+      패: ${p.handCount}장
+    `;
+
+    playerListDiv.appendChild(div);
+  });
+}
