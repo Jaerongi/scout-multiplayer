@@ -8,9 +8,7 @@
 
 <body>
 
-<!-- =======================
-     START PAGE
-======================= -->
+<!-- START PAGE -->
 <div id="startPage" class="page visible">
 
   <div class="board-panel panel-center">
@@ -21,18 +19,12 @@
     <button id="makeRoomBtn" class="btn-main">방 만들기</button>
     <button id="enterRoomBtn" class="btn-sub">초대 링크로 입장</button>
   </div>
-
 </div>
 
-<!-- =======================
-     ROOM PAGE (대기실)
-======================= -->
+<!-- ROOM PAGE -->
 <div id="roomPage" class="page">
-
   <div class="board-panel wide">
-
     <h2 id="roomTitle" class="title-board"></h2>
-
     <div id="playerList" class="player-list-board"></div>
 
     <div class="room-bottom-row">
@@ -41,22 +33,17 @@
       <button id="copyInviteBtn" class="btn-sub">초대 링크 복사</button>
     </div>
   </div>
-
 </div>
 
-<!-- =======================
-     GAME PAGE
-======================= -->
+<!-- GAME PAGE -->
 <div id="gamePage" class="page">
 
   <h2 id="roundInfo" class="title-board"></h2>
 
   <div class="game-layout">
-
     <div id="gamePlayerList" class="sideBoard"></div>
 
     <div class="mainBoard">
-
       <h3 class="section-title">테이블</h3>
       <div id="tableArea" class="tableBoard"></div>
 
@@ -68,17 +55,19 @@
         <button id="scoutBtn" class="btn-orange">SCOUT</button>
         <button id="passBtn" class="btn-sub">PASS</button>
       </div>
-
     </div>
   </div>
 
 </div>
 
-<!-- ==========================================
-     🚀 Socket.io & SPA Controller (항상 맨 아래)
-=========================================== -->
+<!-- ===============================
+     🔥 SCRIPT 로딩 순서 (중요)
+================================ -->
 <script src="/socket.io/socket.io.js"></script>
-<script type="module" src="./socket.js"></script>
+
+<script src="./socket.js"></script>   <!-- 전역 socket 생성 -->
+<script src="./roomUI.js"></script>  <!-- socket.js 이후 실행 -->
+<script src="./gameUI.js"></script>  <!-- roomUI 보다 나중 -->
 
 </body>
 </html>
