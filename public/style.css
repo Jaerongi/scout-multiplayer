@@ -1,213 +1,195 @@
-/* ==========================
+/* ===============================
    GLOBAL
-========================== */
-body{
-  margin:0;
-  background:#2b2b2b;
-  font-family: 'Noto Sans KR', sans-serif;
-  color:#fff;
-  user-select:none;
+================================ */
+body {
+  background: #1e1e1e;
+  color: #f4d88b;
+  font-family: "Pretendard", sans-serif;
+  margin: 0;
+  padding: 0;
 }
 
-.page{
-  display:none;
-  padding:20px;
+.page {
+  display: none;
 }
 
-.page.visible{
-  display:block;
+.page.visible {
+  display: block;
 }
 
-.board-panel{
-  background:#3b3b3b;
-  border:6px solid #f0d98a;
-  border-radius:12px;
-  padding:25px;
-  box-shadow:0 0 20px rgba(0,0,0,0.5);
-  text-align:center;
+.board-panel {
+  background: #2a2a2a;
+  border: 3px solid #f4d88b;
+  border-radius: 16px;
+  padding: 30px;
+  margin: 60px auto;
+  width: 380px;
+  text-align: center;
 }
 
-.panel-center{
-  width:300px;
-  margin:80px auto;
+.panel-center {
+  width: 380px;
 }
 
-.wide{
-  width:85%;
-  margin:20px auto;
+.wide {
+  width: 600px;
 }
 
-.game-title{
-  color:#f7d96f;
-  font-size:32px;
-  margin-bottom:20px;
+/* ===============================
+   TITLE
+================================ */
+.game-title {
+  font-size: 36px;
+  margin-bottom: 30px;
 }
 
-.input-box{
-  width:80%;
-  padding:12px;
-  border-radius:8px;
-  border:3px solid #f0d98a;
-  margin-bottom:15px;
-  font-size:16px;
-  background:#1f1f1f;
-  color:white;
+/* ===============================
+   INPUT
+================================ */
+.input-box {
+  width: 260px;
+  height: 45px;
+  font-size: 18px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 2px solid #f4d88b;
+  margin-bottom: 20px;
+  background: #1e1e1e;
+  color: white;
 }
 
-/* ==========================
-   BUTTONS
-========================== */
-.btn-main{
-  width:80%;
-  padding:13px;
-  background:#f7d96f;
-  border:none;
-  color:#000;
-  font-size:18px;
-  font-weight:bold;
-  border-radius:10px;
-  margin-top:10px;
-}
-
-.btn-sub{
-  width:80%;
-  padding:13px;
-  background:#777;
-  border:none;
-  color:white;
-  font-size:16px;
-  border-radius:10px;
-  margin-top:10px;
-}
-
-.btn-green{
-  background:#1dc15a;
-  color:white;
-  border:none;
-  padding:13px 25px;
-  border-radius:10px;
-  font-size:18px;
-  font-weight:bold;
-}
-
-.btn-orange{
-  background:#eb9945;
-  color:white;
-  border:none;
-  padding:13px 25px;
-  border-radius:10px;
-  font-size:18px;
-  font-weight:bold;
-}
-
-/* ==========================
-   ROOM PAGE
-========================== */
-.player-list-board{
-  margin-top:20px;
-  display:flex;
-  flex-wrap:wrap;
-  gap:12px;
-}
-
-.playerBox{
-  background:#444;
-  border:4px solid #f0d98a;
-  border-radius:10px;
-  padding:12px;
-  width:140px;
-  text-align:center;
-}
-
-.playerBox.currentTurn{
-  border-color:#00ffd0;
-}
-
-.room-bottom-row{
-  margin-top:20px;
-  display:flex;
-  gap:15px;
-  justify-content:center;
-}
-
-/* ==========================
-   GAME LAYOUT
-========================== */
-.game-layout{
-  display:flex;
-  gap:20px;
-  padding:20px;
-}
-
-.sideBoard{
-  width:200px;
-  background:#3a3a3a;
-  border:5px solid #f0d98a;
-  padding:10px;
-  border-radius:12px;
-  height:600px;
-  overflow-y:auto;
-}
-
-.mainBoard{
-  flex:1;
-  background:#3a3a3a;
-  border:5px solid #f0d98a;
-  padding:15px;
-  border-radius:12px;
-}
-
-.section-title{
-  margin:10px 0;
-  font-size:20px;
-  color:#f7d96f;
-}
-
-.tableBoard, .handBoard{
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  min-height:110px;
-  padding:10px;
-  border:3px dashed #f0d98a;
-  border-radius:10px;
-  background:#2e2e2e;
-}
-
-.action-row{
-  margin-top:15px;
-  display:flex;
-  gap:12px;
-  justify-content:center;
-}
-
-/* 카드 wrapper */
-.card-wrapper{
-  position:relative;
-}
-
-.card-wrapper.selected{
-  outline:4px solid #00ffd0;
-  border-radius:10px;
-}
-
-.flip-btn{
-  position:absolute;
-  top:0;
-  right:0;
-  background:#222;
-  color:#fff;
-  border-radius:50%;
-  padding:5px 7px;
-  cursor:pointer;
-  font-size:14px;
-}
-.btn-main, .btn-sub, .btn-green, .btn-orange {
-  width: 160px;
+/* ===============================
+   BUTTONS — 공통 스타일
+================================ */
+.btn-main,
+.btn-sub,
+.btn-green,
+.btn-orange {
+  width: 200px;
   height: 48px;
   font-size: 18px;
+  font-weight: 600;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  margin: 6px 0;
   display: inline-flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  transition: 0.15s;
 }
 
+/* COLOR STYLES */
+.btn-main {
+  background: #f4d88b;
+  color: #1e1e1e;
+}
+
+.btn-main:hover {
+  background: #ffebac;
+}
+
+.btn-sub {
+  background: #696969;
+  color: white;
+}
+
+.btn-sub:hover {
+  background: #7d7d7d;
+}
+
+.btn-green {
+  background: #3ac569;
+  color: white;
+}
+
+.btn-green:hover {
+  background: #47d47a;
+}
+
+.btn-orange {
+  background: #ff9a3c;
+  color: white;
+}
+
+.btn-orange:hover {
+  background: #ffb66a;
+}
+
+/* ===============================
+   ROOM PAGE
+================================ */
+.room-bottom-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 30px;
+}
+
+.room-bottom-row button {
+  flex: 1;
+}
+
+/* ===============================
+   PLAYER LIST
+================================ */
+.player-list-board {
+  background: #1e1e1e;
+  padding: 15px;
+  border-radius: 10px;
+  min-height: 200px;
+  margin-top: 20px;
+  color: #fff;
+}
+
+.playerBox {
+  padding: 10px;
+  background: #333;
+  border-radius: 10px;
+  margin: 8px 0;
+}
+
+.currentTurn {
+  border: 2px solid #ffcc4d;
+}
+
+/* ===============================
+   GAME PAGE
+================================ */
+.game-layout {
+  display: flex;
+  gap: 20px;
+  margin: 20px;
+}
+
+.sideBoard {
+  width: 180px;
+  min-height: 200px;
+}
+
+.mainBoard {
+  flex: 1;
+}
+
+.tableBoard,
+.handBoard {
+  background: #1f1f1f;
+  padding: 20px;
+  border-radius: 12px;
+  min-height: 120px;
+  margin-bottom: 15px;
+}
+
+/* ===============================
+   GAME BUTTONS
+================================ */
+.action-row {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.action-row button {
+  width: 180px;
+  height: 48px;
+}
