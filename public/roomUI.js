@@ -1,75 +1,60 @@
-// ==========================================
-// ROOM PAGE LOGIC
-// ==========================================
+const playerListDiv = document.getElementById("playerList");
+const readyBtn = document.getElementById("readyBtn");
+const startGameBtn = document.getElementById("startGameBtn");
+const copyInviteBtn = document.getElementById("copyInviteBtn");
 
-const socket = window.socket;
 let players = {};
 
-const playerListDiv = document.getElementById("playerList");
-const readyBtn       = document.getElementById("readyBtn");
-const startGameBtn   = document.getElementById("startGameBtn");
-const copyInviteBtn  = document.getElementById("copyInviteBtn");
-
-// ==========================================
-// 플레이어 목록 업데이트
-// ==========================================
 socket.on("playerListUpdate", (p) => {
   players = p;
   renderPlayerList();
-  updateStartButtonState();
+  updateStartButton();
 });
 
-// READY 버튼
-readyBtn.onclick = () => {
-  socket.emit("playerReady", { roomId: window.roomId });
-};
-
-// 게임 시작
-startGameBtn.onclick = () => {
-  socket.emit("forceStartGame", { roomId: window.roomId });
-};
-
-// 초대 링크 복사
-copyInviteBtn.onclick = () => {
-  const link = `${location.origin}/index.html?room=${window.roomId}`;
-  navigator.clipboard.writeText(link);
-  alert("초대 링크가 복사되었습니다!\n" + link);
-};
-
-// ==========================================
-// UI
-// ==========================================
 function renderPlayerList() {
   playerListDiv.innerHTML = "";
 
   Object.values(players).forEach((p) => {
-    const div = document.createElement("div");
-    div.className = "playerBox";
+    const box = document.createElement("div");
+    box.className = "playerBox";
 
-    div.innerHTML = `
-      <b>${p.nickname}</b><br>
-      ${p.ready ? "🟢 READY" : "⚪ 대기"}
+    if (p.uid === myUid) box.style.background = "#383838";
+    if (p.isTurn) box.classList.add("turn-now");
+
+    box.innerHTML = `
+      <div><b>${p.nickname}</b></div>
+      <div>패: ${p.handCount}장</div>
+      <div>점수: ${p.score}</div>
     `;
-
-    playerListDiv.append(div);
+    playerListDiv.appendChild(box);
   });
 }
 
-function updateStartButtonState() {
-  const me = players[window.myUid];
-  if (!me || !me.isHost) {
-    startGameBtn.style.display = "none";
-    return;
-  }
+readyBtn.onclick = () => {
+  socket.emit("toggleReady", { roomId });
+};
+
+function updateStartButton() {
+  const host = Object.values(players).find((p) => p.isHost);
+  if (!host) return;
 
   const allReady = Object.values(players)
-    .filter(p => !p.isHost)
-    .every(p => p.ready);
+    .filter((p) => !p.isHost)
+    .every((p) => p.ready);
 
-  startGameBtn.style.display = allReady ? "block" : "none";
+  if (host.uid === myUid && allReady) {
+    startGameBtn.style.display = "inline-block";
+  } else {
+    startGameBtn.style.display = "none";
+  }
 }
 
-// 게임 시작 신호 → 게임 페이지로 이동
-socket.on("goGame", () => {
-  window.showPage("gamePage");
-});
+startGameBtn.onclick = () => {
+  socket.emit("startGame", { roomId });
+};
+
+copyInviteBtn.onclick = () => {
+  const link = `${location.origin}/index.html?room=${roomId}`;
+  navigator.clipboard.writeText(link);
+  alert("초대 링크가 복사되었습니다!");
+};
