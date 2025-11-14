@@ -1,7 +1,7 @@
 // ==========================================
 // SCOUT – GAME PAGE LOGIC (최종 완성본)
 // ==========================================
-
+import { drawScoutCard } from "./cardEngine.js";
 // GLOBAL from socket.js
 // window.socket
 // window.myUid
@@ -221,6 +221,7 @@ socket.on("yourHand", (hand) => {
 
   renderHand();
 });
+
 
 
 
