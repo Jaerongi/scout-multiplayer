@@ -22,7 +22,7 @@ window.renderRoomPlayers = function (players) {
     // 닉네임 + 방장아이콘
     let nameHTML = "";
     if (p.isHost) {
-      nameHTML = `👑 <b>${p.nickname}</b> <span class="host-tag">방장</span>`;
+      nameHTML = `👑 <b>${p.nickname}</b> <span class="host-tag"> (방장)</span>`;
     } else {
       nameHTML = `<b>${p.nickname}</b>`;
     }
@@ -96,3 +96,4 @@ window.updateStartButtonState = function (players) {
 socket.on("goGame", () => {
   window.showPage("gamePage");
 });
+
