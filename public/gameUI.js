@@ -17,7 +17,6 @@ const myCountSpan = document.getElementById("myCount");
 // ACTION BUTTONS
 const showBtn = document.getElementById("showBtn");
 const scoutBtn = document.getElementById("scoutBtn");
-const passBtn = document.getElementById("passBtn");
 const showScoutBtn = document.getElementById("showScoutBtn"); // 사용 예정
 
 // GAME STATE
@@ -160,14 +159,6 @@ scoutBtn.onclick = () => {
 };
 
 
-// ======================================================
-// PASS
-// ======================================================
-passBtn.onclick = () => {
-  if (!myTurn) return alert("당신의 턴이 아닙니다.");
-  socket.emit("pass", { roomId });
-};
-
 
 // ======================================================
 // SOCKET EVENTS
@@ -230,6 +221,7 @@ socket.on("yourHand", (hand) => {
 
   renderHand();
 });
+
 
 
 
