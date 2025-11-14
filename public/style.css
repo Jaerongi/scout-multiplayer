@@ -115,3 +115,25 @@ button.same {
   border-radius: 4px;
   cursor: pointer;
 }
+.turnGlow {
+  border: 3px solid #39ff14;
+  box-shadow: 0 0 10px #39ff14;
+}
+
+.mePlayer {
+  background: #444;
+}
+
+.playerBox {
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  background: #2b2b2b;
+  color: white;
+}
+
+.same {
+  width: 140px;
+  height: 40px;
+}
+
