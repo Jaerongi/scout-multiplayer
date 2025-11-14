@@ -38,9 +38,7 @@ document.getElementById("makeRoomBtn").onclick = () => {
 
   socket.emit("joinRoom", { roomId, nickname: myName });
 
-  document.getElementById("roomTitle").innerText =
-    `방번호: ${roomId}`;
-
+  document.getElementById("roomTitle").innerText = `방번호: ${roomId}`;
   showPage("roomPage");
 };
 
@@ -57,33 +55,22 @@ document.getElementById("enterRoomBtn").onclick = () => {
   window.myName = nickname;
   window.roomId = id;
 
-  socket.emit("joinRoom", { roomId, nickname: myName });
-  document.getElementById("roomTitle").innerText = `방번호: ${roomId}`;
+  socket.emit("joinRoom", { roomId: id, nickname });
+  document.getElementById("roomTitle").innerText = `방번호: ${id}`;
 
   showPage("roomPage");
 };
 
 // ================================
-// 랜덤 방 ID 생성
-// ================================
-function generateRoomId() {
-  const s = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  let r = "";
-  for (let i = 0; i < 6; i++) r += s[Math.floor(Math.random()*s.length)];
-  return r;
-}
-
-// ================================
-// 초대 링크 자동 처리
+// 초대 링크 자동 진입
 // ================================
 const urlParams = new URLSearchParams(location.search);
 const inviteRoom = urlParams.get("room");
 
 if (inviteRoom) {
-  // 초대링크 모드
   setTimeout(() => {
     const nickname = prompt("닉네임을 입력하세요:");
-    if (!nickname) return alert("닉네임이 필요합니다.");
+    if (!nickname) return;
 
     window.myName = nickname;
     window.roomId = inviteRoom;
@@ -94,6 +81,29 @@ if (inviteRoom) {
       `방번호: ${inviteRoom}`;
 
     showPage("roomPage");
-  }, 300);
+  }, 200);
 }
 
+// ================================
+// SERVER → GAME PAGE로 이동 신호
+// ================================
+socket.on("goGame", () => {
+  console.log("🔄 이동: GAME PAGE");
+  showPage("gamePage");
+});
+
+// ================================
+// ROOM + GAME UI 로드
+// ================================
+import "./roomUI.js";
+import "./gameUI.js";
+
+// ================================
+// 방 ID 생성
+// ================================
+function generateRoomId() {
+  const s = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  let r = "";
+  for (let i = 0; i < 6; i++) r += s[Math.floor(Math.random()*s.length)];
+  return r;
+}
