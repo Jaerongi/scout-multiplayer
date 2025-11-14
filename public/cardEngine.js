@@ -1,72 +1,64 @@
-// ================================
-// SCOUT CARD DRAW ENGINE (Two Color Split Version)
-// ================================
+// ===============================
+// CARD ENGINE v3.0
+// ===============================
 
-const DEFAULT_WIDTH = 85;
-const DEFAULT_HEIGHT = 120;
-
-// 숫자별 색상 매핑
-const COLOR_MAP = {
-  1: "#ff5c5c",
-  2: "#ff914d",
-  3: "#ffd84d",
-  4: "#c9ff4d",
-  5: "#6dff6d",
-  6: "#7ee7ff",
-  7: "#4da6ff",
-  8: "#c44dff",
-  9: "#ff4dd8",
-  10: "#aaaaaa"
+// 숫자별 배경색
+export const COLOR_MAP = {
+  1: "#5c6ae6",
+  2: "#3b4df5",
+  3: "#74c1e8",
+  4: "#31b3bd",
+  5: "#31bd7c",
+  6: "#7be39c",
+  7: "#f2fa0a",
+  8: "#c7cc35",
+  9: "#f2c913",
+  10: "#fa2e23"
 };
 
-/**
- * 스카우트 카드 렌더링 (위/아래 2색 분할 버전)
- */
-export function drawScoutCard(top, bottom, width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT) {
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext("2d");
+// ===============================
+// 카드 캔버스 생성
+// ===============================
+export function drawScoutCard(top, bottom, w = 80, h = 120) {
+  const c = document.createElement("canvas");
+  c.width = w;
+  c.height = h;
 
-  // ===============================
-  // 🔥 2색 배경 분할
-  // ===============================
+  const ctx = c.getContext("2d");
 
-  // 상단 영역 색(top)
+  // ==================================
+  // 색상 분리된 상하단 배경
+  // ==================================
+
+  // 상단 색
   ctx.fillStyle = COLOR_MAP[top];
-  ctx.fillRect(0, 0, width, height / 2);
+  ctx.fillRect(0, 0, w, h / 2);
 
-  // 하단 영역 색(bottom)
+  // 하단 색
   ctx.fillStyle = COLOR_MAP[bottom];
-  ctx.fillRect(0, height / 2, width, height / 2);
+  ctx.fillRect(0, h / 2, w, h / 2);
+
+  // 분리선
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, h / 2 - 1, w, 2);
 
   // 테두리
-  ctx.strokeStyle = "#222";
+  ctx.strokeStyle = "#000";
   ctx.lineWidth = 3;
-  ctx.strokeRect(0, 0, width, height);
+  ctx.strokeRect(0, 0, w, h);
 
-  // ===============================
-  // 텍스트 (TOP)
-  // ===============================
-  ctx.fillStyle = "#000000";
+  // ==================================
+  // 숫자 표시
+  // ==================================
+  ctx.font = "bold 22px Arial";
+  ctx.fillStyle = "#000";
   ctx.textAlign = "center";
-  ctx.font = `${width * 0.28}px bold sans-serif`;
-  ctx.fillText(top, width / 2, height * 0.38);
 
-  // ===============================
-  // 구분선
-  // ===============================
-  ctx.strokeStyle = "rgba(0,0,0,0.35)";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(width * 0.15, height / 2);
-  ctx.lineTo(width * 0.85, height / 2);
-  ctx.stroke();
+  // 위 숫자
+  ctx.fillText(top, w / 2, h / 2 - 10);
 
-  // ===============================
-  // 텍스트 (BOTTOM)
-  // ===============================
-  ctx.fillText(bottom, width / 2, height * 0.83);
+  // 아래 숫자
+  ctx.fillText(bottom, w / 2, h - 15);
 
-  return canvas;
+  return c;
 }
