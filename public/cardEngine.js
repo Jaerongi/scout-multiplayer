@@ -1,5 +1,5 @@
 // =====================================
-// SCOUT CARD RENDERING (PREMIUM UI)
+// SCOUT CARD RENDERING (OPTIMIZED SIZE)
 // =====================================
 
 export const COLOR_MAP = {
@@ -15,76 +15,78 @@ export const COLOR_MAP = {
   10: "#fa2e23"
 };
 
-export function drawScoutCard(top, bottom, w = 100, h = 140) {
+export function drawScoutCard(top, bottom, w = 65, h = 90) {
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext("2d");
 
   /* --------------------------
-     라운드 테두리
+     카드 외곽 테두리
   --------------------------- */
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
-  ctx.lineWidth = 6;
+  ctx.lineWidth = 4;
 
-  // 카드 배경
   ctx.fillStyle = "#ffffff";
   ctx.strokeStyle = "#222";
 
-  roundRect(ctx, 0, 0, w, h, 15);
+  roundRect(ctx, 0, 0, w, h, 10);
   ctx.fill();
   ctx.stroke();
 
   /* --------------------------
-     상·하 배경색
+     상·하 색 영역
   --------------------------- */
   ctx.fillStyle = COLOR_MAP[top];
-  roundRect(ctx, 0, 0, w, h / 2, 15, "top");
+  roundRect(ctx, 0, 0, w, h / 2, 10, "top");
   ctx.fill();
 
   ctx.fillStyle = COLOR_MAP[bottom];
-  roundRect(ctx, 0, h / 2, w, h / 2, 15, "bottom");
+  roundRect(ctx, 0, h / 2, w, h / 2, 10, "bottom");
   ctx.fill();
 
   /* --------------------------
-     중간 구분선
+     중간 라인
   --------------------------- */
   ctx.strokeStyle = "#000";
-  ctx.lineWidth = 4;
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(10, h / 2);
-  ctx.lineTo(w - 10, h / 2);
+  ctx.moveTo(6, h / 2);
+  ctx.lineTo(w - 6, h / 2);
   ctx.stroke();
 
   /* --------------------------
-     숫자
+     숫자 (크기 최적화)
   --------------------------- */
   ctx.fillStyle = "#000";
-  ctx.font = `bold ${w * 0.32}px Pretendard, Arial`;
   ctx.textAlign = "center";
+  ctx.font = `bold ${w * 0.40}px Pretendard, Arial`;
 
-  ctx.fillText(top, w / 2, h * 0.35);
+  ctx.fillText(top, w / 2, h * 0.34);
   ctx.fillText(bottom, w / 2, h * 0.82);
 
   return canvas;
 }
 
 /* =====================================
-   둥근 사각형 그리는 함수
+   둥근 사각형 (위·아래 분리 지원)
 ===================================== */
 function roundRect(ctx, x, y, w, h, r, mode = "full") {
-  const rTop = mode === "top" || mode === "full" ? r : 0;
-  const rBottom = mode === "bottom" || mode === "full" ? r : 0;
+  const tl = mode === "top" || mode === "full" ? r : 0;
+  const tr = mode === "top" || mode === "full" ? r : 0;
+  const bl = mode === "bottom" || mode === "full" ? r : 0;
+  const br = mode === "bottom" || mode === "full" ? r : 0;
 
   ctx.beginPath();
-  ctx.moveTo(x + w - rTop, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + rTop);
-  ctx.lineTo(x + w, y + h - rBottom);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - rBottom, y + h);
-  ctx.lineTo(x + rBottom, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - rBottom);
-  ctx.lineTo(x, y + rTop);
-  ctx.quadraticCurveTo(x, y, x + rTop, y);
+  ctx.moveTo(x + tl, y);
+  ctx.lineTo(x + w - tr, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + tr);
+  ctx.lineTo(x + w, y + h - br);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - br, y + h);
+  ctx.lineTo(x + bl, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - bl);
+  ctx.lineTo(x, y + tl);
+  ctx.quadraticCurveTo(x, y, x + tl, y);
   ctx.closePath();
 }
