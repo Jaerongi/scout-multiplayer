@@ -12,6 +12,8 @@ const copyInviteBtn = document.getElementById("copyInviteBtn");
 socket.on("playerListUpdate", (players) => {
   renderRoomPlayers(players);
   updateStartButtonState(players);
+});
+socket.on("playerListUpdate", (players) => {
   window.currentPlayers = p;
   renderRoomPlayers(p);
   updateStartButtonState(p);
@@ -99,5 +101,6 @@ function updateStartButtonState(players) {
 
   startGameBtn.disabled = !allReady;
 }
+
 
 
