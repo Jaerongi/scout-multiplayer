@@ -96,27 +96,22 @@ body {
 .btn-main {
   background: #ffdb58;
   color: #fff;
-  width: 150px;
 }
 .btn-main:hover {
   background: #ffe88b;
-  width: 150px;
 }
 
 .btn-sub {
   background: #666;
   color: #fff;
-  width: 150px;
 }
 .btn-sub:hover {
   background: #777;
-  width: 150px;
 }
 
 .btn-green {
   background: #22cc55;
   color: #fff;
-  width: 150px;
 }
 .btn-green:hover {
   background: #33dd66;
@@ -282,6 +277,7 @@ body {
 .card-wrapper canvas {
   border-radius: 14px;
 }
+
 
 
 
