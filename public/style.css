@@ -308,6 +308,21 @@ body {
   color: #222;
 }
 
+/* 내 패 카드 정렬 */
+#handArea {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-content: flex-start;
+  padding: 10px;
+}
+
+#handArea canvas {
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+
 
 
 
