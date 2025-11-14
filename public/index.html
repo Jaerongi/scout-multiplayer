@@ -10,53 +10,71 @@
 
 <!-- START PAGE -->
 <div id="startPage" class="page visible">
-  <div class="board-panel panel-center">
+
+  <div class="panel-center">
     <h1 class="game-title">🎴 스카우트 🎴</h1>
-    <input id="nicknameInput" placeholder="닉네임 입력" class="input-box">
-    <button id="makeRoomBtn" class="btn-main">방 만들기</button>
-    <button id="enterRoomBtn" class="btn-sub">초대 링크로 입장</button>
-  </div>
-</div>
 
-<!-- ROOM PAGE -->
-<div id="roomPage" class="page" style="display:none;">
-  <div class="board-panel wide">
-    <h2 id="roomTitle" class="title-board"></h2>
-    <div id="playerList" class="player-list-board"></div>
+    <input id="nicknameInput" placeholder="닉네임 입력" class="input-box" />
 
-    <div class="room-bottom-row">
-      <button id="readyBtn" class="btn-main">READY</button>
-      <button id="startGameBtn" class="btn-green" style="display:none;">게임 시작</button>
-      <button id="copyInviteBtn" class="btn-sub">초대 링크 복사</button>
+    <div class="btn-row">
+      <button id="makeRoomBtn" class="btn-main same">방 만들기</button>
+      <button id="enterRoomBtn" class="btn-main same">초대 링크로 입장</button>
     </div>
   </div>
 </div>
 
+
+<!-- ROOM PAGE -->
+<div id="roomPage" class="page">
+  <div class="panel-wide">
+
+    <h2 id="roomTitle" class="title-board"></h2>
+
+    <div id="playerList" class="player-list-board"></div>
+
+    <div class="btn-row">
+      <button id="readyBtn" class="btn-main same">READY</button>
+      <button id="startGameBtn" class="btn-green same" style="display:none;">게임 시작</button>
+      <button id="copyInviteBtn" class="btn-sub same">초대 링크 복사</button>
+    </div>
+  </div>
+</div>
+
+
 <!-- GAME PAGE -->
-<div id="gamePage" class="page" style="display:none;">
+<div id="gamePage" class="page">
+
   <h2 id="roundInfo" class="title-board"></h2>
 
   <div class="game-layout">
-    <div id="gamePlayerList" class="sideBoard"></div>
 
+    <!-- 왼쪽 플레이어 목록 -->
+    <div id="gamePlayerList" class="sidebar"></div>
+
+    <!-- 메인 -->
     <div class="mainBoard">
-      <h3 class="section-title">테이블</h3>
+
+      <h3>테이블</h3>
       <div id="tableArea" class="tableBoard"></div>
 
-      <h3 class="section-title">내 패 (<span id="myCount">0</span>)</h3>
+      <h3>내 패 (<span id="myCount">0</span>)</h3>
       <div id="handArea" class="handBoard"></div>
 
-      <div class="action-row">
-        <button id="showBtn" class="btn-main">SHOW</button>
-        <button id="scoutBtn" class="btn-orange">SCOUT</button>
-        <button id="passBtn" class="btn-sub">PASS</button>
+      <div class="btn-row">
+        <button id="showBtn" class="btn-main same">SHOW</button>
+        <button id="scoutBtn" class="btn-orange same">SCOUT</button>
+        <button id="showScoutBtn" class="btn-purple same">SHOW & SCOUT</button>
+        <button id="passBtn" class="btn-sub same">PASS</button>
       </div>
+
     </div>
   </div>
 </div>
 
-<!-- SCRIPT LOAD ORDER -->
+
+<!-- SCRIPT LOADING 순서 중요 -->
 <script src="/socket.io/socket.io.js"></script>
+
 <script src="./socket.js"></script>
 <script src="./roomUI.js"></script>
 <script src="./gameUI.js"></script>
