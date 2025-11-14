@@ -10,14 +10,11 @@ const copyInviteBtn = document.getElementById("copyInviteBtn");
 
 // 플레이어 목록 업데이트
 socket.on("playerListUpdate", (players) => {
+  window.currentPlayers = players;
   renderRoomPlayers(players);
   updateStartButtonState(players);
 });
-socket.on("playerListUpdate", (players) => {
-  window.currentPlayers = p;
-  renderRoomPlayers(p);
-  updateStartButtonState(p);
-});
+
 
 // 플레이어 목록 렌더링
 function renderRoomPlayers(players) {
@@ -101,6 +98,7 @@ function updateStartButtonState(players) {
 
   startGameBtn.disabled = !allReady;
 }
+
 
 
 
