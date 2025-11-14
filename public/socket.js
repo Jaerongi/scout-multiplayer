@@ -76,5 +76,3 @@ function generateRoomId() {
 // ================================
 // ROOM + GAME UI 파일 로드 (중요!!)
 // ================================
-import "./roomUI.js";
-import "./gameUI.js";
