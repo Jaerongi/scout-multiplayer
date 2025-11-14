@@ -59,17 +59,63 @@ function shuffle(arr) {
   return arr;
 }
 
-function dealForMultiplayer(playerCount) {
-  const deck = shuffle(createDeck());
-  const hands = [];
-  const handSize = Math.floor(deck.length / playerCount);
+import { SCOUT_DECK } from "./public/shared.js";   // 반드시 추가
 
-  for (let i = 0; i < playerCount; i++) {
-    hands.push(deck.splice(0, handSize));
+function dealForMultiplayer(playerCount) {
+
+  // SCOUT 공식 44장 복사 + 셔플
+  let deck = shuffle([...SCOUT_DECK]);
+
+  // =============== 3명 플레이어 ===============
+  if (playerCount === 3) {
+    // top 또는 bottom에 10이 들어있는 카드 제거
+    deck = deck.filter(c => c.top !== 10 && c.bottom !== 10);
+    // 남은 카드 총 35장 → 12장씩 배분
+    const hands = [];
+    for (let i = 0; i < 3; i++) {
+      hands.push(deck.slice(i*12, i*12+12));
+    }
+    return { hands, deck: [] };
   }
 
-  return { hands, deck };
+  // =============== 2~4명 (3명 제외) ===============
+  if (playerCount >= 2 && playerCount <= 4) {
+    // 9/10 또는 10/9 카드 1장 제거
+    const removeIndex = deck.findIndex(
+      (c) =>
+        (c.top === 9 && c.bottom === 10) ||
+        (c.top === 10 && c.bottom === 9)
+    );
+    if (removeIndex >= 0) deck.splice(removeIndex, 1);
+
+    // 남은 43장 → n명에게 균등분배
+    const each = Math.floor(deck.length / playerCount);
+    const hands = [];
+    let start = 0;
+    for (let i = 0; i < playerCount; i++) {
+      hands.push(deck.slice(start, start + each));
+      start += each;
+    }
+
+    return { hands, deck: deck.slice(start) };
+  }
+
+  // =============== 5명 이상 ===============
+  if (playerCount === 5) {
+    // 44장 그대로 사용
+    const each = Math.floor(deck.length / 5); // 8장씩
+    const hands = [];
+    for (let i = 0; i < 5; i++) {
+      hands.push(deck.slice(i*each, i*each+each));
+    }
+    deck = deck.slice(5*each);
+    return { hands, deck };
+  }
+
+  // 그 외 플레이어 수 방어코드
+  return { hands: [], deck };
 }
+
 
 // ======================================
 // SOCKET.IO LOGIC
@@ -245,3 +291,4 @@ function updateHandCounts(room) {
   }
   io.to(room.roomId).emit("handCountUpdate", data);
 }
+
