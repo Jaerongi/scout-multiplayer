@@ -1,387 +1,244 @@
-/* ===========================================
-   GLOBAL
-=========================================== */
-
+/* ============================================
+   GLOBAL LAYOUT
+============================================ */
 body {
+  background: #1a1a1a;
+  color: #fff;
   margin: 0;
   padding: 0;
-  background: #1d1d1d;
-  font-family: 'Noto Sans KR', sans-serif;
-  color: white;
+  font-family: "Pretendard", sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
 }
 
 .page {
   display: none;
 }
-
 .page.visible {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+  display: block;
 }
 
-/* ===========================================
-   PANEL / BOARD
-=========================================== */
-
+/* ============================================
+   MAIN PANEL (중앙 황금 테두리 박스)
+============================================ */
 .board-panel {
-  background: #2b2b2b;
-  border: 4px solid #d6af36; /* 금색 테두리 */
-  border-radius: 14px;
-  padding: 40px;
-  min-width: 380px;
-  max-width: 520px;
-  text-align: center;
-  box-shadow: 0 0 15px rgba(214, 175, 54, 0.3);
+  margin-top: 60px;
+  background: #2a2a2a;
+  padding: 40px 50px;
+  border: 3px solid #ffdb58;
+  border-radius: 20px;
+  width: 650px;
+  box-shadow: 0 0 25px rgba(255, 215, 0, 0.4);
 }
 
-.board-panel.wide {
-  width: 650px;
+.panel-center {
+  text-align: center;
+}
+
+.wide {
+  width: 750px;
+}
+
+/* ============================================
+   TITLES
+============================================ */
+.game-title {
+  font-size: 40px;
+  font-weight: 800;
+  color: #ffdb58;
+  margin-bottom: 20px;
 }
 
 .title-board {
-  font-size: 26px;
-  font-weight: bold;
-  margin-bottom: 20px;
-  color: #ffd66b;
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 25px;
+  text-align: center;
+  color: #ffdb58;
 }
 
-/* ===========================================
-   START PAGE
-=========================================== */
-
-.game-title {
-  font-size: 36px;
-  color: #ffd66b;
-  margin-bottom: 20px;
-}
-
+/* ============================================
+   INPUT
+============================================ */
 .input-box {
   width: 80%;
-  height: 45px;
-  border-radius: 8px;
-  border: 2px solid #888;
-  background: #222;
-  color: white;
-  font-size: 16px;
-  padding: 0 14px;
+  padding: 15px;
+  font-size: 20px;
+  border-radius: 10px;
+  text-align: center;
   margin-bottom: 20px;
+  border: 2px solid #555;
+  background: #111;
+  color: #fff;
 }
 
-/* ===========================================
-   BUTTONS (統一)
-=========================================== */
-
+/* ============================================
+   BUTTONS
+============================================ */
 .btn-main,
 .btn-sub,
 .btn-green,
-.btn-orange {
-  width: 180px;
-  height: 48px;
-  border-radius: 8px;
-  border: none;
-  font-size: 17px;
-  font-weight: bold;
+.btn-gray,
+.btn-orange,
+.btn-purple {
+  display: inline-block;
+  padding: 14px 30px;
+  border-radius: 10px;
+  font-size: 20px;
   cursor: pointer;
-  margin: 6px;
-  transition: 0.15s;
+  margin: 10px 5px;
+  border: none;
+  transition: 0.2s;
 }
 
 .btn-main {
-  background: #ffd66b;
+  background: #ffdb58;
   color: #000;
+}
+.btn-main:hover {
+  background: #ffe88b;
 }
 
 .btn-sub {
   background: #666;
-  color: white;
+  color: #fff;
+}
+.btn-sub:hover {
+  background: #777;
 }
 
 .btn-green {
-  background: #2ecc71;
-  color: white;
+  background: #22cc55;
+  color: #fff;
+}
+.btn-green:hover {
+  background: #33dd66;
 }
 
 .btn-orange {
-  background: #f39c12;
-  color: white;
+  background: #ff8a3d;
+  color: #fff;
+}
+.btn-purple {
+  background: #a27bff;
+  color: #fff;
 }
 
-.btn-main:hover,
-.btn-sub:hover,
-.btn-green:hover,
-.btn-orange:hover {
-  transform: scale(1.04);
+/* 버튼 3개/4개 동일 크기 맞추기 */
+.same {
+  width: 150px;
 }
 
-/* ===========================================
-   ROOM PAGE
-=========================================== */
-
+/* ============================================
+   ROOM PLAYER LIST
+============================================ */
 .player-list-board {
-  width: 100%;
-  background: #2b2b2b;
-  padding: 15px;
-  border-radius: 10px;
-  text-align: left;
-  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
-.playerBox {
-  padding: 12px;
-  margin-bottom: 6px;
+.roomPlayerBox {
   background: #333;
-  border-radius: 6px;
-  font-size: 17px;
-  border-left: 5px solid transparent;
-}
-
-.playerBox.currentTurn {
-  border-left: 5px solid #2ecc71; /* 턴 강조 */
-}
-
-/* ===========================================
-   GAME PAGE LAYOUT
-=========================================== */
-
-.game-layout {
-  display: flex;
-  gap: 20px;
-}
-
-.sideBoard {
-  width: 220px;
-  background: #2b2b2b;
-  padding: 18px;
+  padding: 12px 18px;
   border-radius: 10px;
-}
-
-.mainBoard {
-  flex: 1;
-}
-
-/* 테이블 */
-.tableBoard {
-  width: 100%;
-  min-height: 140px;
-  background: #2b2b2b;
-  border-radius: 10px;
-  padding: 10px;
-  margin-bottom: 20px;
-}
-
-/* 핸드 */
-.handBoard {
-  width: 100%;
-  min-height: 160px;
-  background: #2b2b2b;
-  border-radius: 10px;
-  padding: 10px;
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-/* 카드 선택 표시 */
-.card-wrapper {
-  position: relative;
-  cursor: pointer;
-  border-radius: 8px;
-}
-
-.card-wrapper.selected {
-  outline: 3px solid #ffd66b;
-}
-
-/* flip 버튼 */
-.flip-btn {
-  position: absolute;
-  bottom: -2px;
-  right: -2px;
-  background: #444;
-  color: white;
-  width: 24px;
-  height: 24px;
-  font-size: 13px;
-  border-radius: 5px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* ===========================================
-   ACTION BUTTON ROW
-=========================================== */
-
-.action-row {
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-}
-
-/* ===========================================
-   POPUP (Round Result)
-=========================================== */
-
-.popup {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: #2b2b2b;
-  padding: 40px;
-  border-radius: 12px;
-  border: 4px solid #ffd66b;
-  display: none;
-  text-align: center;
-  color: white;
-  font-size: 19px;
-  z-index: 999;
-}
-
-/* 대기실 플레이어 줄 */
-.playerLine {
-  width: 100%;
-  padding: 10px 15px;
-  margin-bottom: 8px;
-  background: #2b2b2b;
-  border-radius: 8px;
-
   display: flex;
   justify-content: space-between;
   align-items: center;
-
-  color: white;
-  font-size: 18px;
 }
 
-/* 왼쪽 (닉네임 + 방장 태그) */
-.player-left {
+/* 플레이어 표시 */
+.roomPlayerRow {
+  width: 100%;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
 }
 
-/* 오른쪽 (LED + 텍스트) */
-.player-right {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.playerName {
+  font-size: 22px;
+  font-weight: 600;
 }
 
 /* LED 표시 */
-.player-led {
-  width: 12px;
-  height: 12px;
+.led {
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   display: inline-block;
+  margin-right: 7px;
+  vertical-align: middle;
 }
 
-/* 방장 태그 */
-.tag-host {
-  background: gold;
-  color: #333;
-  padding: 2px 5px;
-  border-radius: 4px;
-  font-size: 12px;
+.led.green {
+  background: #00ff3a;
+  box-shadow: 0 0 8px #00ff3a;
 }
 
-/* 준비 텍스트 */
-.state-text {
-  font-size: 14px;
-  color: #eee;
+.led.gray {
+  background: #888;
 }
-.playerLine {
-  width: 90%;
-  margin: 0 auto 10px auto;
-  padding: 12px 16px;
-  background: #2b2b2b;
+
+/* ============================================
+   GAME PAGE LEFT PLAYER LIST
+============================================ */
+.sideBoard {
+  width: 200px;
+  background: #262626;
+  padding: 20px;
+  border-radius: 12px;
+  height: fit-content;
+}
+
+.playerBox {
+  margin-bottom: 15px;
+  padding: 12px;
+  background: #333;
+  border-radius: 10px;
+}
+
+.currentTurn {
+  outline: 3px solid #ffdb58;
+}
+
+/* ============================================
+   TABLE & HAND
+============================================ */
+.tableBoard {
+  background: #333;
+  height: 150px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  padding: 15px;
+}
+
+.handBoard {
+  background: #222;
+  min-height: 180px;
+  padding: 15px;
   border-radius: 10px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-sizing: border-box;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.player-right {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
+/* 카드 박스 */
+.card-wrapper {
+  position: relative;
 }
 
-.player-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-}
-/* 중앙 정렬 */
-.page {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-
-/* 방/대기실 패널 */
-.board-panel {
-  margin: 0 auto;
-}
-
-.board-panel.wide {
-  width: 550px;
-  max-width: 90%;
-}
-
-/* PLAYER ROW */
-.playerLine {
-  width: 90%;
-  margin: 0 auto 10px auto;
-  padding: 12px 16px;
-  background: #2b2b2b;
+.card-wrapper.selected {
+  outline: 3px solid #ffdb58;
   border-radius: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-sizing: border-box;
 }
 
-.player-left,
-.player-right {
-  display: flex;
-  align-items: center;
-  white-space: nowrap;
+.flip-btn {
+  position: absolute;
+  bottom: -10px;
+  right: 10px;
+  font-size: 22px;
+  cursor: pointer;
+  color: #fff;
 }
-
-.player-left {
-  gap: 8px;
-}
-
-.player-right {
-  gap: 6px;
-}
-
-.player-led {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  display: inline-block;
-}
-
-.tag-host {
-  background: gold;
-  color: #333;
-  padding: 2px 5px;
-  border-radius: 4px;
-  font-size: 12px;
-}
-
-.state-text {
-  font-size: 14px;
-  color: #eee;
-}
-
-
