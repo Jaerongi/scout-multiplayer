@@ -74,5 +74,26 @@ function generateRoomId() {
 }
 
 // ================================
-// ROOM + GAME UI 파일 로드 (중요!!)
+// 초대 링크 자동 처리
 // ================================
+const urlParams = new URLSearchParams(location.search);
+const inviteRoom = urlParams.get("room");
+
+if (inviteRoom) {
+  // 초대링크 모드
+  setTimeout(() => {
+    const nickname = prompt("닉네임을 입력하세요:");
+    if (!nickname) return alert("닉네임이 필요합니다.");
+
+    window.myName = nickname;
+    window.roomId = inviteRoom;
+
+    socket.emit("joinRoom", { roomId: inviteRoom, nickname });
+
+    document.getElementById("roomTitle").innerText =
+      `방번호: ${inviteRoom}`;
+
+    showPage("roomPage");
+  }, 300);
+}
+
