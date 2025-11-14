@@ -1,22 +1,16 @@
 // ==========================================
-// SCOUT – ROOM PAGE LOGIC (대기실 UI)
+// SCOUT – ROOM PAGE LOGIC
 // ==========================================
 
-// 🔥 socket.js에서 전역(window)에 등록된 socket을 가져옴
+// 🔥 socket.js에서 만든 전역 socket을 받음
 const socket = window.socket;
 
-// 🔥 전역 변수 접근용 (window.myXXX 사용)
-function myUid()   { return window.myUid; }
-function myName()  { return window.myName; }
-function roomId()  { return window.roomId; }
+let players = {};
 
-// DOM
 const playerListDiv = document.getElementById("playerList");
 const readyBtn       = document.getElementById("readyBtn");
 const startGameBtn   = document.getElementById("startGameBtn");
 const copyInviteBtn  = document.getElementById("copyInviteBtn");
-
-let players = {};
 
 
 // ==========================================
@@ -33,33 +27,29 @@ socket.on("playerListUpdate", (p) => {
 // READY 버튼
 // ==========================================
 readyBtn.onclick = () => {
-  socket.emit("playerReady", { roomId: roomId() });
+  socket.emit("playerReady", { roomId: window.roomId });
 };
 
-
 // ==========================================
-// 게임 시작 (방장만 가능)
+// 게임 시작 (방장만)
 // ==========================================
 startGameBtn.onclick = () => {
-  socket.emit("forceStartGame", { roomId: roomId() });
-
-  // 게임 페이지로 이동
+  socket.emit("forceStartGame", { roomId: window.roomId });
   window.showPage("gamePage");
 };
-
 
 // ==========================================
 // 초대 링크 복사
 // ==========================================
 copyInviteBtn.onclick = () => {
-  const link = `${location.origin}/index.html?room=${roomId()}`;
+  const link = `${location.origin}/index.html?room=${window.roomId}`;
   navigator.clipboard.writeText(link);
   alert("초대 링크가 복사되었습니다!\n" + link);
 };
 
 
 // ==========================================
-// UI 렌더링
+// UI
 // ==========================================
 function renderPlayerList() {
   playerListDiv.innerHTML = "";
@@ -68,23 +58,19 @@ function renderPlayerList() {
     const div = document.createElement("div");
     div.className = "playerBox";
 
-    let readyTxt = p.ready ? "🟢 READY" : "⚪ 대기";
+    const readyTxt = p.ready ? "🟢 READY" : "⚪ 대기";
 
     div.innerHTML = `
       <b>${p.nickname}</b>
       <div>${readyTxt}</div>
     `;
-
-    playerListDiv.appendChild(div);
+    playerListDiv.append(div);
   });
 }
 
 
-// ==========================================
-// 스타트 버튼 활성화/비활성화
-// ==========================================
 function updateStartButtonState() {
-  const host = players[myUid()];
+  const host = players[window.myUid];
   if (!host || !host.isHost) {
     startGameBtn.style.display = "none";
     return;
