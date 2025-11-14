@@ -1,320 +1,76 @@
-/* ============================================
-   GLOBAL LAYOUT
-============================================ */
+/* 공통 */
 body {
-  background: #1a1a1a;
-  color: #fff;
+  background: #20242b;
+  color: white;
   margin: 0;
-  padding: 0;
-  font-family: "Pretendard", sans-serif;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  min-height: 100vh;
+  font-family: 'Pretendard', sans-serif;
 }
 
 .page {
   display: none;
-}
-.page.visible {
-  display: block;
+  text-align: center;
+  padding-top: 40px;
 }
 
-/* ============================================
-   MAIN PANEL (중앙 황금 테두리 박스)
-============================================ */
+.visible { display: block; }
+
 .board-panel {
-  margin-top: 60px;
-  background: #2a2a2a;
-  padding: 40px 50px;
-  border: 3px solid #ffdb58;
-  border-radius: 20px;
-  width: 650px;
-  box-shadow: 0 0 25px rgba(255, 215, 0, 0.4);
-}
-
-.panel-center {
-  text-align: center;
-}
-
-.wide {
-  width: 750px;
-}
-
-/* ============================================
-   TITLES
-============================================ */
-.game-title {
-  font-size: 40px;
-  font-weight: 800;
-  color: #ffdb58;
-  margin-bottom: 20px;
-}
-
-.title-board {
-  font-size: 32px;
-  font-weight: 700;
-  margin-bottom: 25px;
-  text-align: center;
-  color: #ffdb58;
-}
-
-/* ============================================
-   INPUT
-============================================ */
-.input-box {
-  width: 80%;
-  padding: 15px;
-  font-size: 20px;
-  border-radius: 10px;
-  text-align: center;
-  margin-bottom: 20px;
-  border: 2px solid #555;
-  background: #111;
-  color: #fff;
-}
-
-/* ============================================
-   BUTTONS
-============================================ */
-.btn-main,
-.btn-sub,
-.btn-green,
-.btn-orange,
-.btn-purple {
-  display: inline-block;
-  padding: 14px 30px;
-  border-radius: 10px;
-  font-size: 20px;
-  cursor: pointer;
-  margin: 10px 5px;
-  border: none;
-  transition: 0.2s;
-}
-
-/* 버튼 색상 */
-.btn-main {
-  background: #17a5dc;
-  color: #fff;
-}
-
-.btn-main:hover {
-  background: #ffe88b;
-}
-
-.btn-sub {
-  background: #666;
-  color: #fff;
-}
-
-.btn-green {
-  background: #22cc55;
-  color: #fff;
-}
-
-.btn-orange {
-  background: #ff8a3d;
-  color: #fff;
-}
-
-.btn-purple {
-  background: #a27bff;
-  color: #fff;
-}
-
-/* 버튼 크기 동일하게 */
-.same {
-  width: 200px;
-}
-
-/* ============================================
-   ROOM PLAYER LIST
-============================================ */
-.player-list-board {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.roomPlayerBox {
-  background: #333;
-  padding: 12px 18px;
-  border-radius: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.roomPlayerRow {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* LED */
-.led {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  display: inline-block;
-  margin-right: 7px;
-}
-
-.led.green {
-  background: #00ff3a;
-  box-shadow: 0 0 8px #00ff3a;
-}
-
-.led.gray {
-  background: #888;
-}
-
-/* ============================================
-   GAME PAGE LEFT PLAYER LIST
-============================================ */
-.sideBoard {
-  width: 700px;
-  background: #262626;
+  border: 3px solid gold;
   padding: 20px;
-  border-radius: 12px;
-  height: fit-content;
+  border-radius: 15px;
+  display: inline-block;
+  background: #2e323b;
 }
 
+/* 플레이어 박스 */
 .playerBox {
-  margin-bottom: 15px;
-  padding: 12px;
-  background: #333;
+  padding: 8px;
+  background: #353a45;
   border-radius: 10px;
-  text-align: center;
+  margin-bottom: 10px;
 }
 
 .currentTurn {
-  outline: 3px solid #ffdb58;
+  outline: 3px solid #00eaff;
 }
 
-/* ============================================
-   TABLE
-============================================ */
-.tableBoard {
-  background: #333;
-  min-height: 150px;
+/* 카드 */
+.cardBox {
   border-radius: 10px;
-  margin-bottom: 20px;
-  padding: 15px;
-}
-
-/* ============================================
-   HAND AREA (내 패)
-============================================ */
-.handBoard {
-  width: 100%;
-  min-height: 200px;
-  background: #2f2f2f;
-  border-radius: 10px;
-  padding: 18px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: flex-start;
-  align-items: flex-start;
-  overflow-y: auto; 
-}
-
-/* 카드 wrapper */
-.card-wrapper {
-  width: 90px;
-  height: 130px;
-  position: relative;
-  cursor: pointer;
-}
-
-.card-wrapper.selected {
-  outline: 3px solid #ffd54f;
-  border-radius: 8px;
-}
-
-/* 플립 버튼 */
-.flip-btn {
-  position: absolute;
-  right: 5px;
-  bottom: 5px;
-  background: rgba(0,0,0,0.6);
-  color: #fff;
-  padding: 3px 5px;
-  border-radius: 4px;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-/* ===========================
-   카드(CANVAS) 스타일 강제 적용
-=========================== */
-#handArea canvas,
-.tableBoard canvas {
-  width: 90px !important;
-  height: 130px !important;
-  border-radius: 8px;
-  background: #fff;  /* 밝은 배경 추가 */
-  box-shadow: 0 0 4px #000;
-}
-/* ============================================================
-   카드 렌더링 기본 스타일
-============================================================ */
-
-.scout-card {
+  border: 2px solid white;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  justify-content: space-between;
+  padding: 5px;
+}
 
-  color: #ffffff;
-  background: #2a2a2a;
-  border: 2px solid #ffffff;
-  border-radius: 12px;
-
+.topNum {
+  font-size: 20px;
   font-weight: bold;
-  user-select: none;
-
-  margin-right: 8px;
-  margin-bottom: 8px;
 }
 
-/* ============================================================
-   내 패 영역 – 카드가 보이도록 flex 적용
-============================================================ */
-#handArea {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-
-  gap: 8px;
-
-  padding: 10px;
-
-  /* 카드가 보이도록 배경 약간 밝게 */
-  background: #1c1c1c !important;
-
-  min-height: 150px;
-  border-radius: 12px;
-  overflow-y: auto;
+.bottomNum {
+  font-size: 20px;
+  font-weight: bold;
+  text-align: right;
 }
 
-/* ============================================================
-   테이블 영역 – 카드 표시 영역
-============================================================ */
-#tableArea {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
+/* 버튼 */
+button {
+  padding: 10px 16px;
+  font-size: 16px;
+  margin: 6px;
+  border-radius: 10px;
+  border: none;
+}
 
-  gap: 8px;
-  padding: 10px;
+.btn-main    { background: #4caf50; }
+.btn-orange  { background: #ff9800; }
+.btn-purple  { background: #9c27b0; }
+.btn-sub     { background: #607d8b; }
+.btn-green   { background: #00c853; }
 
-  background: #1c1c1c !important;
-
-  min-height: 180px;
-  border-radius: 12px;
-  overflow-y: auto;
+button.same {
+  width: 110px;
 }
 
