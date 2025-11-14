@@ -1,5 +1,5 @@
 // =====================================
-// SCOUT CARD RENDERING ENGINE (canvas)
+// SCOUT CARD RENDERING ENGINE (FINAL)
 // =====================================
 
 // 색상 매핑 (선한피클님 제공 기준)
@@ -17,9 +17,10 @@ export const COLOR_MAP = {
 };
 
 /* ---------------------------------------------------
-   카드 생성 함수 (canvas)
+   SCOUT 카드 생성 함수 — canvas 렌더링
+   (UI 안정화된 최종본)
 --------------------------------------------------- */
-export function drawScoutCard(top, bottom, w = 80, h = 120) {
+export function drawScoutCard(top, bottom, w = 90, h = 130) {
 
   const canvas = document.createElement("canvas");
   canvas.width = w;
@@ -27,41 +28,50 @@ export function drawScoutCard(top, bottom, w = 80, h = 120) {
 
   const ctx = canvas.getContext("2d");
 
-  // 배경
+  /* --------------------------
+     1) 전체 배경
+  --------------------------- */
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, w, h);
 
-  // 보드게임 스타일의 두꺼운 테두리
-  ctx.lineWidth = 6;
-  ctx.strokeStyle = "#000";
+  /* --------------------------
+     2) 테두리 (보드게임 스타일)
+  --------------------------- */
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = "#111";
   ctx.strokeRect(0, 0, w, h);
 
-  // 가운데 구분선
-  ctx.strokeStyle = "#333";
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(10, h / 2);
-  ctx.lineTo(w - 10, h / 2);
-  ctx.stroke();
-
-  // TOP 영역 색
+  /* --------------------------
+     3) 상·하 배경 색
+  --------------------------- */
   ctx.fillStyle = COLOR_MAP[top];
   ctx.fillRect(0, 0, w, h / 2);
 
-  // BOTTOM 영역 색
   ctx.fillStyle = COLOR_MAP[bottom];
   ctx.fillRect(0, h / 2, w, h / 2);
 
-  // 글자 스타일
-  ctx.fillStyle = "#000";
-  ctx.font = `bold ${w * 0.3}px Noto Sans KR`;
+  /* --------------------------
+     4) 중간 구분선
+  --------------------------- */
+  ctx.strokeStyle = "#000000";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(8, h / 2);
+  ctx.lineTo(w - 8, h / 2);
+  ctx.stroke();
+
+  /* --------------------------
+     5) 숫자 배치
+  --------------------------- */
   ctx.textAlign = "center";
+  ctx.fillStyle = "#000000";
+  ctx.font = `bold ${w * 0.32}px Arial`;
 
-  // top 숫자
-  ctx.fillText(top, w / 2, h * 0.33);
+  // top 숫자 (상단 중앙)
+  ctx.fillText(top, w / 2, h * 0.35);
 
-  // bottom 숫자
-  ctx.fillText(bottom, w / 2, h * 0.77);
+  // bottom 숫자 (하단 중앙)
+  ctx.fillText(bottom, w / 2, h * 0.82);
 
   return canvas;
 }
