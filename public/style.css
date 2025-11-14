@@ -293,4 +293,95 @@ body {
   font-size: 14px;
   color: #eee;
 }
+.playerLine {
+  width: 90%;
+  margin: 0 auto 10px auto;
+  padding: 12px 16px;
+  background: #2b2b2b;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.player-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.player-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+/* 중앙 정렬 */
+.page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* 방/대기실 패널 */
+.board-panel {
+  margin: 0 auto;
+}
+
+.board-panel.wide {
+  width: 550px;
+  max-width: 90%;
+}
+
+/* PLAYER ROW */
+.playerLine {
+  width: 90%;
+  margin: 0 auto 10px auto;
+  padding: 12px 16px;
+  background: #2b2b2b;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.player-left,
+.player-right {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.player-left {
+  gap: 8px;
+}
+
+.player-right {
+  gap: 6px;
+}
+
+.player-led {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.tag-host {
+  background: gold;
+  color: #333;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.state-text {
+  font-size: 14px;
+  color: #eee;
+}
+
 
