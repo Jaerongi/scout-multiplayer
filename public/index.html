@@ -63,14 +63,16 @@
 
 </div>
 
-<!-- SOCKET + UI SCRIPTS -->
+<!-- =============================== -->
+<!--       🔥 SCRIPT LOADING         -->
+<!-- =============================== -->
 <script src="/socket.io/socket.io.js"></script>
-<script src="./socket.js"></script>
-<script type="module" src="./cardEngine.js"></script>
-<script src="./roomUI.js"></script>
-<script src="./gameUI.js"></script>
 
-<!-- 🔥🔥 초대 링크 자동 입장 기능: 반드시 마지막에 위치해야 함 -->
+<script type="module" src="./socket.js"></script>
+<script type="module" src="./roomUI.js"></script>
+<script type="module" src="./gameUI.js"></script>
+
+<!-- 🔥🔥 초대 링크 자동 입장 기능 -->
 <script>
 window.addEventListener("DOMContentLoaded", () => {
   const params = new URLSearchParams(location.search);
@@ -83,20 +85,16 @@ window.addEventListener("DOMContentLoaded", () => {
     window.roomId = invitedRoom;
     window.myName = nickname;
 
-    // socket.js 에서 만든 전역 socket 사용
-    socket.emit("joinRoom", { roomId, nickname: myName });
+    window.socket.emit("joinRoom", {
+      roomId,
+      nickname: myName
+    });
 
     document.getElementById("roomTitle").innerText = `방번호: ${roomId}`;
-    showPage("roomPage");
+    window.showPage("roomPage");
   }
 });
 </script>
 
 </body>
 </html>
-
-
-
-
-
-
