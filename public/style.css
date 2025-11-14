@@ -254,6 +254,27 @@ body {
   flex-wrap: wrap;
   gap: 10px;
 }
+.card-wrapper {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;
+}
+
+.card-wrapper:hover {
+  transform: scale(1.08);
+  box-shadow: 0 3px 12px rgba(255,255,255,0.25);
+}
+
+.card-wrapper.selected {
+  transform: translateY(-8px);
+  box-shadow: 0 0 12px #ffdb58;
+  border-radius: 14px;
+  outline: 3px solid #ffdb58;
+}
+
+.card-wrapper canvas {
+  border-radius: 14px;
+}
+
 
 
 
