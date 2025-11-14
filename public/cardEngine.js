@@ -1,5 +1,5 @@
 // ================================
-// SCOUT CARD DRAW ENGINE (COLOR VERSION)
+// SCOUT CARD DRAW ENGINE (Two Color Split Version)
 // ================================
 
 const DEFAULT_WIDTH = 85;
@@ -20,7 +20,7 @@ const COLOR_MAP = {
 };
 
 /**
- * 스카우트 카드 렌더링
+ * 스카우트 카드 렌더링 (위/아래 2색 분할 버전)
  */
 export function drawScoutCard(top, bottom, width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT) {
   const canvas = document.createElement("canvas");
@@ -28,31 +28,45 @@ export function drawScoutCard(top, bottom, width = DEFAULT_WIDTH, height = DEFAU
   canvas.height = height;
   const ctx = canvas.getContext("2d");
 
-  // 카드 배경 (top 기반 색상)
-  ctx.fillStyle = COLOR_MAP[top] || "#fff";
-  ctx.fillRect(0, 0, width, height);
+  // ===============================
+  // 🔥 2색 배경 분할
+  // ===============================
+
+  // 상단 영역 색(top)
+  ctx.fillStyle = COLOR_MAP[top];
+  ctx.fillRect(0, 0, width, height / 2);
+
+  // 하단 영역 색(bottom)
+  ctx.fillStyle = COLOR_MAP[bottom];
+  ctx.fillRect(0, height / 2, width, height / 2);
 
   // 테두리
-  ctx.strokeStyle = "#333";
+  ctx.strokeStyle = "#222";
   ctx.lineWidth = 3;
   ctx.strokeRect(0, 0, width, height);
 
-  // TOP 숫자
-  ctx.fillStyle = "#000";
-  ctx.font = `${width * 0.28}px bold sans-serif`;
+  // ===============================
+  // 텍스트 (TOP)
+  // ===============================
+  ctx.fillStyle = "#000000";
   ctx.textAlign = "center";
+  ctx.font = `${width * 0.28}px bold sans-serif`;
   ctx.fillText(top, width / 2, height * 0.38);
 
+  // ===============================
   // 구분선
-  ctx.strokeStyle = "rgba(0,0,0,0.4)";
+  // ===============================
+  ctx.strokeStyle = "rgba(0,0,0,0.35)";
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(width * 0.15, height / 2);
   ctx.lineTo(width * 0.85, height / 2);
   ctx.stroke();
 
-  // BOTTOM 숫자
-  ctx.fillText(bottom, width / 2, height * 0.80);
+  // ===============================
+  // 텍스트 (BOTTOM)
+  // ===============================
+  ctx.fillText(bottom, width / 2, height * 0.83);
 
   return canvas;
 }
