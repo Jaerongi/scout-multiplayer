@@ -1,139 +1,242 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+/* ===========================================
+   GLOBAL
+=========================================== */
 
 body {
-  background: #181818;
+  margin: 0;
+  padding: 0;
+  background: #1d1d1d;
+  font-family: 'Noto Sans KR', sans-serif;
   color: white;
-  font-family: Pretendard, sans-serif;
 }
 
-.page { display: none; }
-.page.visible { display: block; }
+.page {
+  display: none;
+}
 
-.panel-center {
-  width: 320px;
-  margin: 150px auto;
+.page.visible {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* ===========================================
+   PANEL / BOARD
+=========================================== */
+
+.board-panel {
+  background: #2b2b2b;
+  border: 4px solid #d6af36; /* 금색 테두리 */
+  border-radius: 14px;
+  padding: 40px;
+  min-width: 380px;
+  max-width: 520px;
   text-align: center;
+  box-shadow: 0 0 15px rgba(214, 175, 54, 0.3);
 }
 
-.panel-wide {
-  width: 600px;
-  margin: 70px auto;
-  padding: 20px;
+.board-panel.wide {
+  width: 650px;
+}
+
+.title-board {
+  font-size: 26px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #ffd66b;
+}
+
+/* ===========================================
+   START PAGE
+=========================================== */
+
+.game-title {
+  font-size: 36px;
+  color: #ffd66b;
+  margin-bottom: 20px;
 }
 
 .input-box {
-  width: 90%;
-  padding: 12px;
-  margin: 20px 0;
+  width: 100%;
+  height: 45px;
+  border-radius: 8px;
+  border: 2px solid #888;
+  background: #222;
+  color: white;
+  font-size: 16px;
+  padding: 0 14px;
+  margin-bottom: 20px;
+}
+
+/* ===========================================
+   BUTTONS (統一)
+=========================================== */
+
+.btn-main,
+.btn-sub,
+.btn-green,
+.btn-orange {
+  width: 180px;
+  height: 48px;
   border-radius: 8px;
   border: none;
-  font-size: 16px;
-}
-
-.btn-row {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 20px;
-}
-
-button.same {
-  width: 140px;
-  height: 44px;
-  font-size: 15px;
-  border-radius: 8px;
-}
-
-.btn-main { background: #3a82ff; color: white; border: none; }
-.btn-green { background: #28d144; color: white; border: none; }
-.btn-orange { background: #ff9b27; color: white; border: none; }
-.btn-purple { background: #b327ff; color: white; border: none; }
-.btn-sub { background: #444; color: #ddd; border: none; }
-
-.sidebar {
-  width: 230px;
-  padding: 10px;
-}
-
-.playerBox {
-  background: #2b2b2b;
-  padding: 12px;
-  margin-bottom: 10px;
-  border-radius: 10px;
-}
-
-.playerBox.turn-now {
-  border: 3px solid #39ff14;
-  box-shadow: 0 0 8px #39ff14;
-}
-
-.tableBoard, .handBoard {
-  min-height: 120px;
-  padding: 10px;
-  background: #202020;
-  border: 1px solid #333;
-  border-radius: 8px;
-}
-
-.insert-slot {
-  width: 26px;
-  height: 100px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin: 3px;
-  background: #333;
-  border-radius: 4px;
+  font-size: 17px;
+  font-weight: bold;
   cursor: pointer;
+  margin: 6px;
+  transition: 0.15s;
 }
 
-.insert-slot:hover {
-  background: #555;
+.btn-main {
+  background: #ffd66b;
+  color: #000;
 }
 
-.card-wrapper {
-  display: inline-block;
-  margin: 3px;
-  position: relative;
-}
-
-.card-wrapper.selected {
-  outline: 3px solid yellow;
-}
-
-.flip-btn {
-  position: absolute;
-  bottom: 2px;
-  right: 2px;
-  padding: 4px 6px;
-  background: rgba(0,0,0,.7);
-  font-size: 13px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.turnGlow {
-  border: 3px solid #39ff14;
-  box-shadow: 0 0 10px #39ff14;
-}
-
-.mePlayer {
-  background: #444;
-}
-
-.playerBox {
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  background: #2b2b2b;
+.btn-sub {
+  background: #666;
   color: white;
 }
 
-.same {
-  width: 140px;
-  height: 40px;
+.btn-green {
+  background: #2ecc71;
+  color: white;
 }
 
+.btn-orange {
+  background: #f39c12;
+  color: white;
+}
+
+.btn-main:hover,
+.btn-sub:hover,
+.btn-green:hover,
+.btn-orange:hover {
+  transform: scale(1.04);
+}
+
+/* ===========================================
+   ROOM PAGE
+=========================================== */
+
+.player-list-board {
+  width: 100%;
+  background: #2b2b2b;
+  padding: 15px;
+  border-radius: 10px;
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.playerBox {
+  padding: 12px;
+  margin-bottom: 6px;
+  background: #333;
+  border-radius: 6px;
+  font-size: 17px;
+  border-left: 5px solid transparent;
+}
+
+.playerBox.currentTurn {
+  border-left: 5px solid #2ecc71; /* 턴 강조 */
+}
+
+/* ===========================================
+   GAME PAGE LAYOUT
+=========================================== */
+
+.game-layout {
+  display: flex;
+  gap: 20px;
+}
+
+.sideBoard {
+  width: 220px;
+  background: #2b2b2b;
+  padding: 18px;
+  border-radius: 10px;
+}
+
+.mainBoard {
+  flex: 1;
+}
+
+/* 테이블 */
+.tableBoard {
+  width: 100%;
+  min-height: 140px;
+  background: #2b2b2b;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 20px;
+}
+
+/* 핸드 */
+.handBoard {
+  width: 100%;
+  min-height: 160px;
+  background: #2b2b2b;
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* 카드 선택 표시 */
+.card-wrapper {
+  position: relative;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.card-wrapper.selected {
+  outline: 3px solid #ffd66b;
+}
+
+/* flip 버튼 */
+.flip-btn {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  background: #444;
+  color: white;
+  width: 24px;
+  height: 24px;
+  font-size: 13px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ===========================================
+   ACTION BUTTON ROW
+=========================================== */
+
+.action-row {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+/* ===========================================
+   POPUP (Round Result)
+=========================================== */
+
+.popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #2b2b2b;
+  padding: 40px;
+  border-radius: 12px;
+  border: 4px solid #ffd66b;
+  display: none;
+  text-align: center;
+  color: white;
+  font-size: 19px;
+  z-index: 999;
+}
