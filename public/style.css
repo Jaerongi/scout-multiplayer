@@ -80,7 +80,6 @@ body {
 .btn-main,
 .btn-sub,
 .btn-green,
-.btn-gray,
 .btn-orange,
 .btn-purple {
   display: inline-block;
@@ -93,10 +92,12 @@ body {
   transition: 0.2s;
 }
 
+/* 버튼 색상 */
 .btn-main {
   background: #17a5dc;
   color: #fff;
 }
+
 .btn-main:hover {
   background: #ffe88b;
 }
@@ -105,34 +106,26 @@ body {
   background: #666;
   color: #fff;
 }
-.btn-sub:hover {
-  background: #777;
-}
 
 .btn-green {
   background: #22cc55;
   color: #fff;
 }
-.btn-green:hover {
-  background: #33dd66;
-  width: 150px;
-}
 
 .btn-orange {
   background: #ff8a3d;
   color: #fff;
-  width: 150px;
 }
+
 .btn-purple {
   background: #a27bff;
   color: #fff;
-  width: 250px;
 }
 
-/* 버튼 3개/4개 동일 크기 맞추기
+/* 버튼 크기 동일하게 */
 .same {
-  width: 250px;
-}*/
+  width: 200px;
+}
 
 /* ============================================
    ROOM PLAYER LIST
@@ -152,7 +145,6 @@ body {
   align-items: center;
 }
 
-/* 플레이어 표시 */
 .roomPlayerRow {
   width: 100%;
   display: flex;
@@ -160,19 +152,13 @@ body {
   align-items: center;
 }
 
-.playerName {
-  font-size: 22px;
-  font-weight: 600;
-}
-
-/* LED 표시 */
+/* LED */
 .led {
   width: 14px;
   height: 14px;
   border-radius: 50%;
   display: inline-block;
   margin-right: 7px;
-  vertical-align: middle;
 }
 
 .led.green {
@@ -208,129 +194,67 @@ body {
 }
 
 /* ============================================
-   TABLE & HAND
+   TABLE
 ============================================ */
 .tableBoard {
   background: #333;
-  height: 150px;
+  min-height: 150px;
   border-radius: 10px;
   margin-bottom: 20px;
   padding: 15px;
 }
 
-.handBoard {
-  background: #222;
-  min-height: 180px;
-  padding: 15px;
-  border-radius: 10px;
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-/* 카드 박스 */
-.card-wrapper {
-  position: relative;
-}
-
-.card-wrapper.selected {
-  outline: 3px solid #ffdb58;
-  border-radius: 10px;
-}
-
-.flip-btn {
-  position: absolute;
-  bottom: -10px;
-  right: 10px;
-  font-size: 22px;
-  cursor: pointer;
-  color: #fff;
-}
-
-/* 내 패 박스 */
+/* ============================================
+   HAND AREA (내 패)
+============================================ */
 .handBoard {
   width: 100%;
-  min-height: 180px;
+  min-height: 200px;
   background: #2f2f2f;
   border-radius: 10px;
-  padding: 12px;
+  padding: 18px;
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
+  gap: 12px;
+  justify-content: flex-start;
   align-items: flex-start;
-  overflow-y: auto;        /* 카드 넘칠 때 스크롤 가능 */
+  overflow-y: auto; 
 }
 
 /* 카드 wrapper */
 .card-wrapper {
-  position: relative;
   width: 90px;
   height: 130px;
+  position: relative;
   cursor: pointer;
-  transition: transform 0.15s;
 }
 
-.card-wrapper:hover {
-  transform: translateY(-5px);
-}
-
-/* 선택된 카드 */
 .card-wrapper.selected {
   outline: 3px solid #ffd54f;
   border-radius: 8px;
 }
 
-/* flip 버튼 */
+/* 플립 버튼 */
 .flip-btn {
   position: absolute;
   right: 5px;
   bottom: 5px;
   background: rgba(0,0,0,0.6);
   color: #fff;
-  padding: 2px 5px;
+  padding: 3px 5px;
   border-radius: 4px;
-  font-size: 10px;
+  font-size: 12px;
   cursor: pointer;
 }
 
-/* drawScoutCard()가 넣는 카드 이미지(STYLE 리셋) */
-.card {
+/* ===========================
+   카드(CANVAS) 스타일 강제 적용
+=========================== */
+#handArea canvas,
+.tableBoard canvas {
   width: 90px !important;
   height: 130px !important;
   border-radius: 8px;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  font-weight: bold;
-  color: #222;
+  background: #fff;  /* 밝은 배경 추가 */
+  box-shadow: 0 0 4px #000;
 }
-
-/* 내 패 카드 정렬 */
-#handArea {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-content: flex-start;
-  padding: 10px;
-}
-
-#handArea canvas {
-  cursor: pointer;
-  border-radius: 8px;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
