@@ -37,8 +37,9 @@ document.getElementById("makeRoomBtn").onclick = () => {
   window.roomId = generateRoomId();
 
   socket.emit("joinRoom", { roomId, nickname: myName });
+  document.getElementById("roomTitle").innerText =
+    `방번호: ${roomId}`;
 
-  document.getElementById("roomTitle").innerText = `방번호: ${roomId}`;
   showPage("roomPage");
 };
 
@@ -56,7 +57,8 @@ document.getElementById("enterRoomBtn").onclick = () => {
   window.roomId = id;
 
   socket.emit("joinRoom", { roomId: id, nickname });
-  document.getElementById("roomTitle").innerText = `방번호: ${id}`;
+  document.getElementById("roomTitle").innerText =
+    `방번호: ${id}`;
 
   showPage("roomPage");
 };
@@ -81,22 +83,16 @@ if (inviteRoom) {
       `방번호: ${inviteRoom}`;
 
     showPage("roomPage");
-  }, 200);
+  }, 100);
 }
 
 // ================================
-// SERVER → GAME PAGE로 이동 신호
+// SERVER → GAME PAGE 이동
 // ================================
 socket.on("goGame", () => {
   console.log("🔄 이동: GAME PAGE");
   showPage("gamePage");
 });
-
-// ================================
-// ROOM + GAME UI 로드
-// ================================
-import "./roomUI.js";
-import "./gameUI.js";
 
 // ================================
 // 방 ID 생성
