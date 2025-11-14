@@ -1,133 +1,99 @@
 // ===============================================
-// SCOUT – GAME PAGE LOGIC (window.socket 기반 버전)
+// GAME PAGE UI LOGIC (최종본)
 // ===============================================
 
-// -------------------------------
-// 🔥 전역 socket.js 사용
-// -------------------------------
+// socket.js 의 window.socket 사용
 const socket = window.socket;
 
-function getMyUid() { return window.myUid; }
-function getRoomId() { return window.roomId; }
-
-// -------------------------------
-// IMPORT
-// -------------------------------
 import { drawScoutCard } from "./cardEngine.js";
 import { getComboType, isStrongerCombo } from "./shared.js";
 
-// -------------------------------
 // DOM 요소
-// -------------------------------
 const gamePlayerList = document.getElementById("gamePlayerList");
 const tableArea = document.getElementById("tableArea");
 const handArea = document.getElementById("handArea");
 const myCountSpan = document.getElementById("myCount");
-const roundInfo = document.getElementById("roundInfo");
+const flipAllBtn = document.getElementById("flipAllBtn");
 
+// SHOW & SCOUT 버튼들
 const showBtn = document.getElementById("showBtn");
 const scoutBtn = document.getElementById("scoutBtn");
 const showScoutBtn = document.getElementById("showScoutBtn");
 
+// 상태
 let players = {};
 let tableCards = [];
 let myHand = [];
-let flipState = {};
-let selected = new Set();
+let flipState = {};     // index → "bottom" or undefined
 let myTurn = false;
+window.allHandsReady = false;  // socket.js 설정됨
 
-// -------------------------------
-// 플레이어 리스트 갱신
-// -------------------------------
+// ===============================================
+// 모든 패 방향 확정되면 SHOW/SCOUT 버튼 활성화
+// ===============================================
+window.enableActionsAfterHandConfirm = function() {
+  showBtn.disabled = false;
+  scoutBtn.disabled = false;
+  showScoutBtn.disabled = false;
+};
+
+// ===============================================
+// 플레이어 리스트 표시
+// ===============================================
 socket.on("playerListUpdate", (p) => {
   players = p;
   renderPlayerList();
 });
 
-// -------------------------------
-// 라운드 시작
-// -------------------------------
-socket.on("roundStart", ({ round, players: p, startingPlayer }) => {
+socket.on("handConfirmUpdate", (p) => {
   players = p;
-  tableCards = [];
-
-  roundInfo.innerText = `라운드 ${round}`;
-  renderPlayerList();
-  renderTable();
-
-  myTurn = (startingPlayer === getMyUid());
-  highlightTurn(startingPlayer);
-});
-
-// -------------------------------
-// 내 패 수신
-// -------------------------------
-socket.on("yourHand", (cards) => {
-  console.log("📥 내 패:", cards);
-
-  myHand = cards;
-  flipState = {};
-  selected.clear();
-
-  renderHand();
-});
-
-// -------------------------------
-// 테이블 업데이트
-// -------------------------------
-socket.on("tableUpdate", (cards) => {
-  tableCards = cards;
-  renderTable();
-});
-
-// -------------------------------
-// 손패 개수 갱신
-// -------------------------------
-socket.on("handCountUpdate", (counts) => {
-  for (const uid in players) {
-    players[uid].handCount = counts[uid];
-  }
   renderPlayerList();
 });
 
-// -------------------------------
-// 턴 변경
-// -------------------------------
-socket.on("turnChange", (uid) => {
-  myTurn = uid === getMyUid();
-  highlightTurn(uid);
-});
-
-// -------------------------------
-// 에러 표시
-// -------------------------------
-socket.on("errorMessage", (msg) => alert(msg));
-
-// ===============================================
-// 플레이어 리스트 렌더링
-// ===============================================
 function renderPlayerList() {
   gamePlayerList.innerHTML = "";
 
-  Object.values(players).forEach((p) => {
-    const box = document.createElement("div");
-    box.className = "playerBox";
+  Object.values(players).forEach(p => {
+    const div = document.createElement("div");
+    div.className = "playerBox";
 
-    if (p.uid === getMyUid()) box.classList.add("myPlayer");
-    if (p.uid === players[p.uid].uid && p.isHost) {
-      box.innerHTML = `<b>👑 ${p.nickname}</b><br>패: ${p.handCount} | 점수: ${p.score}`;
-    } else {
-      box.innerHTML = `<b>${p.nickname}</b><br>패: ${p.handCount} | 점수: ${p.score}`;
-    }
+    if (p.uid === window.myUid) div.classList.add("myPlayer");
+    if (p.uid === window.myUid && p.handConfirmed) div.classList.add("confirmed");
 
-    gamePlayerList.appendChild(box);
+    div.innerHTML = `
+      <b>${p.isHost ? "👑 " : ""}${p.nickname}</b>
+      <div class="smallInfo">패: ${p.handCount} | 점수: ${p.score}</div>
+      <div class="smallInfo">${p.handConfirmed ? "✔ 패 확정" : "⏳ 선택중"}</div>
+    `;
+
+    gamePlayerList.appendChild(div);
   });
 }
 
+// ===============================================
+// 라운드 시작
+// ===============================================
+socket.on("roundStart", ({ round, players: p, startingPlayer }) => {
+  players = p;
+  tableCards = [];
+  renderPlayerList();
+  renderTable();
+
+  myTurn = startingPlayer === window.myUid;
+  highlightTurn(startingPlayer);
+});
+
+// ===============================================
 // 턴 강조
+// ===============================================
+socket.on("turnChange", (uid) => {
+  myTurn = uid === window.myUid;
+  highlightTurn(uid);
+});
+
 function highlightTurn(uid) {
-  const list = Object.values(players);
   const boxes = gamePlayerList.children;
+  const list = Object.values(players);
 
   for (let i = 0; i < list.length; i++) {
     if (list[i].uid === uid) boxes[i].classList.add("currentTurn");
@@ -136,20 +102,13 @@ function highlightTurn(uid) {
 }
 
 // ===============================================
-// 테이블 렌더링
+// 내 패 수신
 // ===============================================
-function renderTable() {
-  tableArea.innerHTML = "";
-
-  if (tableCards.length === 0) {
-    tableArea.innerHTML = `<span style="color:#888">(비어 있음)</span>`;
-    return;
-  }
-
-  tableCards.forEach((c) => {
-    tableArea.append(drawScoutCard(c.top, c.bottom, 90, 130));
-  });
-}
+socket.on("yourHand", (hand) => {
+  myHand = hand;
+  flipState = {};
+  renderHand();
+});
 
 // ===============================================
 // 핸드 렌더링
@@ -159,15 +118,11 @@ function renderHand() {
   myCountSpan.innerText = myHand.length;
 
   myHand.forEach((card, idx) => {
-    const flip = flipState[idx] === "bottom";
-
-    const c = flip
-      ? { top: card.bottom, bottom: card.top }
-      : { top: card.top, bottom: card.bottom };
+    const flipped = flipState[idx] === "bottom";
+    const c = flipped ? { top: card.bottom, bottom: card.top } : card;
 
     const wrap = document.createElement("div");
     wrap.className = "card-wrapper";
-
     wrap.append(drawScoutCard(c.top, c.bottom));
 
     handArea.append(wrap);
@@ -175,54 +130,59 @@ function renderHand() {
 }
 
 // ===============================================
-// SHOW 기능
+// 전체 패 뒤집기
+// ===============================================
+flipAllBtn.onclick = () => {
+  Object.keys(myHand).forEach(i => {
+    flipState[i] = flipState[i] === "bottom" ? "top" : "bottom";
+  });
+  renderHand();
+};
+
+// ===============================================
+// 테이블 업데이트
+// ===============================================
+socket.on("tableUpdate", (cards) => {
+  tableCards = cards;
+  renderTable();
+});
+
+function renderTable() {
+  tableArea.innerHTML = "";
+
+  if (tableCards.length === 0) {
+    tableArea.innerHTML = `<span style="color:#999">(비어 있음)</span>`;
+    return;
+  }
+
+  tableCards.forEach(c => {
+    tableArea.append(drawScoutCard(c.top, c.bottom, 90, 130));
+  });
+}
+
+// ===============================================
+// SHOW
 // ===============================================
 showBtn.onclick = () => {
   if (!myTurn) return alert("당신의 턴이 아닙니다.");
-  if (selected.size === 0) return alert("카드를 선택하세요.");
+  if (!window.allHandsReady) return alert("모바일 패 방향을 먼저 확정하세요.");
 
-  const picked = [...selected].map((i) => {
-    const c = myHand[i];
-    return flipState[i] === "bottom"
-      ? { top: c.bottom, bottom: c.top }
-      : { top: c.top, bottom: c.bottom };
-  });
-
-  if (getComboType(picked) === "invalid")
-    return alert("세트/런이 아닙니다.");
-
-  if (!isStrongerCombo(picked, tableCards))
-    return alert("기존 테이블보다 약합니다.");
-
-  socket.emit("show", { roomId: getRoomId(), cards: picked });
-
-  selected.clear();
-  flipState = {};
+  alert("SHOW 기능은 다음 단계에서 카드 선택 기능 추가될 예정입니다.");
 };
 
 // ===============================================
-// SCOUT (기본 1장 버전 — 이후 확장가능)
+// SCOUT
 // ===============================================
 scoutBtn.onclick = () => {
   if (!myTurn) return alert("당신의 턴이 아닙니다.");
-  if (tableCards.length !== 1)
-    return alert("테이블에 1장일 때만 가능합니다.");
+  if (!window.allHandsReady) return alert("모든 플레이어의 패 방향이 확정되어야 합니다.");
 
-  const t = tableCards[0];
-  const ask = confirm(`BOTTOM(${t.bottom}) 가져갈까요?\n취소 = TOP(${t.top})`);
-  const chosen = ask ? "bottom" : "top";
-
-  socket.emit("scout", {
-    roomId: getRoomId(),
-    chosenValue: chosen
-  });
-
-  selected.clear();
+  alert("SCOUT 기능도 다음 단계에서 테이블 양쪽 SCOUT 기능 완성될 예정입니다.");
 };
 
 // ===============================================
-// SHOW & SCOUT (다음 단계 확장)
+// SHOW & SCOUT
 // ===============================================
 showScoutBtn.onclick = () => {
-  alert("Show & Scout 기능은 다음 단계에서 완성됩니다!");
+  alert("SHOW & SCOUT 기능은 다음 단계에서 완성됩니다.");
 };
