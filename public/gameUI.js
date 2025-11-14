@@ -21,11 +21,11 @@ const showScoutBtn = document.getElementById("showScoutBtn");
 // =============================
 // GAME STATE
 // =============================
-let players = {};           // 전체 플레이어 상태
-let tableCards = [];        // 테이블 묶음
-let myHand = [];            // 내 패(실제 배열)
-let selected = new Set();   // 선택된 카드 index
-let flipState = {};         // index: bottom/top
+let players = {};
+let tableCards = [];
+let myHand = [];
+let selected = new Set();
+let flipState = {};
 let myTurn = false;
 
 // ==========================================
@@ -62,7 +62,7 @@ window.socket.on("yourHand", (handData) => {
 });
 
 // ==========================================
-// 손패 갱신 (모든 플레이어)
+// 손패 갱신
 // ==========================================
 window.socket.on("handCountUpdate", (counts) => {
   for (const uid in players) {
@@ -107,7 +107,7 @@ function renderPlayerList() {
     if (p.uid === window.myUid) box.classList.add("meBox");
 
     box.innerHTML = `
-      ${p.isHost ? "👑" : ""} ${p.nickname}
+      ${p.isHost ? "👑 " : ""}${p.nickname}
       <br>
       패: ${p.handCount} &nbsp; 점수: ${p.score}
     `;
@@ -117,7 +117,6 @@ function renderPlayerList() {
   });
 }
 
-// 현재 턴 표시
 function highlightTurn(uid) {
   [...gamePlayerList.children].forEach((box) => {
     if (box.dataset.uid === uid) box.classList.add("currentTurn");
@@ -160,7 +159,6 @@ function renderHand() {
 
     wrap.append(drawScoutCard(c.top, c.bottom, 85, 120));
 
-    // flip 버튼 (↻)
     const flipBtn = document.createElement("div");
     flipBtn.className = "flip-btn";
     flipBtn.innerText = "↻";
@@ -171,7 +169,6 @@ function renderHand() {
     };
     wrap.append(flipBtn);
 
-    // 카드 선택
     wrap.onclick = () => {
       if (selected.has(idx)) selected.delete(idx);
       else selected.add(idx);
@@ -217,7 +214,7 @@ scoutBtn.onclick = () => {
     return alert("SCOUT은 테이블에 카드 1장일 때만 가능합니다.");
 
   const t = tableCards[0];
-  const pickBottom = confirm(`bottom(${t.bottom}) 가져올까요?\n취소=top(${t.top})`);
+  const pickBottom = confirm(`bottom(${t.bottom}) 가져올까요?\n취소 = top(${t.top})`);
 
   const chosenValue = pickBottom ? "bottom" : "top";
 
@@ -230,13 +227,14 @@ scoutBtn.onclick = () => {
 showScoutBtn.onclick = () => {
   if (!myTurn) return alert("당신의 턴이 아닙니다.");
   if (tableCards.length !== 1)
-    return alert("SHOW & SCOUT은 테이블에 카드 1장일 때만 가능합니다.");
+    return alert("SHOW & SCOUT은 테이블이 1장일 때만 가능");
 
   if (selected.size === 0)
     return alert("합칠 카드를 선택하세요.");
 
   const t = tableCards[0];
-  const pickBottom = confirm(`bottom(${t.bottom}) 가져올까요?\n취소=top(${t.top})`);
+  const pickBottom = confirm(`bottom(${t.bottom}) 가져올까요?\n취소 = top(${t.top})`);
+
   const extraCard = pickBottom
     ? { top: t.bottom, bottom: t.top }
     : { top: t.top, bottom: t.bottom };
