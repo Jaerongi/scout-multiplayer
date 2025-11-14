@@ -84,3 +84,15 @@ socket.on("playerListUpdate", (p) => {
 socket.on("goGame", () => {
   window.showPage("gamePage");
 });
+
+window.updateStartButtonState = function (players) {
+  const me = players[window.myUid];
+  if (!me) return;
+
+  // 방장만 버튼 보임
+  if (me.isHost) {
+    startGameBtn.style.display = "inline-block";
+  } else {
+    startGameBtn.style.display = "none";
+  }
+};
