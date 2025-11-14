@@ -240,3 +240,56 @@ body {
   font-size: 19px;
   z-index: 999;
 }
+
+/* 대기실 플레이어 줄 */
+.playerLine {
+  width: 100%;
+  padding: 10px 15px;
+  margin-bottom: 8px;
+  background: #2b2b2b;
+  border-radius: 8px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  color: white;
+  font-size: 18px;
+}
+
+/* 왼쪽 (닉네임 + 방장 태그) */
+.player-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 오른쪽 (LED + 텍스트) */
+.player-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* LED 표시 */
+.player-led {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* 방장 태그 */
+.tag-host {
+  background: gold;
+  color: #333;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+/* 준비 텍스트 */
+.state-text {
+  font-size: 14px;
+  color: #eee;
+}
