@@ -128,7 +128,7 @@ body {
 
 /* 버튼 3개/4개 동일 크기 맞추기 */
 .same {
-  width: 150px;
+  width: 250px;
 }
 
 /* ============================================
@@ -274,6 +274,7 @@ body {
 .card-wrapper canvas {
   border-radius: 14px;
 }
+
 
 
 
