@@ -48,8 +48,7 @@ function renderGamePlayers(players) {
     const crown = p.isHost ? "👑 " : "";
 
     box.innerHTML = `
-      <div><b>${crown}${p.nickname}</b></div>
-      <div>패: ${p.handCount} & 점수: ${p.score}</div>
+      <div><b>${crown}${p.nickname} 정보 : 패: ${p.handCount} & 점수: ${p.score}</b></div>
     `;
 
     gamePlayerList.appendChild(box);
@@ -211,5 +210,6 @@ socket.on("roundStart", ({ round, players: p, startingPlayer }) => {
   renderGamePlayers(players);
   renderTable();
 });
+
 
 
