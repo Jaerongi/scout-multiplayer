@@ -2,7 +2,9 @@
 // GAME PAGE LOGIC
 // ==========================================
 
-const socket = window.socket;
+window.socket = window.socket || io();
+const socket = window.socket;   // 중복 선언 아님 (안전)
+
 
 const gamePlayerList = document.getElementById("gamePlayerList");
 const tableArea = document.getElementById("tableArea");
@@ -82,3 +84,4 @@ socket.on("turnChange", (uid) => {
   myTurn = (uid === window.myUid);
   highlightTurn(uid);
 });
+
