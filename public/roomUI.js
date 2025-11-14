@@ -52,8 +52,22 @@ readyBtn.onclick = () => {
 
 // 게임 시작 버튼 (방장 전용)
 startGameBtn.onclick = () => {
+  const players = window.currentPlayers || {};
+
+  // 방장 제외하고 모두 ready인지 확인
+  const allReady = Object.values(players)
+    .filter(p => !p.isHost)
+    .every(p => p.ready);
+
+  if (!allReady) {
+    alert("⚠ 아직 준비되지 않은 플레이어가 있습니다.");
+    return;
+  }
+
+  // 모든 인원이 준비되었을 때만 시작
   socket.emit("forceStartGame", { roomId });
 };
+
 
 // 초대 링크 복사
 copyInviteBtn.onclick = () => {
@@ -82,3 +96,4 @@ function updateStartButtonState(players) {
 
   startGameBtn.disabled = !allReady;
 }
+
