@@ -8,7 +8,7 @@
 
 <body>
 
-<!-- START PAGE -->
+<!-- =============== START PAGE =============== -->
 <div id="startPage" class="page visible">
 
   <div class="board-panel panel-center">
@@ -21,82 +21,67 @@
   </div>
 </div>
 
-<!-- ROOM PAGE -->
+<!-- =============== ROOM PAGE =============== -->
 <div id="roomPage" class="page">
+
   <div class="board-panel wide">
     <h2 id="roomTitle" class="title-board"></h2>
+
+    <!-- 플레이어 리스트 -->
     <div id="playerList" class="player-list-board"></div>
 
+    <!-- 상태 표기 -->
+    <div id="handStatus" class="hand-status-text"></div>
+
+    <!-- 버튼들 -->
     <div class="room-bottom-row">
-      <button id="readyBtn" class="btn-main">게임 준비</button>
+      <button id="readyBtn" class="btn-main">패 방향 확정</button>
       <button id="startGameBtn" class="btn-green" style="display:none;">게임 시작</button>
       <button id="copyInviteBtn" class="btn-sub">초대 링크 복사</button>
     </div>
   </div>
+
 </div>
 
-<!-- GAME PAGE -->
+<!-- =============== GAME PAGE =============== -->
 <div id="gamePage" class="page">
 
   <h2 id="roundInfo" class="title-board"></h2>
 
   <div class="game-layout">
 
-    <!-- LEFT: 플레이어 표시 영역 -->
     <div id="gamePlayerList" class="sideBoard"></div>
 
-    <!-- RIGHT: 카드 & 버튼 영역 -->
     <div class="mainBoard">
-      <h3 class="section-title">테이블</h3>
+
+      <h3>테이블</h3>
       <div id="tableArea" class="tableBoard"></div>
 
-      <h3 class="section-title">내 패 (<span id="myCount">0</span>)</h3>
+      <h3>내 패 (<span id="myCount">0</span>) 
+        <button id="flipAllBtn" class="btn-small">전체 뒤집기</button>
+      </h3>
+
       <div id="handArea" class="handBoard"></div>
 
-      <div class="action-row">
-        <button id="showBtn" class="btn-main same">SHOW</button>
-        <button id="scoutBtn" class="btn-orange same">SCOUT</button>
-        <button id="confirmHandBtn" class="btn-green same" style="display:none;">패 방향 확정</button>
-        <button id="showScoutBtn" class="btn-purple same">SHOW & SCOUT</button>
+      <div id="actionArea" class="action-row">
+        <button id="showBtn" class="btn-main same" disabled>SHOW</button>
+        <button id="scoutBtn" class="btn-orange same" disabled>SCOUT</button>
+        <button id="showScoutBtn" class="btn-purple same" disabled>SHOW & SCOUT</button>
       </div>
+
     </div>
+
   </div>
 
 </div>
 
-<!-- =============================== -->
-<!--       🔥 SCRIPT LOADING         -->
-<!-- =============================== -->
+<!-- =============== SCRIPTS =============== -->
 <script src="/socket.io/socket.io.js"></script>
 
-<script type="module" src="./socket.js"></script>
+<script src="./socket.js"></script>
+<script type="module" src="./cardEngine.js"></script>
 <script type="module" src="./roomUI.js"></script>
 <script type="module" src="./gameUI.js"></script>
 
-<!-- 🔥🔥 초대 링크 자동 입장 기능 -->
-<script>
-window.addEventListener("DOMContentLoaded", () => {
-  const params = new URLSearchParams(location.search);
-  const invitedRoom = params.get("room");
-
-  if (invitedRoom) {
-    const nickname = prompt("닉네임을 입력하세요:");
-    if (!nickname) return alert("닉네임이 필요합니다!");
-
-    window.roomId = invitedRoom;
-    window.myName = nickname;
-
-    window.socket.emit("joinRoom", {
-      roomId,
-      nickname: myName
-    });
-
-    document.getElementById("roomTitle").innerText = `방번호: ${roomId}`;
-    window.showPage("roomPage");
-  }
-});
-</script>
-
 </body>
 </html>
-
