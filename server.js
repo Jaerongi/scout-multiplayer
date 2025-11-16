@@ -20,17 +20,20 @@ httpServer.listen(PORT, () => {
 const rooms = {};
 
 // ------------------------------------
-// 45장 기본 덱 생성
+// 공식 SCOUT 45장 덱 생성
 // ------------------------------------
 function createDeck() {
   const deck = [];
-  for (let t = 1; t <= 10; t++) {
-    for (let b = 1; b <= 10; b++) {
-      if (t !== b) deck.push({ top: t, bottom: b });
+
+  for (let top = 1; top <= 9; top++) {
+    for (let bottom = top + 1; bottom <= 10; bottom++) {
+      deck.push({ top, bottom });
     }
   }
+
   return deck;
 }
+
 
 function shuffle(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
@@ -272,5 +275,6 @@ function nextTurn(room) {
   const next = room.turnOrder[room.currentTurnIndex];
   io.to(room.roomId).emit("turnChange", next);
 }
+
 
 
