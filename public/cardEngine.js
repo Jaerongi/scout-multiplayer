@@ -1,5 +1,9 @@
+// cardEngine.js
 import { COLOR_MAP } from "./shared.js";
 
+/**
+ * 위/아래 색상이 다른 카드 그리기
+ */
 export function drawScoutCard(top, bottom, w = 60, h = 90) {
   const wrap = document.createElement("div");
   wrap.className = "cardBox";
@@ -12,6 +16,7 @@ export function drawScoutCard(top, bottom, w = 60, h = 90) {
   wrap.style.justifyContent = "space-between";
   wrap.style.padding = "6px";
 
+  // ⭐ 위/아래 색상 두 가지로 나누는 핵심!!
   wrap.style.background = `
     linear-gradient(
       to bottom,
