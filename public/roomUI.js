@@ -1,124 +1,98 @@
-// ===============================================
-// ROOM PAGE UI LOGIC (최종본)
-// ===============================================
+// =============================================
+// ROOM UI  (수정본)
+// =============================================
 
-// window.socket, myUid, myName, roomId 사용
-const socket = window.socket;
-
-// DOM 요소
+// DOM
 const playerListDiv = document.getElementById("playerList");
-const handStatusDiv = document.getElementById("handStatus");
 const readyBtn = document.getElementById("readyBtn");
 const startGameBtn = document.getElementById("startGameBtn");
 const copyInviteBtn = document.getElementById("copyInviteBtn");
 
-// 현재 방의 플레이어 목록
-let roomPlayers = {};
+window.currentPlayers = {};
 
-// 서버로부터 플레이어 목록 업데이트
-socket.on("playerListUpdate", (players) => {
-  roomPlayers = players;
-  renderRoomPlayers(players);
-  updateStartButton(players);
-});
-
-// 서버가 패 방향 확정 상태를 보내줌
-window.renderRoomHandConfirm = function(players) {
-  renderRoomPlayers(players);
-  updateStartButton(players);
-};
-
-// ===============================================
-// 플레이어 리스트 렌더링
-// ===============================================
-function renderRoomPlayers(players) {
+// 플레이어 리스트 갱신
+window.renderRoomPlayers = function (players) {
   playerListDiv.innerHTML = "";
+  const myId = window.myUid;
 
   Object.values(players).forEach((p) => {
-    const row = document.createElement("div");
-    row.className = "roomPlayerRow";
+    const wrap = document.createElement("div");
+    wrap.className = "roomPlayerRow";
 
-    const crown = p.isHost ? "👑 " : "";
+    // 닉네임 + 방장아이콘
+    let nameHTML = "";
+    if (p.isHost) {
+      nameHTML = `👑 <b>${p.nickname}</b> <span class="host-tag"> (방장)</span>`;
+    } else {
+      nameHTML = `<b>${p.nickname}</b>`;
+    }
 
-    const status =
-      p.handConfirmed ? `<span class="readyMark green">●</span>` 
-                      : `<span class="readyMark red">●</span>`;
+    // LED 표시는 '참가자만'
+    let ledHTML = "";
+    if (!p.isHost) {
+      ledHTML = `<span class="led ${p.ready ? "green" : "gray"}"></span>
+                 <span class="readyText">${p.ready ? "준비완료" : "대기중"}</span>`;
+    }
 
-    row.innerHTML = `
-      ${crown}${p.nickname}
-      <span class="statusText">${status}</span>
+    wrap.innerHTML = `
+      <div class="playerName">${nameHTML}</div>
+      <div class="playerReadyState">${ledHTML}</div>
     `;
 
-    playerListDiv.appendChild(row);
+    playerListDiv.appendChild(wrap);
   });
-
-  // 상태 메시지 업데이트
-  const all = Object.values(players);
-  const confirmedCount = all.filter(p => p.handConfirmed).length;
-
-  handStatusDiv.innerText =
-    (confirmedCount === all.length)
-    ? "모든 플레이어가 패 방향 선택 완료!"
-    : `패 방향 확정 대기 중 (${confirmedCount}/${all.length})`;
-}
-
-// ===============================================
-// 패 방향 확정 버튼
-// ===============================================
-readyBtn.onclick = () => {
-  if (window.handConfirmed) {
-    alert("이미 확정했습니다!");
-    return;
-  }
-  if (!confirm("패 방향을 확정하시겠습니까? 이후에는 변경할 수 없습니다.")) return;
-
-  window.confirmHandDirection();
 };
 
-// ===============================================
-// 게임 시작 버튼 활성화 여부
-// ===============================================
-function updateStartButton(players) {
-  const list = Object.values(players);
+// READY 버튼 (방장 제외)
+readyBtn.onclick = () => {
+  socket.emit("playerReady", { roomId: window.roomId });
+};
 
-  const host = list.find(p => p.isHost);
-  const me = players[window.myUid];
-
-  if (!host) return;
-
-  // 방장 여부
-  if (me && me.isHost) {
-    startGameBtn.style.display = "inline-block";
-
-    // 모든 플레이어가 패 확정 완료해야 시작 가능
-    const allConfirmed = list.every(p => p.handConfirmed);
-    startGameBtn.disabled = !allConfirmed;
-
-  } else {
-    startGameBtn.style.display = "none"; // 게스트는 게임 시작 버튼 없음
-  }
-}
-
-// ===============================================
-// 게임 시작
-// ===============================================
+// 게임 시작 버튼
 startGameBtn.onclick = () => {
-  const list = Object.values(roomPlayers);
-  const allDone = list.every(p => p.handConfirmed);
+  const players = window.currentPlayers;
 
-  if (!allDone) {
-    alert("아직 패 방향을 확정하지 않은 플레이어가 있습니다.");
+  // 참가자만 체크 (방장은 제외)
+  const allReady = Object.values(players)
+    .filter((p) => !p.isHost)       // 방장 제외
+    .every((p) => p.ready === true);
+
+  if (!allReady) {
+    alert("⚠️ 모든 참가자가 준비 완료 상태가 아닙니다!");
     return;
   }
 
+  // 정상적으로 시작
   socket.emit("forceStartGame", { roomId: window.roomId });
 };
 
-// ===============================================
 // 초대 링크 복사
-// ===============================================
 copyInviteBtn.onclick = () => {
   const link = `${location.origin}/index.html?room=${window.roomId}`;
   navigator.clipboard.writeText(link);
   alert("초대 링크가 복사되었습니다!\n" + link);
 };
+
+// 소켓으로부터 리스트 업데이트 받음
+socket.on("playerListUpdate", (p) => {
+  window.currentPlayers = p;
+  renderRoomPlayers(p);
+  updateStartButtonState(p);
+});
+
+window.updateStartButtonState = function (players) {
+  const me = players[window.myUid];
+  if (!me) return;
+
+  // 방장만 게임 시작 버튼 활성화
+  if (me.isHost) {
+    startGameBtn.style.display = "inline-block";
+  } else {
+    startGameBtn.style.display = "none";
+  }
+};
+
+// 게임 시작 신호 → 게임 화면으로 이동
+socket.on("goGame", () => {
+  window.showPage("gamePage");
+});
