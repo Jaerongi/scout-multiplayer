@@ -175,8 +175,7 @@ io.on("connection", (socket) => {
     setTimeout(() => startRound(room), 500);
   });
 
-  // SHOW
-  // ------------------------------
+// ------------------------------
 // SHOW (패 내기)
 // ------------------------------
 socket.on("show", ({ roomId, cards }) => {
@@ -187,13 +186,13 @@ socket.on("show", ({ roomId, cards }) => {
   const player = room.players[uid];
   if (!player) return;
 
-  // 🔥 1) 기존 테이블 장수 저장 → 점수로 들어감
+  // 🔥 1) 기존 테이블 카드 수 → 점수
   const previousCount = room.tableCards.length;
 
-  // 🔥 2) 내가 낸 카드로 테이블 갱신
+  // 🔥 2) 테이블 갱신
   room.tableCards = cards;
 
-  // 🔥 3) 내 손패에서 낸 카드 제거
+  // 🔥 3) 내 패(CARD) 제거
   player.hand = player.hand.filter(
     (c) =>
       !cards.some(
@@ -203,15 +202,20 @@ socket.on("show", ({ roomId, cards }) => {
   player.handCount = player.hand.length;
 
   // 🔥 4) 점수 추가
-  player.score += previousCount; // 기존 테이블 카드 수 만큼 득점
+  player.score += previousCount;
 
-  // 클라이언트에게 업데이트 전송
+  // 🔥 5) 클라이언트 업데이트
   io.to(roomId).emit("tableUpdate", room.tableCards);
   io.to(roomId).emit("playerListUpdate", room.players);
-
   updateHandCounts(room);
+
+  // ⭐⭐ 여기 추가 — 내 패 전체 다시 전송
+  io.to(uid).emit("yourHand", player.hand);
+
+  // 🔥 6) 턴 넘김
   nextTurn(room);
 });
+
 
 
   // SCOUT
@@ -310,5 +314,6 @@ function updateHandCounts(room) {
   }
   io.to(room.roomId).emit("handCountUpdate", data);
 }
+
 
 
