@@ -1,13 +1,16 @@
 import { COLOR_MAP } from "./shared.js";
 
-// ===============================================
-// 카드 1장 HTML 생성
-// ===============================================
 export function drawScoutCard(top, bottom, w = 60, h = 90) {
   const wrap = document.createElement("div");
   wrap.className = "cardBox";
   wrap.style.width = w + "px";
   wrap.style.height = h + "px";
+  wrap.style.borderRadius = "10px";
+  wrap.style.border = "2px solid white";
+  wrap.style.display = "flex";
+  wrap.style.flexDirection = "column";
+  wrap.style.justifyContent = "space-between";
+  wrap.style.padding = "6px";
 
   wrap.style.background = `
     linear-gradient(
