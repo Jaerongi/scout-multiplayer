@@ -66,9 +66,11 @@ function dealForPlayers(playerCount) {
 
   // 🎯 인원별 패 장수 계산
   let handSize;
-  if (playerCount === 3) handSize = 12;             // 36 / 3
-  else handSize = Math.floor(deck.length / playerCount);
-
+  if (playerCount === 2) handSize = 22; 
+  else if (playerCount === 3) handSize = 12;             // 36 / 3
+  else if (playerCount === 4) handSize = 11; 
+  else handSize = 9; 
+  
   // 🎯 손패 분배 — 핵심! splice 제거하고 slice 사용
   const hands = [];
   for (let i = 0; i < playerCount; i++) {
@@ -270,4 +272,5 @@ function nextTurn(room) {
   const next = room.turnOrder[room.currentTurnIndex];
   io.to(room.roomId).emit("turnChange", next);
 }
+
 
