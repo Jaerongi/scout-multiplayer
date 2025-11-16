@@ -8,7 +8,7 @@ export const COLOR_MAP = {
   4: "#31b3bd",
   5: "#31bd7c",
   6: "#7be39c",
-  7: "#f2fa0a",
+  7: "#edf342",
   8: "#c7cc35",
   9: "#f2c913",
   10: "#fa2e23",
@@ -44,3 +44,4 @@ export function drawScoutCard(top, bottom, w = 90, h = 130) {
 
   return canvas;
 }
+
