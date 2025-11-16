@@ -220,7 +220,7 @@ function startRound(room) {
     p.flipReady = false;
   });
 
-  room.turnOrder = uids;
+  room.turnOrder = uids.sort();   // 모든 유저에게 동일한 순서 강제!
   room.currentTurnIndex = 0;
 
   io.to(room.roomId).emit("roundStart", {
@@ -242,4 +242,5 @@ function nextTurn(room) {
 
   io.to(room.roomId).emit("turnChange", nextUid);
 }
+
 
