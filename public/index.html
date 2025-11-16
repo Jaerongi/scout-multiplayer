@@ -5,17 +5,13 @@
 <title>SCOUT MULTIPLAYER</title>
 <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
 
 <!-- START PAGE -->
 <div id="startPage" class="page visible">
-
   <div class="board-panel panel-center">
     <h1 class="game-title">🎴 스카우트 🎴</h1>
-
-    <input id="nicknameInput" placeholder="닉네임 입력" class="input-box">
-
+    <input id="nicknameInput" class="input-box" placeholder="닉네임 입력" />
     <button id="makeRoomBtn" class="btn-main">방 만들기</button>
     <button id="enterRoomBtn" class="btn-sub">초대 링크로 입장</button>
   </div>
@@ -26,7 +22,6 @@
   <div class="board-panel wide">
     <h2 id="roomTitle" class="title-board"></h2>
     <div id="playerList" class="player-list-board"></div>
-
     <div class="room-bottom-row">
       <button id="readyBtn" class="btn-main">게임 준비</button>
       <button id="startGameBtn" class="btn-green" style="display:none;">게임 시작</button>
@@ -37,66 +32,28 @@
 
 <!-- GAME PAGE -->
 <div id="gamePage" class="page">
-
   <h2 id="roundInfo" class="title-board"></h2>
-
   <div class="game-layout">
-
-    <!-- LEFT: 플레이어 표시 영역 -->
     <div id="gamePlayerList" class="sideBoard"></div>
 
-    <!-- RIGHT: 카드 & 버튼 영역 -->
     <div class="mainBoard">
       <h3 class="section-title">테이블</h3>
       <div id="tableArea" class="tableBoard"></div>
-
       <h3 class="section-title">내 패 (<span id="myCount">0</span>)</h3>
       <div id="handArea" class="handBoard"></div>
 
       <div class="action-row">
         <button id="showBtn" class="btn-main same">SHOW</button>
         <button id="scoutBtn" class="btn-orange same">SCOUT</button>
-        <button id="confirmHandBtn" class="btn-green same" style="display:none;">패 방향 확정</button>
-        <button id="showScoutBtn" class="btn-purple same">SHOW & SCOUT</button>
       </div>
     </div>
   </div>
-
 </div>
 
-<!-- =============================== -->
-<!--       🔥 SCRIPT LOADING         -->
-<!-- =============================== -->
 <script src="/socket.io/socket.io.js"></script>
-
-<script type="module" src="./socket.js"></script>
-<script type="module" src="./roomUI.js"></script>
-<script type="module" src="./gameUI.js"></script>
-
-<!-- 🔥🔥 초대 링크 자동 입장 기능 -->
-<script>
-window.addEventListener("DOMContentLoaded", () => {
-  const params = new URLSearchParams(location.search);
-  const invitedRoom = params.get("room");
-
-  if (invitedRoom) {
-    const nickname = prompt("닉네임을 입력하세요:");
-    if (!nickname) return alert("닉네임이 필요합니다!");
-
-    window.roomId = invitedRoom;
-    window.myName = nickname;
-
-    window.socket.emit("joinRoom", {
-      roomId,
-      nickname: myName
-    });
-
-    document.getElementById("roomTitle").innerText = `방번호: ${roomId}`;
-    window.showPage("roomPage");
-  }
-});
-</script>
+<script src="./socket.js"></script>
+<script src="./roomUI.js"></script>
+<script src="./gameUI.js"></script>
 
 </body>
 </html>
-
