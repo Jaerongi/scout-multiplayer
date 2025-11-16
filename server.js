@@ -134,31 +134,43 @@ io.on("connection", (socket) => {
     p.flipReady = true;
   });
 
-  // SHOW
-  socket.on("show", ({ roomId, cards }) => {
-    const room = rooms[roomId];
-    if (!room) return;
+// ------------------------------
+// SHOW (패 내기)
+// ------------------------------
+socket.on("show", ({ roomId, cards }) => {
+  const room = rooms[roomId];
+  if (!room) return;
+  const uid = socket.id;
 
-    const p = room.players[socket.id];
+  const player = room.players[uid];
+  if (!player) return;
 
-    // 패에서 제거
-    cards.forEach(card => {
-      const idx = p.hand.findIndex(
-        c => c.top === card.top && c.bottom === card.bottom
-      );
-      if (idx >= 0) p.hand.splice(idx, 1);
-    });
+  const previousCount = room.tableCards.length;
 
-    room.tableCards = cards;
+  // 테이블 갱신
+  room.tableCards = cards;
 
-    // 점수 + 제출한 장수 만큼
-    p.score += cards.length;
+  // 패 제거
+  player.hand = player.hand.filter(
+    (c) => !cards.some((cc) => cc.top === c.top && cc.bottom === c.bottom)
+  );
+  player.handCount = player.hand.length;
 
-    io.to(roomId).emit("tableUpdate", room.tableCards);
-    io.to(roomId).emit("playerListUpdate", room.players);
+  // 점수 +
+  player.score += previousCount;
 
-    nextTurn(room);
-  });
+  // 전체 갱신
+  io.to(roomId).emit("tableUpdate", room.tableCards);
+  io.to(roomId).emit("playerListUpdate", room.players);
+  updateHandCounts(room);
+
+  // 🔥 먼저 내 패 다시 보내기
+  io.to(uid).emit("yourHand", player.hand);
+
+  // 🔥 이제 턴 넘기기 (내 패가 먼저 갱신된 후)
+  nextTurn(room);
+});
+
 
   // SCOUT (양끝 선택)
   socket.on("scout", ({ roomId, side }) => {
@@ -230,3 +242,4 @@ function nextTurn(room) {
 
   io.to(room.roomId).emit("turnChange", nextUid);
 }
+
