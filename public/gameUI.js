@@ -80,9 +80,9 @@ socket.on("yourHand", (handData) => {
 socket.on("turnChange", (uid) => {
   myTurn = uid === myUid;
 
-  // 플립 확정 전에는 내 턴일 때 알림을 한번만 띄우고
-  if (myTurn && !flipConfirmed) {
-    alert("패 방향을 확정해주세요!");
+  if (myTurn && !flipConfirmed && !flipCheckDone) {
+    alert("패 방향 확정 버튼을 눌러주세요!");
+    flipCheckDone = true;
   }
 
   highlightTurn(uid);
@@ -232,5 +232,6 @@ scoutBtn.onclick = () => {
 showScoutBtn.onclick = () => {
   alert("추가 개발 예정!");
 };
+
 
 
