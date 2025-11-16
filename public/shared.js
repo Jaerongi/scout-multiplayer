@@ -60,12 +60,12 @@ export function applyFlip(card, flipped) {
 // SHARED — SCOUT GAME LOGIC (SET / RUN 판정)
 // =========================================
 
-// 숫자 목록 반환
+// -------- 숫자 목록 반환 --------
 export function getValues(cards) {
   return cards.map(c => c.top);
 }
 
-// ========= RUN 판정 (연속 숫자)
+// -------- RUN 판정 (연속 숫자) --------
 export function isRun(cards) {
   const v = getValues(cards).sort((a, b) => a - b);
   for (let i = 1; i < v.length; i++) {
@@ -74,13 +74,13 @@ export function isRun(cards) {
   return true;
 }
 
-// ========= SET 판정 (모두 동일 숫자)
+// -------- SET 판정 (모두 동일 숫자) --------
 export function isSet(cards) {
   const v = getValues(cards);
   return v.every(n => n === v[0]);
 }
 
-// ========= 조합 종류
+// -------- 조합 종류 반환 --------
 export function getComboType(cards) {
   if (cards.length === 0) return "invalid";
   if (isSet(cards)) return "set";
@@ -88,14 +88,16 @@ export function getComboType(cards) {
   return "invalid";
 }
 
-// ========= 조합 비교 규칙
-// 1) 장수가 많을수록 강함
-// 2) 동일 숫자(set) > run
+// =========================================
+// 🔥 SHOW 비교 규칙
+// 1) 장수 많을수록 강함
+// 2) 동일 숫자(set) > 연속(run)
 // 3) 숫자가 클수록 강함
+// =========================================
 export function isStrongerCombo(newC, oldC) {
-  if (oldC.length === 0) return true; // 테이블 비었으면 OK
+  if (oldC.length === 0) return true;
 
-  // 1. 장수 비교
+  // 1) 장수 비교
   if (newC.length !== oldC.length) {
     return newC.length > oldC.length;
   }
@@ -103,32 +105,17 @@ export function isStrongerCombo(newC, oldC) {
   const newType = getComboType(newC);
   const oldType = getComboType(oldC);
 
-  // 2. set 우선
+  // 2) set 우선
   if (newType !== oldType) {
     return newType === "set";
   }
 
-  // 3. 숫자 비교
+  // 3) 숫자 비교
   const newMax = Math.max(...newC.map(c => c.top));
   const oldMax = Math.max(...oldC.map(c => c.top));
 
   return newMax > oldMax;
 }
 
-
-/* ---------------------------------------
-   🧮 점수 계산
----------------------------------------- */
-export function calculateRoundScore(player) {
-  return -player.handCount + player.coins;
-}
-
-export function applyRoundScores(players) {
-  Object.values(players).forEach(p => {
-    p.score += calculateRoundScore(p);
-  });
-
-  return players;
-}
 
 
