@@ -147,26 +147,25 @@ io.on("connection", (socket) => {
   socket.on("show", ({ roomId, cards }) => {
     const room = rooms[roomId];
     if (!room) return;
-
+  
     const uid = socket.id;
     const player = room.players[uid];
-
-    // remove from hand
+  
+    // remove selected cards from hand
     player.hand = player.hand.filter(
-      (c) => !cards.some((sel) => sel.top === c.top && sel.bottom === c.bottom)
+      (h) => !cards.some(c => h.top === c.top && h.bottom === c.bottom)
     );
-
-    // 점수 추가
+  
     player.score += cards.length;
-
-    room.players[uid] = player;
+  
     room.tableCards = cards;
-
+  
     io.to(roomId).emit("tableUpdate", cards);
     io.to(roomId).emit("playerListUpdate", room.players);
-
+  
     nextTurn(room);
-  });
+});
+
 
   // SCOUT
   socket.on("scout", ({ roomId, side }) => {
@@ -233,3 +232,4 @@ function nextTurn(room) {
   const next = room.turnOrder[room.currentTurnIndex];
   io.to(room.roomId).emit("turnChange", next);
 }
+
