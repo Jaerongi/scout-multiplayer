@@ -172,17 +172,20 @@ confirmFlipBtn.onclick = () => {
 // SHOW
 // ------------------------------
 showBtn.onclick = () => {
-  if (!myTurn) return alert("내 턴 아님");
-  if (!flipConfirmed) return alert("패 방향 확정 필요");
-  if (selected.size === 0) return alert("카드를 선택하세요");
+  if (!myTurn) return alert("내 턴이 아닙니다.");
+  if (!flipConfirmed) return alert("패 방향 확정이 필요합니다!");
+  if (selected.size === 0) return alert("카드를 선택하세요!");
 
-  const sel = [...selected].map((i) => myHand[i]);
+  const selectedCards = [...selected].map(i => myHand[i]);
 
-  if (getComboType(sel) === "invalid") return alert("세트/런 아님");
-  if (!isStrongerCombo(sel, tableCards))
-    return alert("기존 테이블보다 약함");
+  const type = getComboType(selectedCards);
+  if (type === "invalid") return alert("세트 또는 런 조합이 아닙니다.");
 
-  socket.emit("show", { roomId, cards: sel });
+  if (!isStrongerCombo(selectedCards, tableCards)) {
+    return alert("테이블보다 약합니다!");
+  }
+
+  socket.emit("show", { roomId, cards: selectedCards });
   selected.clear();
 };
 
@@ -201,3 +204,4 @@ scoutBtn.onclick = () => {
     side: left ? "left" : "right"
   });
 };
+
