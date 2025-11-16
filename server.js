@@ -47,39 +47,37 @@ function dealForPlayers(playerCount) {
   let deck = createDeck(); // 45장
   deck = shuffle(deck);
 
-  // 🎯 1인 플레이 불가
+  // 1인 플레이 불가
   if (playerCount === 1) return null;
 
-  // 🎯 3인 → 10 포함된 카드 전체 제거(9장)
+  // 3인 → 10 포함된 9장 제거
   if (playerCount === 3) {
-    deck = deck.filter(c => c.top !== 10 && c.bottom !== 10);
+    deck = deck.filter(c => c.top !== 10 && c.bottom !== 10); // 총 36장
   }
 
-  // 🎯 2인 혹은 4인 → 9/10 또는 10/9 카드 1장 제거
+  // 2인 또는 4인 → 9/10 또는 10/9 카드 1장 제거 → 총 44장
   if (playerCount === 2 || playerCount === 4) {
     const idx = deck.findIndex(c =>
       (c.top === 9 && c.bottom === 10) ||
       (c.top === 10 && c.bottom === 9)
     );
-    if (idx !== -1) deck.splice(idx, 1); // 1장 제거 → 총 44장
+    if (idx !== -1) deck.splice(idx, 1);
   }
 
-  // 🎯 섞기
-  deck = shuffle(deck);
+  // 🎯 인원별 패 장수 계산
+  let handSize;
+  if (playerCount === 3) handSize = 12;             // 36 / 3
+  else handSize = Math.floor(deck.length / playerCount);
 
-  // 🎯 기본 분배 수
-  let handSize = Math.floor(deck.length / playerCount);
-
-  // 3인은 고정 12장
-  if (playerCount === 3) handSize = 12;
-
+  // 🎯 손패 분배 — 핵심! splice 제거하고 slice 사용
   const hands = [];
   for (let i = 0; i < playerCount; i++) {
-    hands.push(deck.splice(0, handSize));
+    hands.push(deck.slice(i * handSize, (i + 1) * handSize));
   }
 
   return hands;
 }
+
 
 // ------------------------------------
 // CONNECTION
@@ -272,3 +270,4 @@ function nextTurn(room) {
   const next = room.turnOrder[room.currentTurnIndex];
   io.to(room.roomId).emit("turnChange", next);
 }
+
