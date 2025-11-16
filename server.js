@@ -1,5 +1,5 @@
 // =============================
-// SCOUT MULTIPLAYER – SERVER FINAL
+// SCOUT MULTIPLAYER FINAL SERVER
 // =============================
 
 import express from "express";
@@ -14,17 +14,17 @@ app.use(express.static("public"));
 
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
-  console.log("SCOUT SERVER STARTED:", PORT);
+  console.log("SCOUT SERVER START:", PORT);
 });
 
-// =============================
-// 방 데이터
-// =============================
+// --------------------------------------
+// 방 정보 저장
+// --------------------------------------
 const rooms = {};
 
-// =============================
-// 카드 생성 (44장)
-// =============================
+// --------------------------------------
+// 카드 44장 생성
+// --------------------------------------
 function createDeck() {
   const deck = [];
   for (let t = 1; t <= 10; t++) {
@@ -35,6 +35,7 @@ function createDeck() {
   return deck;
 }
 
+// --------------------------------------
 function shuffle(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -43,38 +44,30 @@ function shuffle(arr) {
   return arr;
 }
 
-// 인원수별 배분 규칙
-function dealForPlayers(n) {
+// 배분
+function dealForMultiplayer(playerCount) {
   let deck = shuffle(createDeck());
-  let handSize;
-
-  if (n === 3) {
-    deck = deck.filter(c => c.top !== 10 && c.bottom !== 10);
-    handSize = 12;
-  } else if (n >= 2 && n <= 4) {
-    const remainder = deck.length % n;
-    deck.splice(0, remainder);
-    handSize = deck.length / n;
-  } else {
-    handSize = Math.floor(deck.length / n);
-  }
-
+  const each = Math.floor(deck.length / playerCount);
   const hands = [];
-  for (let i = 0; i < n; i++) {
-    hands.push(deck.splice(0, handSize));
-  }
 
+  for (let i = 0; i < playerCount; i++) {
+    hands.push(deck.splice(0, each));
+  }
   return { hands, deck };
 }
 
-// =============================
-// SOCKET IO
-// =============================
+// ======================================
+// SOCKET.IO
+// ======================================
 io.on("connection", (socket) => {
   console.log("CONNECT:", socket.id);
 
+  // ------------------------------
   // 방 입장
+  // ------------------------------
   socket.on("joinRoom", ({ roomId, nickname }) => {
+    if (!roomId || !nickname) return;
+
     socket.join(roomId);
 
     if (!rooms[roomId]) {
@@ -89,103 +82,56 @@ io.on("connection", (socket) => {
     }
 
     const room = rooms[roomId];
-    const isHost = Object.keys(room.players).length === 0;
 
     room.players[socket.id] = {
       uid: socket.id,
       nickname,
-      isHost,
-      ready: false,
       hand: [],
-      coins: 0,
-      score: 0,
-      flipReady: false
+      score: 0
     };
 
     io.to(roomId).emit("playerListUpdate", room.players);
   });
 
-  // 준비
-  socket.on("playerReady", ({ roomId }) => {
+  // ------------------------------
+  // flip 확정 반영
+  // ------------------------------
+  socket.on("confirmFlip", ({ roomId, flippedOrder }) => {
     const room = rooms[roomId];
     if (!room) return;
 
-    room.players[socket.id].ready = !room.players[socket.id].ready;
-    io.to(roomId).emit("playerListUpdate", room.players);
+    if (!room.players[socket.id]) return;
+
+    room.players[socket.id].hand = flippedOrder;
   });
 
-  // 게임 시작
+  // ------------------------------
   socket.on("forceStartGame", ({ roomId }) => {
     const room = rooms[roomId];
     if (!room) return;
 
     io.to(roomId).emit("goGame");
-
-    setTimeout(() => startRound(room), 500);
+    setTimeout(() => startRound(room), 400);
   });
 
-  // 패 방향 확정
-  socket.on("confirmFlip", ({ roomId, flippedOrder }) => {
+  // ------------------------------
+  socket.on("show", ({ roomId, cards }) => {
     const room = rooms[roomId];
     if (!room) return;
 
-    const p = room.players[socket.id];
-    p.hand = flippedOrder;
-    p.flipReady = true;
-  });
+    const uid = socket.id;
 
-// ------------------------------
-// SHOW (패 내기)
-// ------------------------------
-socket.on("show", ({ roomId, cards }) => {
-  const room = rooms[roomId];
-  if (!room) return;
-  const uid = socket.id;
+    // 점수 추가
+    const taken = room.tableCards.length;
+    room.players[uid].score += taken;
 
-  const player = room.players[uid];
-  if (!player) return;
+    // 테이블 갱신
+    room.tableCards = cards;
 
-  const previousCount = room.tableCards.length;
-
-  // 테이블 갱신
-  room.tableCards = cards;
-
-  // 패 제거
-  player.hand = player.hand.filter(
-    (c) => !cards.some((cc) => cc.top === c.top && cc.bottom === c.bottom)
-  );
-  player.handCount = player.hand.length;
-
-  // 점수 +
-  player.score += previousCount;
-
-  // 전체 갱신
-  io.to(roomId).emit("tableUpdate", room.tableCards);
-  io.to(roomId).emit("playerListUpdate", room.players);
-  updateHandCounts(room);
-
-  // 🔥 먼저 내 패 다시 보내기
-  io.to(uid).emit("yourHand", player.hand);
-
-  // 🔥 이제 턴 넘기기 (내 패가 먼저 갱신된 후)
-  nextTurn(room);
-});
-
-
-  // SCOUT (양끝 선택)
-  socket.on("scout", ({ roomId, side }) => {
-    const room = rooms[roomId];
-    if (!room) return;
-    const p = room.players[socket.id];
-
-    if (room.tableCards.length === 0) return;
-
-    let picked;
-
-    if (side === "left") picked = room.tableCards.shift();
-    else picked = room.tableCards.pop();
-
-    p.hand.push(picked);
+    // 내 패 삭제
+    room.players[uid].hand = room.players[uid].hand.filter(c =>
+      !cards.some(s => s.top === c.top && s.bottom === c.bottom)
+    );
 
     io.to(roomId).emit("tableUpdate", room.tableCards);
     io.to(roomId).emit("playerListUpdate", room.players);
@@ -193,58 +139,80 @@ socket.on("show", ({ roomId, cards }) => {
     nextTurn(room);
   });
 
+  // ------------------------------
+  socket.on("scout", ({ roomId, side }) => {
+    const room = rooms[roomId];
+    if (!room) return;
+
+    const uid = socket.id;
+
+    if (room.tableCards.length === 0) return;
+
+    let card;
+    if (side === "left") card = room.tableCards.shift();
+    else card = room.tableCards.pop();
+
+    room.players[uid].hand.push(card);
+
+    io.to(roomId).emit("tableUpdate", room.tableCards);
+    io.to(roomId).emit("playerListUpdate", room.players);
+
+    nextTurn(room);
+  });
+
+  // ------------------------------
   socket.on("disconnect", () => {
-    Object.values(rooms).forEach(room => {
+    for (const id in rooms) {
+      const room = rooms[id];
       if (room.players[socket.id]) {
         delete room.players[socket.id];
-        io.to(room.roomId).emit("playerListUpdate", room.players);
+        io.to(id).emit("playerListUpdate", room.players);
       }
-    });
+    }
   });
 });
 
-// =============================
-// ROUND START
-// =============================
+// ======================================
+// ROUND START — ★ 수정 핵심
+// ======================================
 function startRound(room) {
   const uids = Object.keys(room.players);
 
-  // 🔥 반드시 정렬 (턴 순서 통일)
-  const turnOrder = uids.sort();
-
-  const n = turnOrder.length;
-  const { hands } = dealForPlayers(n);
-
-  room.tableCards = [];
-  room.turnOrder = turnOrder;
+  // 🔥 입장 순서대로 턴 유지 (정렬 금지!)
+  room.turnOrder = [...uids];
   room.currentTurnIndex = 0;
 
-  turnOrder.forEach((uid, i) => {
-    const p = room.players[uid];
-    p.hand = hands[i];
-    p.flipReady = false;
-  });
+  const { hands, deck } = dealForMultiplayer(uids.length);
+  room.deck = deck;
+  room.tableCards = [];
+
+  for (let i = 0; i < uids.length; i++) {
+    const uid = uids[i];
+    room.players[uid].hand = hands[i];
+  }
 
   io.to(room.roomId).emit("roundStart", {
     round: room.round,
     players: room.players,
-    startingPlayer: turnOrder[0]
+    startingPlayer: room.turnOrder[0],
+    turnOrder: room.turnOrder        // 👈 클라이언트로 전달
   });
 
-  // 패 개별 전송
-  turnOrder.forEach(uid => {
+  // 패 전달
+  for (const uid of room.turnOrder) {
     io.to(uid).emit("yourHand", room.players[uid].hand);
-  });
+  }
+
+  io.to(room.roomId).emit("turnChange", room.turnOrder[0]);
 }
 
-
+// ======================================
 function nextTurn(room) {
   room.currentTurnIndex =
     (room.currentTurnIndex + 1) % room.turnOrder.length;
-  const nextUid = room.turnOrder[room.currentTurnIndex];
 
-  io.to(room.roomId).emit("turnChange", nextUid);
+  io.to(room.roomId).emit(
+    "turnChange",
+    room.turnOrder[room.currentTurnIndex]
+  );
 }
-
-
-
