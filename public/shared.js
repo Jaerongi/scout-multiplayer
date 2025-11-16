@@ -56,98 +56,63 @@ export function applyFlip(card, flipped) {
     : { top: card.top, bottom: card.bottom };
 }
 
-/* ---------------------------------------
-   🎯 값만 추출(top 기준)
----------------------------------------- */
+// =========================================
+// SHARED — SCOUT GAME LOGIC (SET / RUN 판정)
+// =========================================
+
+// 숫자 목록 반환
 export function getValues(cards) {
   return cards.map(c => c.top);
 }
 
-/* ---------------------------------------
-   🟦 SET 판정
----------------------------------------- */
+// ========= RUN 판정 (연속 숫자)
+export function isRun(cards) {
+  const v = getValues(cards).sort((a, b) => a - b);
+  for (let i = 1; i < v.length; i++) {
+    if (v[i] !== v[i - 1] + 1) return false;
+  }
+  return true;
+}
+
+// ========= SET 판정 (모두 동일 숫자)
 export function isSet(cards) {
   const v = getValues(cards);
   return v.every(n => n === v[0]);
 }
 
-/* ---------------------------------------
-   🟩 RUN 판정
----------------------------------------- */
-export function isRun(cards) {
-  let arr = getValues(cards).sort((a,b)=>a-b);
-  for (let i = 1; i < arr.length; i++) {
-    if (arr[i] !== arr[i-1] + 1) return false;
-  }
-  return true;
-}
-
-// ==========================
-// SCOUT COMBO SYSTEM
-// ==========================
-
+// ========= 조합 종류
 export function getComboType(cards) {
-  if (!cards || cards.length === 0) return "invalid";
-
-  const tops = cards.map(c => c.top).sort((a, b) => a - b);
-
-  // SET (모두 동일 숫자)
-  if (tops.every(v => v === tops[0])) return "set";
-
-  // RUN (연속 숫자)
-  let run = true;
-  for (let i = 1; i < tops.length; i++) {
-    if (tops[i] !== tops[i - 1] + 1) {
-      run = false;
-      break;
-    }
-  }
-  if (run) return "run";
-
+  if (cards.length === 0) return "invalid";
+  if (isSet(cards)) return "set";
+  if (isRun(cards)) return "run";
   return "invalid";
 }
 
-// ==========================
-// STRENGTH RANK
-// ==========================
-// set = 2점, run = 1점
-function comboStrength(type) {
-  return type === "set" ? 2 : type === "run" ? 1 : 0;
-}
+// ========= 조합 비교 규칙
+// 1) 장수가 많을수록 강함
+// 2) 동일 숫자(set) > run
+// 3) 숫자가 클수록 강함
+export function isStrongerCombo(newC, oldC) {
+  if (oldC.length === 0) return true; // 테이블 비었으면 OK
 
-// ==========================
-// Compare function
-// ==========================
-export function isStrongerCombo(newCards, oldCards) {
-  // 1) 테이블 비었으면 무조건 가능
-  if (!oldCards || oldCards.length === 0) return true;
+  // 1. 장수 비교
+  if (newC.length !== oldC.length) {
+    return newC.length > oldC.length;
+  }
 
-  const newType = getComboType(newCards);
-  const oldType = getComboType(oldCards);
+  const newType = getComboType(newC);
+  const oldType = getComboType(oldC);
 
-  // invalid combo
-  if (newType === "invalid") return false;
-  if (oldType === "invalid") return true;
+  // 2. set 우선
+  if (newType !== oldType) {
+    return newType === "set";
+  }
 
-  const newLen = newCards.length;
-  const oldLen = oldCards.length;
+  // 3. 숫자 비교
+  const newMax = Math.max(...newC.map(c => c.top));
+  const oldMax = Math.max(...oldC.map(c => c.top));
 
-  // 2) 장수 비교 — 장수가 많으면 무조건 승리
-  if (newLen > oldLen) return true;
-  if (newLen < oldLen) return false;
-
-  // 3) 종류 비교 — Set > Run
-  const newPower = comboStrength(newType);
-  const oldPower = comboStrength(oldType);
-
-  if (newPower > oldPower) return true;
-  if (newPower < oldPower) return false;
-
-  // 4) 숫자 비교 — 가장 큰 숫자로 비교
-  const maxNew = Math.max(...newCards.map(c => c.top));
-  const maxOld = Math.max(...oldCards.map(c => c.top));
-
-  return maxNew > maxOld;
+  return newMax > oldMax;
 }
 
 
@@ -165,4 +130,5 @@ export function applyRoundScores(players) {
 
   return players;
 }
+
 
