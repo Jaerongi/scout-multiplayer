@@ -208,32 +208,35 @@ socket.on("show", ({ roomId, cards }) => {
 // =============================
 function startRound(room) {
   const uids = Object.keys(room.players);
-  const n = uids.length;
 
+  // 🔥 반드시 정렬 (턴 순서 통일)
+  const turnOrder = uids.sort();
+
+  const n = turnOrder.length;
   const { hands } = dealForPlayers(n);
 
   room.tableCards = [];
+  room.turnOrder = turnOrder;
+  room.currentTurnIndex = 0;
 
-  uids.forEach((uid, i) => {
+  turnOrder.forEach((uid, i) => {
     const p = room.players[uid];
     p.hand = hands[i];
     p.flipReady = false;
   });
 
-  room.turnOrder = uids.sort();   // 모든 유저에게 동일한 순서 강제!
-  room.currentTurnIndex = 0;
-
   io.to(room.roomId).emit("roundStart", {
     round: room.round,
     players: room.players,
-    startingPlayer: uids[0]
+    startingPlayer: turnOrder[0]
   });
 
-  // 각자 자기 패 전송
-  uids.forEach(uid => {
+  // 패 개별 전송
+  turnOrder.forEach(uid => {
     io.to(uid).emit("yourHand", room.players[uid].hand);
   });
 }
+
 
 function nextTurn(room) {
   room.currentTurnIndex =
@@ -242,5 +245,6 @@ function nextTurn(room) {
 
   io.to(room.roomId).emit("turnChange", nextUid);
 }
+
 
 
