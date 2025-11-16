@@ -85,8 +85,10 @@ socket.on("turnChange", (uid) => {
     flipCheckDone = true;
   }
 
-  highlightTurn(uid);
+  // 🔥 50ms 뒤에 highlight 실행 → DOM 렌더링 완료 후 적용
+  setTimeout(() => highlightTurn(uid), 50);
 });
+
 
 
 // ===============================
@@ -236,6 +238,7 @@ scoutBtn.onclick = () => {
 showScoutBtn.onclick = () => {
   alert("추가 개발 예정!");
 };
+
 
 
 
