@@ -1,3 +1,4 @@
+// server.js
 import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
@@ -11,15 +12,16 @@ const io = new Server(httpServer);
 app.use(express.static("public"));
 
 const PORT = process.env.PORT || 3000;
-httpServer.listen(PORT, () => console.log("SERVER RUNNING:", PORT));
+httpServer.listen(PORT, () => console.log("SERVER OK:", PORT));
 
 const rooms = {};
 
+// -------- 덱 생성 --------
 function createDeck() {
   const deck = [];
-  for (let top = 1; top <= 10; top++) {
-    for (let bottom = 1; bottom <= 10; bottom++) {
-      if (top !== bottom) deck.push({ top, bottom });
+  for (let t = 1; t <= 10; t++) {
+    for (let b = 1; b <= 10; b++) {
+      if (t !== b) deck.push({ top: t, bottom: b });
     }
   }
   return deck;
@@ -45,8 +47,9 @@ function dealForMultiplayer(players) {
   return hands;
 }
 
+// -------- 소켓 처리 --------
 io.on("connection", (socket) => {
-  
+
   socket.on("joinRoom", ({ roomId, nickname }) => {
     socket.join(roomId);
 
@@ -78,8 +81,6 @@ io.on("connection", (socket) => {
 
   socket.on("playerReady", ({ roomId }) => {
     const room = rooms[roomId];
-    if (!room) return;
-
     room.players[socket.id].ready =
       !room.players[socket.id].ready;
 
@@ -88,35 +89,31 @@ io.on("connection", (socket) => {
 
   socket.on("forceStartGame", ({ roomId }) => {
     const room = rooms[roomId];
-    if (!room) return;
-
     const pids = Object.keys(room.players);
-    room.turnOrder = pids;
-    room.turnIndex = 0;
 
     const hands = dealForMultiplayer(pids);
 
-    pids.forEach((uid, index) => {
-      room.players[uid].hand = hands[index];
-      room.players[uid].handCount = hands[index].length;
+    room.turnOrder = pids;
+    room.turnIndex = 0;
+
+    pids.forEach((uid, idx) => {
+      room.players[uid].hand = hands[idx];
+      room.players[uid].handCount = hands[idx].length;
     });
 
     io.to(roomId).emit("roundStart", {
-      round: 1,
       players: room.players,
+      round: 1,
       startingPlayer: room.turnOrder[0]
     });
 
-    pids.forEach(uid => {
-      io.to(uid).emit("yourHand", room.players[uid].hand);
-    });
-
+    pids.forEach(uid => io.to(uid).emit("yourHand", room.players[uid].hand));
     io.to(roomId).emit("turnChange", room.turnOrder[0]);
   });
 
+  // SHOW
   socket.on("show", ({ roomId, cards }) => {
     const room = rooms[roomId];
-    if (!room) return;
     room.table = cards;
 
     const me = room.players[socket.id];
@@ -124,36 +121,30 @@ io.on("connection", (socket) => {
     me.hand = me.hand.filter(c =>
       !cards.some(x => x.top === c.top && x.bottom === c.bottom)
     );
-
     me.handCount = me.hand.length;
 
     io.to(roomId).emit("tableUpdate", room.table);
-    io.to(roomId).emit("handCountUpdate", {
-      [socket.id]: me.handCount
-    });
-
+    io.to(roomId).emit("handCountUpdate", { [socket.id]: me.handCount });
     nextTurn(room);
   });
 
+  // SCOUT
   socket.on("scout", ({ roomId, chosenValue }) => {
     const room = rooms[roomId];
-    if (!room) return;
 
     if (room.table.length !== 1) return;
 
     const base = room.table[0];
-
     const card =
       chosenValue === "bottom"
         ? { top: base.bottom, bottom: base.top }
-        : { top: base.top, bottom: base.bottom };
+        : base;
 
     room.players[socket.id].hand.push(card);
     room.players[socket.id].handCount++;
 
     room.table = [];
     io.to(roomId).emit("tableUpdate", room.table);
-
     nextTurn(room);
   });
 
@@ -166,6 +157,5 @@ io.on("connection", (socket) => {
 
 function nextTurn(room) {
   room.turnIndex = (room.turnIndex + 1) % room.turnOrder.length;
-  const next = room.turnOrder[room.turnIndex];
-  io.to(room.roomId).emit("turnChange", next);
+  io.to(room.roomId).emit("turnChange", room.turnOrder[room.turnIndex]);
 }
