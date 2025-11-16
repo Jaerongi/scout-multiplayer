@@ -111,15 +111,19 @@ function renderPlayers() {
   });
 }
 
-function highlightTurn(uid) {
+function highlightTurn(turnUid) {
   const boxes = gamePlayerList.children;
   const list = Object.values(players);
 
   for (let i = 0; i < list.length; i++) {
-    if (list[i].uid === uid) boxes[i].classList.add("turnGlow");
-    else boxes[i].classList.remove("turnGlow");
+    if (list[i].uid === turnUid) {
+      boxes[i].classList.add("turnGlow");   // 턴인 사람에게 테두리
+    } else {
+      boxes[i].classList.remove("turnGlow");
+    }
   }
 }
+
 
 function renderTable() {
   tableArea.innerHTML = "";
@@ -228,4 +232,5 @@ scoutBtn.onclick = () => {
 showScoutBtn.onclick = () => {
   alert("추가 개발 예정!");
 };
+
 
