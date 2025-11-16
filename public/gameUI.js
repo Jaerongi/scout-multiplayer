@@ -95,11 +95,14 @@ socket.on("turnChange", (uid) => {
 function renderPlayers() {
   gamePlayerList.innerHTML = "";
 
-  Object.values(players).forEach((p) => {
+  // 🔥 모든 사람에게 동일한 순서 보장
+  const sorted = Object.values(players).sort((a,b) => a.uid.localeCompare(b.uid));
+
+  sorted.forEach((p) => {
     const div = document.createElement("div");
     div.className = "playerBox small";
 
-    if (p.uid === myUid) div.style.border = "2px solid #ffd700";
+    div.setAttribute("data-uid", p.uid);
 
     div.innerHTML = `
       <b>${p.nickname}</b><br>
@@ -111,18 +114,19 @@ function renderPlayers() {
   });
 }
 
+
 function highlightTurn(turnUid) {
   const boxes = gamePlayerList.children;
-  const list = Object.values(players);
 
-  for (let i = 0; i < list.length; i++) {
-    if (list[i].uid === turnUid) {
-      boxes[i].classList.add("turnGlow");   // 턴인 사람에게 테두리
+  for (let box of boxes) {
+    if (box.getAttribute("data-uid") === turnUid) {
+      box.classList.add("turnGlow");
     } else {
-      boxes[i].classList.remove("turnGlow");
+      box.classList.remove("turnGlow");
     }
   }
 }
+
 
 
 function renderTable() {
@@ -232,6 +236,7 @@ scoutBtn.onclick = () => {
 showScoutBtn.onclick = () => {
   alert("추가 개발 예정!");
 };
+
 
 
 
