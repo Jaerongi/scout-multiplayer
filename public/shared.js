@@ -82,48 +82,74 @@ export function isRun(cards) {
   return true;
 }
 
-/* ---------------------------------------
-   🧩 조합 타입 반환
----------------------------------------- */
+// ==========================
+// SCOUT COMBO SYSTEM
+// ==========================
+
 export function getComboType(cards) {
   if (!cards || cards.length === 0) return "invalid";
-  if (cards.length === 1) return "single";
-  if (isSet(cards)) return "set";
-  if (isRun(cards)) return "run";
+
+  const tops = cards.map(c => c.top).sort((a, b) => a - b);
+
+  // SET (모두 동일 숫자)
+  if (tops.every(v => v === tops[0])) return "set";
+
+  // RUN (연속 숫자)
+  let run = true;
+  for (let i = 1; i < tops.length; i++) {
+    if (tops[i] !== tops[i - 1] + 1) {
+      run = false;
+      break;
+    }
+  }
+  if (run) return "run";
+
   return "invalid";
 }
 
-/* ---------------------------------------
-   ⚔ 조합 비교 (테이블보다 강한가?)
----------------------------------------- */
-export function isStrongerCombo(newCards, oldCards) {
-  if (oldCards.length === 0) return true;
-
-  const typeNew = getComboType(newCards);
-  const typeOld = getComboType(oldCards);
-
-  if (typeNew !== typeOld) return false;
-  if (newCards.length !== oldCards.length) return false;
-
-  // SET: 숫자가 커야 함
-  if (typeNew === "set") {
-    return newCards[0].top > oldCards[0].top;
-  }
-
-  // RUN: 마지막 숫자 비교
-  if (typeNew === "run") {
-    const maxNew = Math.max(...newCards.map(c => c.top));
-    const maxOld = Math.max(...oldCards.map(c => c.top));
-    return maxNew > maxOld;
-  }
-
-  // SINGLE
-  if (typeNew === "single") {
-    return newCards[0].top > oldCards[0].top;
-  }
-
-  return false;
+// ==========================
+// STRENGTH RANK
+// ==========================
+// set = 2점, run = 1점
+function comboStrength(type) {
+  return type === "set" ? 2 : type === "run" ? 1 : 0;
 }
+
+// ==========================
+// Compare function
+// ==========================
+export function isStrongerCombo(newCards, oldCards) {
+  // 1) 테이블 비었으면 무조건 가능
+  if (!oldCards || oldCards.length === 0) return true;
+
+  const newType = getComboType(newCards);
+  const oldType = getComboType(oldCards);
+
+  // invalid combo
+  if (newType === "invalid") return false;
+  if (oldType === "invalid") return true;
+
+  const newLen = newCards.length;
+  const oldLen = oldCards.length;
+
+  // 2) 장수 비교 — 장수가 많으면 무조건 승리
+  if (newLen > oldLen) return true;
+  if (newLen < oldLen) return false;
+
+  // 3) 종류 비교 — Set > Run
+  const newPower = comboStrength(newType);
+  const oldPower = comboStrength(oldType);
+
+  if (newPower > oldPower) return true;
+  if (newPower < oldPower) return false;
+
+  // 4) 숫자 비교 — 가장 큰 숫자로 비교
+  const maxNew = Math.max(...newCards.map(c => c.top));
+  const maxOld = Math.max(...oldCards.map(c => c.top));
+
+  return maxNew > maxOld;
+}
+
 
 /* ---------------------------------------
    🧮 점수 계산
@@ -139,3 +165,4 @@ export function applyRoundScores(players) {
 
   return players;
 }
+
