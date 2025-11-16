@@ -97,14 +97,16 @@ socket.on("turnChange", (uid) => {
 function renderPlayers() {
   gamePlayerList.innerHTML = "";
 
-  // 🔥 모든 사람에게 동일한 순서 보장
-  const sorted = Object.values(players).sort((a,b) => a.uid.localeCompare(b.uid));
+  // 🔥 서버 turnOrder 기준으로 동일 정렬
+  const order = window.currentTurnOrder || Object.keys(players);
 
-  sorted.forEach((p) => {
+  order.forEach(uid => {
+    const p = players[uid];
+    if (!p) return;
+
     const div = document.createElement("div");
     div.className = "playerBox small";
-
-    div.setAttribute("data-uid", p.uid);
+    div.setAttribute("data-uid", uid);
 
     div.innerHTML = `
       <b>${p.nickname}</b><br>
@@ -115,6 +117,14 @@ function renderPlayers() {
     gamePlayerList.appendChild(div);
   });
 }
+
+// 🔥 서버에서 턴 순서를 전달받기
+socket.on("roundStart", ({ round, players: p, startingPlayer }) => {
+  players = p;
+  window.currentTurnOrder = Object.keys(p); // 👈 추가
+  ...
+});
+
 
 
 function highlightTurn(turnUid) {
@@ -238,6 +248,7 @@ scoutBtn.onclick = () => {
 showScoutBtn.onclick = () => {
   alert("추가 개발 예정!");
 };
+
 
 
 
