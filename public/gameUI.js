@@ -60,7 +60,8 @@ socket.on("roundStart", ({ round, players: p, startingPlayer }) => {
 
   flipConfirmed = false;
   flipCheckDone = false;
-
+  flipWarnShown = false;
+  
   roundInfo.innerText = `라운드 ${round}`;
 
   renderPlayers();
@@ -293,6 +294,7 @@ scoutBtn.onclick = () => {
 showScoutBtn.onclick = () => {
   alert("추가 개발 예정 기능입니다!");
 };
+
 
 
 
