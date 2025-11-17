@@ -1,209 +1,174 @@
-/* ================================ */
-/*     GLOBAL DARK BOARDGAME UI     */
-/* ================================ */
+/* ========================================= */
+/*         GLOBAL DARK BOARDGAME UI          */
+/* ========================================= */
 
-/* ★★★ 페이지 전환 필수 코드 ★★★ */
-.page {
-  display: none;
-}
-.page.visible {
-  display: block;
-}
+.page { display:none; }
+.page.visible { display:block; }
 
 body {
   background: radial-gradient(#1b1b1b, #0f0f0f);
   color: #f5f2e8;
   font-family: 'Pretendard', sans-serif;
-  margin: 0;
   padding: 0;
-  overflow-x: hidden;
+  margin: 0;
 }
 
-/* 공통 패널 스타일 */
+/* 기본 패널 */
 .board-panel,
 .sideBoard,
 .mainBoard,
 .player-list-board,
 .tableBoard,
 .handBoard {
-  background: rgba(30, 30, 30, 0.85);
-  border: 1px solid rgba(255, 215, 130, 0.25);
+  background: rgba(30,30,30,0.85);
+  border: 1px solid rgba(255,215,130,0.25);
   border-radius: 14px;
-  box-shadow: 0 0 15px rgba(0,0,0,0.7);
+  box-shadow: 0 0 12px rgba(0,0,0,0.7);
+  backdrop-filter: blur(3px);
 }
 
-/* 제목 */
-.title-board, .section-title {
-  color: #f6e9c8;
-  text-shadow: 0 0 6px rgba(255, 215, 130, 0.5);
+/* ---------------------------- */
+/* EXTRA: 하단 고정 버튼 바     */
+/* ---------------------------- */
+#actionBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(25,25,25,0.92);
+  border-top: 1px solid rgba(255,215,130,0.25);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0;
+  z-index: 999;
 }
 
-/* 플레이어 박스 */
-.playerBox {
-  background: rgba(40,40,40,0.8);
-  border: 1px solid rgba(255,215,130,0.3);
+#actionBar button {
+  flex: 1;
+  margin: 0 6px;
+  padding: 12px 0;
+  font-size: 15px;
   border-radius: 10px;
-  padding: 10px;
-  margin-bottom: 8px;
+  background: linear-gradient(#3a2e1d, #221b12);
 }
 
-/* 현재 턴 강조 */
-.turnGlow {
-  border-color: #ffd76e !important;
-  box-shadow: 0 0 12px #ffd76e;
+/* ---------------------------- */
+/* PLAYER LIST - 모바일 3열     */
+/* ---------------------------- */
+@media (max-width: 600px) {
+  #gamePlayerList {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    padding: 10px;
+  }
+  .playerBox {
+    text-align: center;
+    padding: 10px !important;
+    font-size: 13px !important;
+  }
 }
 
-/* 카드 애니메이션 */
-.scout-highlight {
-  animation: scout-glow 1s infinite;
-  border-radius: 8px;
-}
-@keyframes scout-glow {
-  0% { box-shadow: 0 0 12px rgba(255,215,130,0.5); }
-  100% { box-shadow: 0 0 20px rgba(255,215,130,1); }
-}
-
-/* 버튼 */
-button {
-  background: linear-gradient(#2f2b23, #1d1b17);
-  border: 1px solid rgba(255,215,130,0.5);
-  color: #f5f2e8;
-  padding: 8px 14px;
-  border-radius: 6px;
-  transition: 0.2s;
-}
-button:hover {
-  background: linear-gradient(#3b362d, #24221d);
-  border-color: #ffd76e;
-}
-
-/* =================================== */
-/*           HAND BOARD BASE          */
-/* =================================== */
-.handBoard {
-  display: flex !important;
+/* ---------------------------- */
+/* TABLE 카드                    */
+/* ---------------------------- */
+#tableArea {
+  display: flex;
+  justify-content: center;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
   padding: 10px;
 }
-
-.card-wrapper {
-  display: inline-block;
-  border: 2px solid transparent;
-  border-radius: 6px;
-  cursor: pointer;
-  position: relative;
-}
-.card-wrapper.selected {
-  border-color: #ffd76e;
-  box-shadow: 0 0 10px #ffd76e;
-}
-.card-wrapper canvas {
+#tableArea canvas {
   width: 90px;
   height: 130px;
 }
 
-/* ========================= */
-/* INSERT OVERLAY (+넣기) */
-/* ========================= */
-.insert-overlay {
-  position: absolute;
-  top: -8px;
-  left: -6px;
-  background: rgba(0,0,0,0.75);
-  padding: 3px 7px;
-  font-size: 11px;
-  color: #ffd76e;
-  border: 1px solid rgba(255,215,130,0.6);
-  border-radius: 8px;
-  cursor: pointer;
-  z-index: 10;
-}
-
-/* ================================ */
-/*        MOBILE UI FINAL           */
-/*  포함: 3열 플레이어, 손패 자동축소 */
-/* ================================ */
-
+/* ========================================= */
+/*              FAN LAYOUT (핸드)            */
+/* ========================================= */
 @media (max-width: 600px) {
 
-  /* ---------------------------- */
-  /*  PLAYER LIST — 3 COLUMN GRID */
-  /* ---------------------------- */
-  #gamePlayerList {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 10px !important;
-    padding: 10px;
-  }
-
-  .playerBox {
-    text-align: center;
-    padding: 8px;
-    font-size: 13px;
-  }
-
-  /* ---------------------------- */
-  /*       HAND — 1 LINE CENTER  */
-  /* ---------------------------- */
   #handArea {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    justify-content: center !important;
-    overflow-x: auto !important;
-    white-space: nowrap;
-    gap: 8px !important;
-    padding: 10px 0;
-    scroll-behavior: smooth !important;
+    position: relative;
+    height: 180px;
+    margin-top: 10px;
+    overflow: visible !important;
   }
 
-  #handArea::-webkit-scrollbar {
-    height: 5px;
-  }
-  #handArea::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.25);
-    border-radius: 4px;
-  }
-
-  /* (1) 카드 간격 자동 감소 */
-  #handArea[data-count="11"] .card-wrapper,
-  #handArea[data-count="12"] .card-wrapper {
-    margin-right: 4px !important;
+  /* 카드 중앙 기준 배치 */
+  .card-wrapper {
+    position: absolute !important;
+    left: 50%;
+    transform-origin: bottom center;
+    cursor: pointer;
+    transition: transform 0.2s ease, z-index 0.2s;
   }
 
-  /* (2) 카드 수 기준 자동 크기 변경 */
-  #handArea[data-count="10"] canvas,
-  #handArea[data-count="11"] canvas,
-  #handArea[data-count="12"] canvas {
-    width: 70px !important;
-    height: 105px !important;
+  /* 카드 기본 크기 */
+  .card-wrapper canvas {
+    width: 80px !important;
+    height: 120px !important;
   }
 
-  #handArea[data-count="7"] canvas,
-  #handArea[data-count="8"] canvas,
-  #handArea[data-count="9"] canvas {
-    width: 78px !important;
-    height: 115px !important;
-  }
-
-  #handArea[data-count="1"] canvas,
-  #handArea[data-count="2"] canvas,
-  #handArea[data-count="3"] canvas,
-  #handArea[data-count="4"] canvas,
-  #handArea[data-count="5"] canvas,
-  #handArea[data-count="6"] canvas {
-    width: 85px !important;
-    height: 125px !important;
-  }
-
-  /* (4) 페이지 인디케이터 ●●●●● */
-  #handIndicator {
-    text-align: center;
-    margin-top: 4px;
-    color: rgba(255,255,255,0.6);
-    font-size: 12px;
-  }
-  #handIndicator span.active {
-    color: #fff;
+  /* 카드 확대 */
+  .card-wrapper.active {
+    transform: translateX(-50%) scale(1.2) !important;
+    z-index: 50 !important;
   }
 }
+
+/* ---------------------------- */
+/* FAN 각도 & 위치 설정         */
+/* gameUI.js에서 position 적용 */
+/* ---------------------------- */
+
+/* ---------------------------- */
+/* SCOUT INSERT OVERLAY         */
+/* ---------------------------- */
+.insert-overlay {
+  position: absolute;
+  top: -6px;
+  left: -5px;
+  background: rgba(0,0,0,0.8);
+  padding: 3px 6px;
+  border-radius: 6px;
+  font-size: 10px;
+  border: 1px solid rgba(255,215,130,0.6);
+  z-index: 100;
+}
+
+/* ---------------------------- */
+/* MODAL 슬라이드 업 스타일      */
+/* ---------------------------- */
+.modal {
+  position: fixed;
+  left:0; top:0;
+  width:100%; height:100%;
+  background: rgba(0,0,0,0.55);
+  display:flex;
+  justify-content:center;
+  align-items:flex-end;  /* 아래에서 시작 */
+  z-index:999;
+  backdrop-filter: blur(4px);
+}
+.modal.hidden { display:none; }
+
+.modal-box {
+  background: rgba(40,40,40,0.95);
+  width:100%;
+  padding:20px 0;
+  border-radius:16px 16px 0 0;
+  animation: slideUp 0.25s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(70%); }
+  to { transform: translateY(0); }
+}
+
+/*──────────────────────────────────────────────*/
+/* PC 에서는 기존 레이아웃 그대로 유지됨         */
+/*──────────────────────────────────────────────*/
+
