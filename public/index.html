@@ -2,13 +2,15 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<title>SCOUT MULTIPLAYER</title>
+<title>🎴 스카우트</title>
 <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
 
-<!-- START PAGE -->
+<!-- ===================================================== -->
+<!--  START PAGE (시작 화면)                               -->
+<!-- ===================================================== -->
 <div id="startPage" class="page visible">
 
   <div class="board-panel panel-center">
@@ -19,12 +21,18 @@
     <button id="makeRoomBtn" class="btn-main">방 만들기</button>
     <button id="enterRoomBtn" class="btn-sub">초대 링크로 입장</button>
   </div>
+
 </div>
 
-<!-- ROOM PAGE -->
+
+<!-- ===================================================== -->
+<!--  ROOM PAGE (대기방 화면)                              -->
+<!-- ===================================================== -->
 <div id="roomPage" class="page">
+
   <div class="board-panel wide">
     <h2 id="roomTitle" class="title-board"></h2>
+
     <div id="playerList" class="player-list-board"></div>
 
     <div class="room-bottom-row">
@@ -33,20 +41,26 @@
       <button id="copyInviteBtn" class="btn-sub">초대 링크 복사</button>
     </div>
   </div>
+
 </div>
 
-<!-- GAME PAGE -->
+
+
+<!-- ===================================================== -->
+<!--  GAME PAGE (게임 화면)                                -->
+<!-- ===================================================== -->
 <div id="gamePage" class="page">
 
   <h2 id="roundInfo" class="title-board"></h2>
 
   <div class="game-layout">
 
-    <!-- LEFT: 플레이어 표시 영역 -->
+    <!-- LEFT: 플레이어 목록 -->
     <div id="gamePlayerList" class="sideBoard"></div>
 
-    <!-- RIGHT: 카드 & 버튼 영역 -->
+    <!-- RIGHT: 테이블 + 핸드 + 버튼 -->
     <div class="mainBoard">
+
       <h3 class="section-title">테이블</h3>
       <div id="tableArea" class="tableBoard"></div>
 
@@ -56,22 +70,50 @@
       <div class="action-row">
         <button id="showBtn" class="btn-main same">SHOW</button>
         <button id="scoutBtn" class="btn-orange same">SCOUT</button>
-        <button id="confirmHandBtn" class="btn-green same" style="display:none;">패 방향 확정</button>
         <button id="showScoutBtn" class="btn-purple same">SHOW & SCOUT</button>
       </div>
+
     </div>
+  </div>
+
+
+  <!-- ================================================= -->
+  <!--  SCOUT MODAL (게임 화면 전용 — 이제 gamePage 내부) -->
+  <!-- ================================================= -->
+  <div id="scoutModal" class="modal hidden">
+    <div class="modal-box">
+      <p style="margin-bottom:12px;">어떻게 가져올까요?</p>
+
+      <button id="modalKeep" class="btn-green small">그대로 가져오기</button>
+      <button id="modalReverse" class="btn-orange small">반대로 가져오기</button>
+      <br><br>
+
+      <button id="modalClose" class="btn-sub small">닫기</button>
+    </div>
+  </div>
+
+  <!-- ================================================= -->
+  <!--  INSERT POSITION MODAL (카드 삽입 위치 선택) -->
+  <!-- ================================================= -->
+  <div id="insertModal" class="modal hidden">
+    <div class="modal-box" id="insertModalContent"></div>
   </div>
 
 </div>
 
-<!-- =============================== -->
-<!--       🔥 SCRIPT LOADING         -->
-<!-- =============================== -->
+
+
+
+<!-- ===================================================== -->
+<!--   SCRIPT LOADING                                      -->
+<!-- ===================================================== -->
 <script src="/socket.io/socket.io.js"></script>
 
+<!-- MODULE SCRIPTS -->
 <script type="module" src="./socket.js"></script>
 <script type="module" src="./roomUI.js"></script>
 <script type="module" src="./gameUI.js"></script>
+
 
 <!-- 🔥🔥 초대 링크 자동 입장 기능 -->
 <script>
@@ -88,7 +130,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
     window.socket.emit("joinRoom", {
       roomId,
-      nickname: myName
+      nickname: myName,
+      permUid: localStorage.getItem("scout_uid")
     });
 
     document.getElementById("roomTitle").innerText = `방번호: ${roomId}`;
@@ -96,28 +139,6 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 </script>
-  
-<!-- SCOUT MODAL -->
-<div id="scoutModal" class="modal hidden">
-  <div class="modal-box">
-    <p style="margin-bottom:12px;">어떻게 가져올까요?</p>
-    <button id="modalKeep" class="btn-green small">그대로 가져오기</button>
-    <button id="modalReverse" class="btn-orange small">반대로 가져오기</button>
-    <br><br>
-    <button id="modalClose" class="btn-sub small">닫기</button>
-  </div>
-</div>
-  
-<!-- INSERT POSITION MODAL -->
-<div id="insertModal" class="modal hidden">
-  <div class="modal-box" id="insertModalContent">
-    <!-- JS로 버튼 자동 생성됨 -->
-  </div>
-</div>
 
 </body>
 </html>
-
-
-
-
