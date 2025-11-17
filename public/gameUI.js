@@ -232,26 +232,41 @@ showBtn.onclick = () => {
 // ===============================
 // SCOUT (좌/우 끝 카드)
 // ===============================
+//------------------------------------------------------
+// SCOUT 버튼 — 위치 선택 + flip 선택 완전체
+//------------------------------------------------------
 scoutBtn.onclick = () => {
-  if (!myTurn) return alert("내 턴이 아닙니다.");
-  if (!flipConfirmed) return alert("패 방향을 확정해주세요.");
+  if (!myTurn) return alert("당신의 턴이 아닙니다.");
+  if (!flipConfirmed) return alert("패 방향 확정 버튼을 먼저 눌러주세요.");
 
   if (tableCards.length === 0)
-    return alert("테이블이 비어 있습니다.");
+    return alert("테이블이 비어있습니다.");
 
-  let left = tableCards[0];
-  let right = tableCards[tableCards.length - 1];
-
-  let msg =
-    `어느 카드를 가져올까요?\n\n` +
-    `1) 왼쪽: ${left.top}/${left.bottom}\n` +
-    `2) 오른쪽: ${right.top}/${right.bottom}`;
-
-  const pickLeft = confirm(msg);
-
+  // 1) 왼쪽 / 오른쪽 선택
+  const pickLeft = confirm(
+    "왼쪽 카드를 가져올까요?\n취소 = 오른쪽 카드를 가져옵니다."
+  );
   const side = pickLeft ? "left" : "right";
 
-  socket.emit("scout", { roomId, side });
+  // 2) flip 여부 선택
+  const doFlip = confirm(
+    "카드를 뒤집어서 가져올까요?\n확인 = flip / 취소 = 그대로"
+  );
+
+  // 3) 삽입 위치 선택 (0 ~ myHand.length)
+  let pos = prompt(
+    `카드를 어디에 넣을까요?\n0 = 맨 앞 / ${myHand.length} = 맨 뒤`
+  );
+  pos = parseInt(pos);
+  if (isNaN(pos) || pos < 0 || pos > myHand.length) pos = myHand.length;
+
+  // 서버 전달
+  socket.emit("scout", {
+    roomId,
+    side,
+    flip: doFlip,
+    pos
+  });
 };
 
 
@@ -261,5 +276,6 @@ scoutBtn.onclick = () => {
 showScoutBtn.onclick = () => {
   alert("추가 개발 예정 기능입니다!");
 };
+
 
 
