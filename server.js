@@ -145,23 +145,29 @@ io.on("connection", (socket) => {
   // START GAME
   // --------------------------
   socket.on("startGame", ({ roomId }) => {
-    const room = rooms[roomId];
-    if (!room) return;
+  const room = rooms[roomId];
+  if (!room) return;
 
-    if (room.host !== socket.id) return;
+  // 방장 체크
+  if (room.host !== socket.id) return;
 
-    const allReady = Object.values(room.players)
-      .filter(p => !p.isHost)
-      .every(p => p.ready);
+  // 방장 제외 모두 준비완료인지 확인
+  const allReady = Object.values(room.players)
+    .filter((p) => !p.isHost)
+    .every((p) => p.ready === true);
 
-    if (!allReady) {
-      io.to(socket.id).emit("errorMessage", "모두 준비 완료가 아닙니다!");
-      return;
-    }
+  if (!allReady) {
+    io.to(socket.id).emit("errorMessage", "모두 준비 완료가 아닙니다!");
+    return;
+  }
 
-    startRound(room);
-    io.to(roomId).emit("goGamePage");
-  });
+  // 게임 라운드 시작
+  startRound(room);
+
+  // ★ 이 이벤트가 클라이언트의 게임 화면을 열어줌
+  io.to(roomId).emit("goGamePage");
+});
+
 
   // --------------------------
   // CONFIRM FLIP
@@ -299,5 +305,6 @@ function nextTurn(room) {
     room.turnOrder[room.currentTurnIndex]
   );
 }
+
 
 
