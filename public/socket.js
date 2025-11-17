@@ -77,9 +77,10 @@ enterRoomBtn.onclick = () => {
 // 서버가 joinRoom 후 상태를 브로드캐스트하면
 // 이 클라이언트도 playerListUpdate를 통해 자신 정보 확인
 // =====================================================
-socket.on("playerListUpdate", (players) => {
-  console.log("playerListUpdate", players);
+socket.on("playerListUpdate", (data) => {
+  const { roomId, players } = data;
 
+  window.roomId = roomId;
   window.players = players;
 
   // 내 정보 찾기
@@ -90,20 +91,9 @@ socket.on("playerListUpdate", (players) => {
     }
   }
 
-  // ⭐ 방에 처음 들어온 경우 (= 방장) 자동으로 roomId를 세팅하고 화면 이동
-  if (!window.roomId) {
-    // 서버가 roomId를 같이 보내도록 server.js에서 수정했으면 data.roomId로 바로 들어옴
-    // 지금 구조에서는 joinRoom 요청에 사용한 roomId 그대로 socket.rooms로 확인 가능
-    // 방 아이디를 서버가 직접 보내는 방식이 더 안전함
-
-    // 안전하게 server.js에서 goGamePage나 roundStart 때 roomId 제공하도록 해야함.
-    // 여기서는 간단히: 방장이 첫 번 호출 시 roomPage 이동
-    window.roomId = Object.keys(socket.rooms).find(r => r !== socket.id);
-
-    if (!window.roomId) return; // 방 정보 아직 없음
-
-    // ⭐ 방장: 방 생성 즉시 roomPage로 이동
-    document.getElementById("roomTitle").innerText = `방번호: ${window.roomId}`;
+  // 방 첫 입장 시 roomPage 이동
+  if (document.getElementById("roomPage").style.display !== "block") {
+    document.getElementById("roomTitle").innerText = `방번호: ${roomId}`;
     showPage("roomPage");
   }
 });
@@ -151,4 +141,5 @@ function generateRoomId() {
   for (let i = 0; i < 6; i++) r += s[Math.floor(Math.random() * s.length)];
   return r;
 }
+
 
