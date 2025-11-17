@@ -108,4 +108,226 @@ io.on("connection", (socket) => {
         round: 1,
         host: null,
 
-        // ★ 추가
+        // ★ 추가: 마지막 SHOW를 한 플레이어 기록
+        lastShowPlayer: null,
+      };
+    }
+
+    const room = rooms[roomId];
+    const isFirst = Object.keys(room.players).length === 0;
+
+    room.players[socket.id] = {
+      uid: socket.id,
+      nickname,
+      isHost: isFirst,
+      ready: false,
+      hand: [],
+      score: 0,
+    };
+
+    if (isFirst) room.host = socket.id;
+
+    io.to(roomId).emit("playerListUpdate", room.players);
+  });
+
+  // READY
+  socket.on("playerReady", ({ roomId }) => {
+    const room = rooms[roomId];
+    if (!room) return;
+
+    if (room.players[socket.id].isHost) return;
+
+    room.players[socket.id].ready = !room.players[socket.id].ready;
+    io.to(roomId).emit("playerListUpdate", room.players);
+  });
+
+  // START GAME
+  socket.on("startGame", ({ roomId }) => {
+    const room = rooms[roomId];
+    if (!room) return;
+
+    if (room.host !== socket.id) return;
+
+    const allReady = Object.values(room.players)
+      .filter(p => !p.isHost)
+      .every(p => p.ready);
+
+    if (!allReady) {
+      io.to(socket.id).emit("errorMessage", "모든 참가자가 준비 완료되지 않았습니다!");
+      return;
+    }
+
+    startRound(room);
+    io.to(roomId).emit("goGamePage");
+  });
+
+  // CONFIRM FLIP
+  socket.on("confirmFlip", ({ roomId, flipped }) => {
+    const room = rooms[roomId];
+    if (!room) return;
+    room.players[socket.id].hand = flipped;
+  });
+
+  // ============================
+  // SHOW (패 제출)
+  // ============================
+  socket.on("show", ({ roomId, cards }) => {
+    const room = rooms[roomId];
+    if (!room) return;
+
+    const uid = socket.id;
+    const player = room.players[uid];
+
+    // ★ 마지막 SHOW 한 사람 기록
+    room.lastShowPlayer = uid;
+
+    // 점수: 기존 테이블 카드 수
+    player.score += room.tableCards.length;
+
+    // 내 패에서 제거
+    player.hand = player.hand.filter(
+      h => !cards.some(c => c.top === h.top && c.bottom === h.bottom)
+    );
+
+    // 테이블 업데이트
+    room.tableCards = cards;
+
+    // 패 갱신
+    io.to(uid).emit("yourHand", player.hand);
+
+    io.to(roomId).emit("tableUpdate", room.tableCards);
+    io.to(roomId).emit("playerListUpdate", room.players);
+
+    // 다음 턴
+    nextTurn(room);
+  });
+
+  // ============================
+  // SCOUT
+  // ============================
+  socket.on("scout", ({ roomId, side, flip, pos }) => {
+    const room = rooms[roomId];
+    if (!room) return;
+
+    const uid = socket.id;
+    const player = room.players[uid];
+
+    // 가져올 카드 결정
+    let take = null;
+
+    if (room.tableCards.length === 1) {
+      take = room.tableCards.pop();
+    } else {
+      take = (side === "left")
+        ? room.tableCards.shift()
+        : room.tableCards.pop();
+    }
+
+    if (!take) return;
+
+    // flip 적용
+    if (flip) take = { top: take.bottom, bottom: take.top };
+
+    if (pos < 0) pos = 0;
+    if (pos > player.hand.length) pos = player.hand.length;
+
+    player.hand.splice(pos, 0, take);
+
+    io.to(uid).emit("yourHand", player.hand);
+    io.to(roomId).emit("tableUpdate", room.tableCards);
+    io.to(roomId).emit("playerListUpdate", room.players);
+
+    nextTurn(room);
+  });
+
+  // DISCONNECT
+  socket.on("disconnect", () => {
+    for (const r in rooms) {
+      const room = rooms[r];
+      if (room.players[socket.id]) {
+        delete room.players[socket.id];
+        io.to(r).emit("playerListUpdate", room.players);
+      }
+    }
+  });
+});
+
+
+// =========================================
+// ROUND START
+// =========================================
+function startRound(room) {
+  const uids = Object.keys(room.players);
+  const hands = deal(uids.length);
+
+  uids.forEach((uid, i) => {
+    room.players[uid].hand = hands[i];
+  });
+
+  room.turnOrder = uids;
+  room.currentTurnIndex = 0;
+  room.tableCards = [];
+
+  // ★ 라운드 시작 → lastShowPlayer 초기화
+  room.lastShowPlayer = null;
+
+  io.to(room.roomId).emit("roundStart", {
+    round: room.round,
+    players: room.players,
+    startingPlayer: room.turnOrder[0],
+  });
+
+  uids.forEach(uid => {
+    io.to(uid).emit("yourHand", room.players[uid].hand);
+  });
+
+  io.to(room.roomId).emit("turnChange", room.turnOrder[0]);
+}
+
+
+// =========================================
+// TURN CHANGE + 승리 조건 체크 (NEW LOGIC)
+// =========================================
+function nextTurn(room) {
+  room.currentTurnIndex =
+    (room.currentTurnIndex + 1) % room.turnOrder.length;
+
+  const currentPlayer = room.turnOrder[room.currentTurnIndex];
+
+  // =======================================================
+  // ★★ 승리 조건: 모두 SCOUT만 해서 → 마지막 SHOW한 사람에게 턴이 돌아옴
+  // =======================================================
+  if (room.lastShowPlayer && currentPlayer === room.lastShowPlayer) {
+
+    const winner = room.lastShowPlayer;
+
+    // 점수 계산
+    for (const uid of Object.keys(room.players)) {
+      const player = room.players[uid];
+
+      if (uid === winner) {
+        // 승리자 0점
+        player.score += 0;
+      } else {
+        // 나머지 인원은 손패 장수 × -1
+        player.score -= player.hand.length;
+      }
+    }
+
+    // 라운드 종료 안내
+    io.to(room.roomId).emit("roundEnd", {
+      winner,
+      players: room.players
+    });
+
+    // 다음 라운드 시작
+    room.round++;
+    startRound(room);
+    return;
+  }
+
+  // =======================================================
+  // 기존 턴 넘기기
+  // =======================================================
+  io.to(room.roomId).emit("turnChange", currentPlayer);
+}
