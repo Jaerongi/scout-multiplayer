@@ -206,52 +206,46 @@ io.on("connection", (socket) => {
   // SCOUT
   // ============================
   socket.on("scout", ({ roomId, side, flip, pos }) => {
-    const room = rooms[roomId];
-    if (!room) return;
+  const room = rooms[roomId];
+  if (!room) return;
 
-    const uid = socket.id;
-    const player = room.players[uid];
+  const uid = socket.id;
+  const player = room.players[uid];
 
-    // 가져올 카드 결정
-    let take = null;
+  // 가져올 카드 결정
+  let take = null;
+  if (room.tableCards.length === 1) {
+    take = room.tableCards.pop();
+  } else {
+    take = (side === "left")
+      ? room.tableCards.shift()
+      : room.tableCards.pop();
+  }
 
-    if (room.tableCards.length === 1) {
-      take = room.tableCards.pop();
-    } else {
-      take = (side === "left")
-        ? room.tableCards.shift()
-        : room.tableCards.pop();
-    }
+  if (!take) return;
 
-    if (!take) return;
+  // flip 적용
+  if (flip) take = { top: take.bottom, bottom: take.top };
 
-    // flip 적용
-    if (flip) take = { top: take.bottom, bottom: take.top };
+  if (pos < 0) pos = 0;
+  if (pos > player.hand.length) pos = player.hand.length;
 
-    if (pos < 0) pos = 0;
-    if (pos > player.hand.length) pos = player.hand.length;
+  // ★ 핸드 삽입
+  player.hand.splice(pos, 0, take);
 
-    player.hand.splice(pos, 0, take);
+  // ★ SCOUT 점수 로직 추가
+  if (room.lastShowPlayer) {
+    room.players[room.lastShowPlayer].score += 1;
+  }
 
-    io.to(uid).emit("yourHand", player.hand);
-    io.to(roomId).emit("tableUpdate", room.tableCards);
-    io.to(roomId).emit("playerListUpdate", room.players);
+  // 카드/점수 UI 갱신
+  io.to(uid).emit("yourHand", player.hand);
+  io.to(roomId).emit("tableUpdate", room.tableCards);
+  io.to(roomId).emit("playerListUpdate", room.players);
 
-    nextTurn(room);
-  });
-
-  // DISCONNECT
-  socket.on("disconnect", () => {
-    for (const r in rooms) {
-      const room = rooms[r];
-      if (room.players[socket.id]) {
-        delete room.players[socket.id];
-        io.to(r).emit("playerListUpdate", room.players);
-      }
-    }
-  });
+  // 턴 넘기기
+  nextTurn(room);
 });
-
 
 // =========================================
 // ROUND START
@@ -331,3 +325,4 @@ function nextTurn(room) {
   // =======================================================
   io.to(room.roomId).emit("turnChange", currentPlayer);
 }
+
