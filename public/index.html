@@ -1,137 +1,119 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<title>SCOUT 멀티</title>
-<link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SCOUT Multiplayer</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 
 <body>
 
-<!-- =================================================== -->
-<!-- START PAGE -->
-<!-- =================================================== -->
+<!-- =====================================================
+     START PAGE
+===================================================== -->
 <div id="startPage" class="page visible">
-  <div class="board-panel panel-center">
-    <h1 class="game-title">🎴 SCOUT 🎴</h1>
-    <input id="nicknameInput" class="input-box" placeholder="닉네임 입력" />
 
-    <button id="makeRoomBtn" class="btn-main">방 만들기</button>
-    <button id="enterRoomBtn" class="btn-sub">초대 링크로 입장</button>
-  </div>
-</div>
+  <div class="board-panel">
+    <div class="game-title">SCOUT 멀티플레이</div>
 
-<!-- =================================================== -->
-<!-- ROOM PAGE -->
-<!-- =================================================== -->
-<div id="roomPage" class="page">
-  <div class="board-panel wide">
-    <h2 id="roomTitle" class="title-board"></h2>
+    <div class="section-title">닉네임 입력</div>
+    <input id="nicknameInput" class="input-box" placeholder="닉네임"/>
 
-    <div id="playerList" class="player-list-board"></div>
+    <div style="margin-top:20px; text-align:center;">
+      <button id="makeRoomBtn" class="large btn-main">방 만들기</button>
+    </div>
 
-    <div class="room-bottom-row">
-      <button id="readyBtn" class="btn-main">게임 준비</button>
-      <button id="startGameBtn" class="btn-green" style="display:none;">게임 시작</button>
-      <button id="copyInviteBtn" class="btn-sub">초대 링크 복사</button>
+    <div style="margin-top:20px; text-align:center;">
+      <button id="enterRoomBtn" class="large btn-sub">초대 링크 입장</button>
     </div>
   </div>
+
 </div>
 
-<!-- =================================================== -->
-<!-- GAME PAGE -->
-<!-- =================================================== -->
+
+
+<!-- =====================================================
+     ROOM PAGE
+===================================================== -->
+<div id="roomPage" class="page">
+
+  <div class="board-panel">
+    <div id="roomTitle" class="game-title">방번호: -</div>
+
+    <div class="section-title">플레이어 목록</div>
+    <div id="playerListBox"></div>
+
+    <div style="margin-top:25px; text-align:center;">
+      <button id="startGameBtn" class="large btn-orange">게임 시작</button>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- =====================================================
+     GAME PAGE
+===================================================== -->
 <div id="gamePage" class="page">
 
-  <h2 id="roundInfo" class="title-board"></h2>
+  <!-- 라운드 표시 -->
+  <div class="board-panel">
+    <div id="roundInfo" class="game-title">라운드 1</div>
 
-  <div class="game-layout">
+    <div class="section-title">현재 테이블</div>
+    <div id="tableBoard" class="tableBoard"></div>
 
-    <!-- 좌측 플레이어 리스트 -->
-    <div id="gamePlayerList" class="sideBoard"></div>
+    <div class="section-title" style="margin-top:20px;">내 패</div>
+    <div id="handBoard" class="handBoard"></div>
 
-    <!-- 메인 게임 보드 -->
-    <div class="mainBoard">
-
-      <!-- 테이블 -->
-      <h3 class="section-title">테이블</h3>
-      <div id="tableArea" class="tableBoard"></div>
-
-      <!-- 패 방향 선택 UI -->
-      <div id="flipSelectArea" class="flip-area hidden">
-        <h3 class="section-title">패 방향 선택</h3>
-
-        <button id="flipToggleBtn" class="btn-main">↺ 방향 바꾸기</button>
-        <br /><br />
-
-        <button id="flipConfirmBtn" class="btn-green">
-          ✔ 방향 확정
-        </button>
-      </div>
-
-      <!-- 내 패 -->
-      <h3 class="section-title">
-        내 패 (<span id="myCount">0</span>)
-      </h3>
-      <div id="handArea" class="handBoard"></div>
-
-      <!-- 하단 행동 버튼 -->
-      <div class="action-row">
-        <button id="showBtn" class="btn-main large">SHOW</button>
-        <button id="scoutBtn" class="btn-orange large">SCOUT</button>
-        <button id="showScoutBtn" class="btn-purple large">SHOW & SCOUT</button>
-      </div>
-
+    <!-- 턴 액션 버튼 -->
+    <div id="actionRow" class="action-row">
+      <button id="btnShow" class="btn-green">SHOW</button>
+      <button id="btnScout" class="btn-purple">SCOUT</button>
+      <button id="btnPass" class="btn-sub">PASS</button>
     </div>
   </div>
-</div>
 
-<!-- =================================================== -->
-<!-- INSERT OVERLAY (B 방식) -->
-<!-- =================================================== -->
-<div id="insertOverlay" class="insert-overlay hidden">
-  <div class="insert-box">
-    <h2 style="margin-top:0;">삽입 위치 선택</h2>
-    <div id="insertSlots" class="insertSlots"></div>
-
-    <button class="btn-sub" onclick="document.getElementById('insertOverlay').classList.add('hidden')">
-      닫기
-    </button>
+  <!-- flip(패 방향 선택) -->
+  <div id="flipArea" class="flip-area hidden">
+    <div class="section-title">패 방향 선택</div>
+    <button id="flipLeftBtn" class="btn-sub small">왼쪽으로 회전</button>
+    <button id="flipRightBtn" class="btn-sub small">오른쪽으로 회전</button>
+    <button id="confirmFlipBtn" class="btn-main small" style="margin-top:12px;">방향 확정</button>
   </div>
+
+  <!-- SCOUT 삽입 UI -->
+  <div id="insertOverlay" class="insert-overlay hidden">
+    <div class="insert-box">
+      <div class="section-title">어디에 넣을까요?</div>
+      <div id="insertSlots" class="insertSlots"></div>
+      <div style="margin-top:20px;">
+        <button id="insertCancelBtn" class="btn-sub">취소</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<!-- =================================================== -->
-<!-- SCRIPTS -->
-<!-- =================================================== -->
+
+<!-- =====================================================
+     JS FILES
+===================================================== -->
 <script src="/socket.io/socket.io.js"></script>
-<script type="module" src="./socket.js"></script>
-<script type="module" src="./roomUI.js"></script>
-<script type="module" src="./gameUI.js"></script>
+<script src="cardEngine.js"></script>
+<script src="shared.js"></script>
+<script src="roomUI.js"></script>
+<script src="gameUI.js"></script>
+<script src="socket.js"></script>
 
-<!-- 초대 자동입장 -->
-<script>
-window.addEventListener("DOMContentLoaded", () => {
-  const params = new URLSearchParams(location.search);
-  const invitedRoom = params.get("room");
-
-  if (invitedRoom) {
-    const nickname = prompt("닉네임을 입력하세요:");
-    if (!nickname) return;
-
-    window.roomId = invitedRoom;
-    window.myName = nickname;
-
-    window.socket.emit("joinRoom", {
-      roomId,
-      nickname: myName,
-      permUid: localStorage.getItem("scout_uid")
-    });
-
-    roomTitle.innerText = `방번호: ${roomId}`;
-    window.showPage("roomPage");
-  }
-});
-</script>
+<!--  
+**********************************************
+*  🔥 매우 중요: 자동 입장 스크립트 삭제됨 🔥
+*  이 코드가 유령 플레이어(undefined/offline) 문제의
+*  100% 원인이었음.
+**********************************************
+-->
 
 </body>
 </html>
