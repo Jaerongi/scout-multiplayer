@@ -1,6 +1,6 @@
 // ======================================================
-//                 GAME UI FINAL VERSION
-//        FAN LAYOUT + MOBILE FIX + ACTION BAR
+//                 GAME UI FINAL VERSION v6
+//     FIX: MOBILE FAN NOT SHOWING + ACTION BAR + LED
 // ======================================================
 
 import { drawScoutCard } from "./cardEngine.js";
@@ -15,6 +15,17 @@ const handArea = document.getElementById("handArea");
 const tableArea = document.getElementById("tableArea");
 const myCountSpan = document.getElementById("myCount");
 
+
+// ======================================================
+//        MOBILE DETECTION (CRITICAL FIX FOR iOS)
+// ======================================================
+
+function isMobileDevice() {
+  return /Android|iPhone|iPad|iPod|Samsung|LG|Mobile/i.test(navigator.userAgent);
+}
+
+
+
 // ======================================================
 //                     RENDER HAND
 // ======================================================
@@ -25,26 +36,20 @@ export function renderHand() {
   const count = myHand.length;
   myCountSpan.innerText = count;
 
-  // PC === 기존 방식 / MOBILE === FAN LAYOUT
-  const isMobile = window.innerWidth <= 600;
+  const isMobile = isMobileDevice();
 
-  // 카드 수 → CSS 전달 (자동 크기 조절용)
+  // 카드 수 → CSS 전달
   handArea.setAttribute("data-count", count);
 
-  // ------------------------
-  //   FAN LAYOUT (Mobile)
-  // ------------------------
+  // ============== MOBILE FAN MODE ==============
   if (isMobile) {
     renderFanHand(count);
     return;
   }
 
-  // ------------------------
-  //   PC 기본 렌더 방식
-  // ------------------------
+  // ============== PC MODE ==============
   for (let i = 0; i <= count; i++) {
     if (pendingScoutCard) {
-      // INSERT MODE — + 버튼 처리
       if (i < count) {
         const card = myHand[i];
         const wrap = renderInsertSlot(card, i);
@@ -52,7 +57,6 @@ export function renderHand() {
         continue;
       }
 
-      // 마지막 슬롯
       const last = document.createElement("div");
       last.style.display = "inline-block";
       last.style.position = "relative";
@@ -86,6 +90,8 @@ export function renderHand() {
   }
 }
 
+
+
 // ======================================================
 //               FAN LAYOUT (MOBILE ONLY)
 // ======================================================
@@ -93,16 +99,15 @@ export function renderHand() {
 function renderFanHand(count) {
   for (let i = 0; i < count; i++) {
     const card = myHand[i];
-
     const wrap = document.createElement("div");
     wrap.className = "card-wrapper";
     wrap.dataset.index = i;
 
     wrap.appendChild(drawScoutCard(card.top, card.bottom));
 
-    // 카드 확대(튀어나오기)
+    // 카드 확대
     wrap.onclick = () => {
-      document.querySelectorAll(".card-wrapper").forEach(el =>
+      document.querySelectorAll(".card-wrapper").forEach((el) =>
         el.classList.remove("active")
       );
       wrap.classList.add("active");
@@ -115,8 +120,9 @@ function renderFanHand(count) {
 }
 
 
+
 // ======================================================
-//               FAN POSITION CALCULATION
+//       FAN POSITION CALCULATION (MOBILE FIXED)
 // ======================================================
 
 function applyFanLayout(count) {
@@ -134,15 +140,15 @@ function applyFanLayout(count) {
     card.style.left = "50%";
   });
 
-  // 손패 영역 높이 보정
-  handArea.style.height = "220px";
+  // 패가 화면 아래로 내려오지 않게 보정
+  handArea.style.height = "240px";
   handArea.style.zIndex = "10";
 }
 
 
 
 // ======================================================
-//            INSERT MODE HANDLER (+ 넣기)
+//           INSERT MODE HANDLER (+ 넣기)
 // ======================================================
 
 function createInsertButton(pos) {
@@ -166,6 +172,7 @@ function renderInsertSlot(card, index) {
   const overlay = createInsertButton(index);
   wrap.appendChild(overlay);
   wrap.appendChild(drawScoutCard(card.top, card.bottom));
+
   return wrap;
 }
 
@@ -178,13 +185,12 @@ function renderInsertSlot(card, index) {
 export function renderTable(cards) {
   tableArea.innerHTML = "";
 
-  cards.forEach((card, idx) => {
+  cards.forEach((card) => {
     const canvas = drawScoutCard(card.top, card.bottom);
 
-    // 카드 클릭 시 확대
     canvas.onclick = () => {
       canvas.style.transform = "scale(1.2)";
-      setTimeout(() => canvas.style.transform = "scale(1)", 250);
+      setTimeout(() => (canvas.style.transform = "scale(1)"), 250);
     };
 
     tableArea.appendChild(canvas);
@@ -208,7 +214,6 @@ socket.on("tableUpdate", (tableCards) => {
 
 
 
-
 // ======================================================
 //              SCOUT INSERT FROM SERVER
 // ======================================================
@@ -222,6 +227,7 @@ export function disableScoutInsert() {
   pendingScoutCard = null;
   renderHand();
 }
+
 
 
 // ======================================================
