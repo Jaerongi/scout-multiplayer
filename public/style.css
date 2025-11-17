@@ -6,7 +6,7 @@
 .page.visible { display:block; }
 
 body {
-  background: radial-gradient(#1a1a1a, #0e0e0e);
+  background: radial-gradient(#1b1b1b, #0f0f0f);
   color: #f5f2e8;
   font-family: 'Pretendard', sans-serif;
   padding: 0;
@@ -28,10 +28,10 @@ body {
   backdrop-filter: blur(3px);
 }
 
-/* 제목 스타일 */
+/* 제목 */
 .title-board, .section-title {
   color: #f6e9c8;
-  text-shadow: 0 0 6px rgba(255,215,130,0.5);
+  text-shadow: 0 0 6px rgba(255,215,130,0.4);
 }
 
 /* 플레이어 박스 */
@@ -53,151 +53,168 @@ button {
   background: linear-gradient(#2f2b23, #1d1b17);
   border: 1px solid rgba(255,215,130,0.4);
   color: #f5f2e8;
-  padding: 8px 14px;
+  padding: 8px 16px;
   border-radius: 8px;
-  transition: 0.2s;
-}
-button:hover {
-  background: linear-gradient(#3b362d, #24221d);
-  border-color: #ffd76e;
-}
-
-.btn-main {
-  background: linear-gradient(#3c2f1b, #2a2214);
-}
-.btn-green {
-  background: linear-gradient(#37502e, #26331e);
-}
-.btn-orange {
-  background: linear-gradient(#5b3a1c, #3e2814);
-}
-.btn-purple {
-  background: linear-gradient(#3a2e5b, #271d3a);
-}
-
-/* ====================== */
-/*      HAND BASE         */
-/* ====================== */
-.handBoard {
-  display: flex !important;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 10px;
-}
-
-.card-wrapper {
-  display: inline-block;
-  border: 2px solid transparent;
-  border-radius: 6px;
-  cursor: pointer;
-  position: relative;
-  transition: transform 0.2s ease;
-}
-.card-wrapper.selected {
-  border-color: #ffd76e;
-  box-shadow: 0 0 10px #ffd76e;
-}
-.card-wrapper canvas {
-  width: 90px;
-  height: 130px;
-}
-
-/* INSERT + 버튼 */
-.insert-overlay {
-  position: absolute;
-  top: -6px;
-  left: -5px;
-  background: rgba(0,0,0,0.8);
-  padding: 3px 6px;
-  border-radius: 6px;
-  font-size: 11px;
-  border: 1px solid rgba(255,215,130,0.6);
-  z-index: 999;
-}
-
-/* ====================== */
-/*     TABLE CARDS        */
-/* ====================== */
-#tableArea {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  padding: 10px;
-}
-#tableArea canvas {
-  width: 90px;
-  height: 130px;
+  transition: 0.15s;
 }
 
 
-/* ======================================== */
-/*          MOBILE UI ENHANCED              */
-/* ======================================== */
+/* ===================================================== */
+/*                    PC UI (min-width:601px)            */
+/* ===================================================== */
+
+@media (min-width: 601px) {
+
+  /* PC: START & ROOM 레이아웃 원래대로 유지 */
+  #startPage .board-panel,
+  #roomPage .board-panel {
+    display: block !important;
+    text-align: left !important;
+    padding: 30px !important;
+    align-items: flex-start !important;
+  }
+
+  #nicknameInput {
+    width: 200px !important;
+    margin: 0 !important;
+    padding: 8px !important;
+    font-size: 14px !important;
+  }
+
+  #startPage button,
+  #roomPage button {
+    width: auto !important;
+    margin-right: 10px !important;
+    padding: 8px 16px !important;
+    border-radius: 6px !important;
+    font-size: 14px !important;
+  }
+
+  /* PC 플레이어 목록은 세로 리스트 */
+  #gamePlayerList {
+    display: block !important;
+    gap: 0 !important;
+  }
+
+  /* PC 버튼은 action-row 유지 */
+  .action-row {
+    display: flex !important;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  /* 모바일 하단 버튼바 숨김 */
+  #actionBar {
+    display: none !important;
+  }
+
+  /* PC 손패 — 기존 grid 방식 유지 */
+  #handArea {
+    position: relative !important;
+    height: auto !important;
+    overflow: visible !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+  }
+
+  .card-wrapper {
+    position: relative !important;
+    left: auto !important;
+    transform: none !important;
+  }
+
+  .card-wrapper.active {
+    transform: scale(1.05) !important;
+    z-index: 5;
+  }
+
+  /* PC에서는 모달 중앙 팝업 */
+  .modal {
+    align-items: center !important;
+  }
+
+}
+
+
+/* ===================================================== */
+/*          MOBILE UI SUPER UPGRADE (max-width:600px)    */
+/* ===================================================== */
+
 @media (max-width: 600px) {
 
-  /* START PAGE 중앙정렬 */
+  /* ============ START PAGE ============ */
   #startPage .board-panel {
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding: 25px 15px !important;
     text-align: center;
   }
+
   #nicknameInput {
     width: 85% !important;
-    margin: 12px auto;
+    margin: 10px auto !important;
     padding: 12px;
-    border-radius: 8px;
     font-size: 16px;
-  }
-  #startPage button {
-    width: 85% !important;
-    padding: 12px 0;
-    margin: 8px auto;
     border-radius: 10px;
-    font-size: 16px;
   }
 
-  /* ROOM PAGE 중앙정렬 */
+  #startPage button {
+    width: 85% !important;
+    padding: 12px 0 !important;
+    margin: 8px 0 !important;
+    background: linear-gradient(#3c2f1b, #2a2214) !important;
+    border-radius: 12px !important;
+  }
+
+
+  /* ============ ROOM PAGE ============ */
   #roomPage .board-panel {
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding: 25px 15px !important;
     text-align: center;
   }
+
   .room-bottom-row {
     display: flex;
     flex-direction: column;
-    width: 85%;
+    width: 85% !important;
+    margin-top: 10px;
     gap: 10px;
   }
+
   .room-bottom-row button {
-    width: 100%;
-    padding: 12px 0;
-    border-radius: 10px;
-    font-size: 16px;
+    width: 100% !important;
+    padding: 12px 0 !important;
+    border-radius: 12px !important;
+    background: linear-gradient(#3c2f1b, #2a2214) !important;
   }
 
-  /* PLAYER LIST - 3열 */
+
+  /* ============ PLAYER LIST — 3 COL ============ */
   #gamePlayerList {
     display: grid !important;
     grid-template-columns: repeat(3, 1fr) !important;
     gap: 8px !important;
-    padding: 10px;
     width: 100%;
+    padding: 10px;
   }
+
   .playerBox {
     text-align: center;
-    padding: 10px !important;
-    font-size: 13px !important;
+    padding: 10px;
+    font-size: 14px;
   }
 
 
-  /* ================== */
-  /*    FAN LAYOUT      */
-  /* ================== */
+  /* ============ FAN LAYOUT (핸드) ============ */
   #handArea {
     position: relative;
-    height: 220px !important;     /* 카드 사라짐 해결 */
+    height: 220px !important;
     margin-top: 25px !important;
     overflow: visible !important;
   }
@@ -206,7 +223,7 @@ button:hover {
     position: absolute !important;
     left: 50%;
     transform-origin: bottom center;
-    cursor: pointer;
+    transition: transform 0.2s ease;
   }
 
   .card-wrapper.active {
@@ -220,11 +237,9 @@ button:hover {
   }
 
 
-  /* ================== */
-  /*    ACTION BAR      */
-  /* ================== */
+  /* ============ MOBILE ONLY BUTTON BAR ============ */
   .action-row {
-    display:none !important;   /* 모바일에서 숨김 */
+    display: none !important;
   }
 
   #actionBar {
@@ -237,23 +252,21 @@ button:hover {
     padding: 10px 0;
     display: flex;
     justify-content: space-around;
+    gap: 10px;
     z-index: 999;
   }
 
   #actionBar button {
     flex: 1;
-    margin: 0 6px;
     padding: 12px 0;
-    border-radius: 12px;
-    font-size: 16px;
+    border-radius: 14px;
     background: linear-gradient(#3c2f1b, #2a2214);
-    border: 1px solid rgba(255,215,130,0.4);
+    border: 1px solid rgba(255,215,130,0.5);
+    font-size: 16px;
   }
 
 
-  /* ======================= */
-  /*   MODAL SLIDE-UP        */
-  /* ======================= */
+  /* ============ MODAL — SLIDE UP ============ */
   .modal {
     position: fixed;
     top:0; left:0;
@@ -265,18 +278,20 @@ button:hover {
     backdrop-filter: blur(4px);
     z-index:999;
   }
+
   .modal.hidden { display:none; }
 
   .modal-box {
     background: rgba(40,40,40,0.95);
     width:100%;
     padding:20px;
-    border-radius: 16px 16px 0 0;
+    border-radius: 18px 18px 0 0;
     animation: slideUp 0.25s ease-out;
   }
 
   @keyframes slideUp {
-    from { transform: translateY(70%); opacity:0.3; }
-    to { transform: translateY(0); opacity:1; }
+    from { transform: translateY(70%); opacity: 0.2; }
+    to   { transform: translateY(0);   opacity: 1; }
   }
+
 }
