@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 
-<!-- 📱 모바일 최적화 필수 -->
+<!-- 모바일 UI 강제 적용 (필수) -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 
 <title>SCOUT MULTIPLAYER</title>
@@ -24,10 +24,13 @@
   </div>
 </div>
 
+
 <!-- ROOM PAGE -->
 <div id="roomPage" class="page">
   <div class="board-panel wide">
+
     <h2 id="roomTitle" class="title-board"></h2>
+
     <div id="playerList" class="player-list-board"></div>
 
     <div class="room-bottom-row">
@@ -35,8 +38,10 @@
       <button id="startGameBtn" class="btn-green" style="display:none;">게임 시작</button>
       <button id="copyInviteBtn" class="btn-sub">초대 링크 복사</button>
     </div>
+
   </div>
 </div>
+
 
 <!-- GAME PAGE -->
 <div id="gamePage" class="page">
@@ -45,30 +50,42 @@
 
   <div class="game-layout">
 
-    <!-- LEFT: 플레이어 표시 영역 -->
+    <!-- LEFT SIDE: 플레이어 리스트 -->
     <div id="gamePlayerList" class="sideBoard"></div>
 
-    <!-- RIGHT: 카드 & 버튼 영역 -->
+    <!-- RIGHT SIDE: 테이블 + 손패 -->
     <div class="mainBoard">
 
       <h3 class="section-title">테이블</h3>
       <div id="tableArea" class="tableBoard"></div>
 
       <h3 class="section-title">내 패 (<span id="myCount">0</span>)</h3>
+
+      <!-- FAN LAYOUT 영역 -->
       <div id="handArea" class="handBoard"></div>
 
+      <!-- (PC용 버튼 - 모바일에서는 CSS로 숨겨짐) -->
       <div class="action-row">
         <button id="showBtn" class="btn-main same">SHOW</button>
         <button id="scoutBtn" class="btn-orange same">SCOUT</button>
         <button id="showScoutBtn" class="btn-purple same">SHOW & SCOUT</button>
       </div>
+
     </div>
+  </div>
+
+  <!-- 모바일 하단 고정 버튼바 -->
+  <div id="actionBar">
+    <button id="showBtn">SHOW</button>
+    <button id="scoutBtn">SCOUT</button>
+    <button id="showScoutBtn">S&S</button>
   </div>
 
 </div>
 
+
 <!-- =============================== -->
-<!--       SCRIPT LOADING            -->
+<!--              SCRIPT             -->
 <!-- =============================== -->
 <script src="/socket.io/socket.io.js"></script>
 
@@ -76,7 +93,7 @@
 <script type="module" src="./roomUI.js"></script>
 <script type="module" src="./gameUI.js"></script>
 
-<!-- 초대 링크 자동 입장 -->
+<!-- 초대 링크로 자동 입장 -->
 <script>
 window.addEventListener("DOMContentLoaded", () => {
   const params = new URLSearchParams(location.search);
@@ -100,7 +117,8 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 
-<!-- SCOUT MODAL -->
+
+<!-- 슬라이드 SCOUT 모달 -->
 <div id="scoutModal" class="modal hidden">
   <div class="modal-box">
     <p style="margin-bottom:12px;">어떻게 가져올까요?</p>
@@ -114,7 +132,7 @@ window.addEventListener("DOMContentLoaded", () => {
 <!-- INSERT POSITION MODAL -->
 <div id="insertModal" class="modal hidden">
   <div class="modal-box" id="insertModalContent">
-    <!-- JS로 버튼 자동 생성됨 -->
+    <!-- 자동 생성 -->
   </div>
 </div>
 
