@@ -26,6 +26,8 @@ let selected = new Set();
 let flipConfirmed = false;
 let myTurn = false;
 let flipWarnShown = false; // 첫 턴일 때만 안내
+let flipState = {};       // 개별 카드 flip 상태 저장
+let flipCheckDone = false; // 턴 시작 시 1회만 경고 표시
 
 // ===============================
 // 초기 flip UI 생성
@@ -304,6 +306,7 @@ scoutBtn.onclick = () => {
 showScoutBtn.onclick = () => {
   alert("추가 개발 예정 기능입니다!");
 };
+
 
 
 
