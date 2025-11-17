@@ -14,6 +14,9 @@ body {
   background: radial-gradient(#1b1b1b, #0f0f0f);
   color: #f5f2e8;
   font-family: 'Pretendard', sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }
 
 /* 공통 패널 스타일 (START / ROOM / GAME 모두 적용) */
@@ -43,6 +46,7 @@ body {
   border-radius: 10px;
   padding: 10px;
   color: #f5f2e8;
+  margin-bottom: 8px;
 }
 
 /* 현재 턴 강조 */
@@ -70,6 +74,7 @@ button {
   padding: 8px 14px;
   border-radius: 6px;
   transition: 0.18s;
+  cursor: pointer;
 }
 button:hover {
   background: linear-gradient(#3b362d, #24221d);
@@ -150,6 +155,7 @@ button:disabled {
   cursor: pointer;
   border: 2px solid transparent;
   border-radius: 6px;
+  position: relative !important;
 }
 
 .card-wrapper.selected {
@@ -161,6 +167,7 @@ button:disabled {
   width: 90px;
   height: 130px;
 }
+
 /* INSERT MODAL BUTTON */
 #insertModalContent button {
   width: 180px;
@@ -176,9 +183,9 @@ button:disabled {
 
 .insert-overlay {
   position: absolute;
-  top: -8px;        /* 위로 조금 올라가서 카드에 딱 붙음 */
-  left: -6px;       /* 카드의 맨 왼쪽으로 이동 */
-  transform: none;  /* X축 이동 없음 */
+  top: -8px;
+  left: -6px;
+  transform: none;
   background: rgba(0, 0, 0, 0.75);
   padding: 3px 7px;
   border-radius: 8px;
@@ -190,20 +197,15 @@ button:disabled {
   transition: 0.15s;
 }
 
-
 .insert-overlay:hover {
   background: rgba(0, 0, 0, 0.9);
   border-color: #ffdc85;
   transform: scale(1.06);
 }
 
-/* 카드 자체는 relative 필수 */
-.card-wrapper {
-  position: relative !important;
-}
-
 /* ======================== */
-/*      MOBILE UI PATCH     */
+/*      MOBILE UI 2.0       */
+/*  완전 반응형 최적화용     */
 /* ======================== */
 @media (max-width: 600px) {
 
@@ -211,48 +213,111 @@ button:disabled {
     padding: 0;
     margin: 0;
     overflow-x: hidden;
+    font-size: 14px;
   }
 
-  .handBoard, #handArea {
+  /* 전체 레이아웃 세로화 */
+  .game-layout {
+    display: block !important;
+    width: 100%;
+  }
+
+  /* 플레이어 리스트 상단 고정 */
+  #gamePlayerList {
+    width: 100% !important;
+    margin-bottom: 10px;
+    padding: 10px;
+    max-height: 110px;
+    overflow-y: auto;
+  }
+
+  .playerBox {
+    font-size: 13px;
+    padding: 8px;
+    margin-bottom: 6px;
+  }
+
+  /* 테이블 카드 */
+  #tableArea {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    padding: 5px;
+  }
+
+  canvas {
+    width: 80px !important;
+    height: 120px !important;
+  }
+
+  .scout-highlight {
+    animation: scout-glow 1s infinite;
+    border-radius: 6px;
+  }
+
+  /* 핸드 카드 */
+  #handArea, .handBoard {
     display: flex !important;
     flex-wrap: wrap !important;
     justify-content: center;
-    gap: 6px;
+    gap: 8px !important;
+    margin-top: 8px;
   }
 
   .card-wrapper canvas {
-    width: 65px !important;
-    height: 90px !important;
+    width: 80px !important;
+    height: 120px !important;
   }
 
+  .card-wrapper.selected {
+    border-width: 2px;
+  }
+
+  /* + 넣기 버튼 */
   .insert-overlay {
-    top: -4px !important;
-    left: -4px !important;
-    padding: 2px 6px !important;
-    font-size: 10px !important;
+    top: -6px !important;
+    left: -5px !important;
+    padding: 3px 6px !important;
+    font-size: 11px !important;
+    border-radius: 6px !important;
   }
 
-  #tableArea {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 8px;
+  /* 액션 버튼 2열 */
+  .action-row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    padding: 10px;
+    margin-top: 12px;
   }
 
-  button {
-    font-size: 13px !important;
-    padding: 6px 10px !important;
+  .action-row button {
+    width: 48% !important;
+    font-size: 14px !important;
+    padding: 10px 0 !important;
   }
 
-  #actionButtons {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 10px;
+  #showBtn {
+    background: linear-gradient(#6c532e, #463720) !important;
+  }
+  #scoutBtn {
+    background: linear-gradient(#7a3d1f, #532a15) !important;
+  }
+  #showScoutBtn {
+    background: linear-gradient(#4e3a7a, #352758) !important;
+  }
+
+  /* 모달 */
+  .modal-box {
+    width: 85% !important;
+    padding: 20px !important;
+  }
+
+  .modal-box button {
+    width: 100% !important;
+    font-size: 15px !important;
+    padding: 12px 0 !important;
   }
 }
-
-
-
-
