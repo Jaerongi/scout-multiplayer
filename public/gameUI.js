@@ -255,53 +255,27 @@ scoutBtn.onclick = () => {
   if (!flipConfirmed) return alert("패 방향을 먼저 확정해주세요.");
   if (tableCards.length === 0) return alert("테이블이 비어있습니다.");
 
-  // ---------------------------
-  // 1. 가져올 카드 방향 선택
-  // ---------------------------
-  const pickLeft = confirm("왼쪽 카드를 가져올까요?\n취소 = 오른쪽");
-  const side = pickLeft ? "left" : "right";
+  // 기존 버튼 제거
+  document.querySelectorAll(".scoutSelectBtn").forEach(b => b.remove());
 
-  let targetCard = null;
+  // 하이라이트 카드 아래 버튼 생성
+  document.querySelectorAll(".scoutBtnZone").forEach(zone => {
+    const idx = parseInt(zone.parentElement.dataset.index);
+    const side = (idx === 0 ? "left" : "right");
 
-  if (tableCards.length === 1) {
-    targetCard = tableCards[0];
-  } else {
-    targetCard = pickLeft ? tableCards[0] : tableCards[tableCards.length - 1];
-  }
+    const btn1 = document.createElement("button");
+    btn1.innerText = "그대로 가져오기";
+    btn1.className = "btn-green small scoutSelectBtn";
+    btn1.onclick = () => performScout(side, false);
 
-  // 미리보기 출력
-  renderScoutPreview(targetCard);
+    const btn2 = document.createElement("button");
+    btn2.innerText = "반대로 가져오기";
+    btn2.className = "btn-sub small scoutSelectBtn";
+    btn2.onclick = () => performScout(side, true);
 
-  // ---------------------------
-  // 2. 뒤집을지 여부
-  // ---------------------------
-  const doFlip = confirm("카드를 뒤집어서 가져올까요?");
-  if (doFlip) {
-    targetCard = { top: targetCard.bottom, bottom: targetCard.top };
-    renderScoutPreview(targetCard); // flip 적용된 모습 갱신
-  }
-
-  // ---------------------------
-  // 3. 삽입 위치 선택
-  // ---------------------------
-  let pos = prompt(
-    `카드를 어디에 넣을까요?\n0 = 맨 앞 / ${myHand.length} = 맨 뒤`
-  );
-  pos = parseInt(pos);
-  if (isNaN(pos) || pos < 0 || pos > myHand.length) pos = myHand.length;
-
-  // ---------------------------
-  // 4. 서버 전달
-  // ---------------------------
-  socket.emit("scout", {
-    roomId,
-    side,
-    flip: doFlip,
-    pos
+    zone.appendChild(btn1);
+    zone.appendChild(btn2);
   });
-
-  // SCOUT 완료 → 미리보기 자동 제거
-  setTimeout(() => renderScoutPreview(null), 1000);
 };
 
 // ========================================================
@@ -310,6 +284,7 @@ scoutBtn.onclick = () => {
 showScoutBtn.onclick = () => {
   alert("아직 준비되지 않은 기능입니다!");
 };
+
 
 
 
