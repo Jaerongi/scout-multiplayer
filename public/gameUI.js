@@ -3,7 +3,7 @@
 // ======================================
 
 import { drawScoutCard } from "./cardEngine.js";
-import { getComboType, isStrongerCombo } from "./shared.js";
+import { getComboType, isStrongerCombo } from "../shared.js";
 
 const gamePlayerList = document.getElementById("gamePlayerList");
 const tableArea = document.getElementById("tableArea");
@@ -227,3 +227,4 @@ scoutBtn.onclick = () => {
 showScoutBtn.onclick = () => {
   alert("SHOW & SCOUT 미구현 (원하면 구현 가능)");
 };
+
