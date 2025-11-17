@@ -1,19 +1,20 @@
 /* ========================================= */
-/*         GLOBAL DARK BOARDGAME UI          */
+/*        GLOBAL DARK BOARDGAME THEME        */
 /* ========================================= */
 
 .page { display:none; }
 .page.visible { display:block; }
 
 body {
-  background: radial-gradient(#1b1b1b, #0f0f0f);
+  background: radial-gradient(#1a1a1a, #0e0e0e);
   color: #f5f2e8;
   font-family: 'Pretendard', sans-serif;
   padding: 0;
   margin: 0;
+  overflow-x: hidden;
 }
 
-/* 기본 패널 */
+/* 패널 공통 */
 .board-panel,
 .sideBoard,
 .mainBoard,
@@ -27,56 +28,99 @@ body {
   backdrop-filter: blur(3px);
 }
 
-/* ---------------------------- */
-/* EXTRA: 하단 고정 버튼 바     */
-/* ---------------------------- */
-#actionBar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background: rgba(25,25,25,0.92);
-  border-top: 1px solid rgba(255,215,130,0.25);
-  backdrop-filter: blur(8px);
-  display: flex;
-  justify-content: space-around;
-  padding: 10px 0;
+/* 제목 스타일 */
+.title-board, .section-title {
+  color: #f6e9c8;
+  text-shadow: 0 0 6px rgba(255,215,130,0.5);
+}
+
+/* 플레이어 박스 */
+.playerBox {
+  background: rgba(40,40,40,0.85);
+  border: 1px solid rgba(255,215,130,0.35);
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 8px;
+}
+
+.turnGlow {
+  border-color: #ffd76e !important;
+  box-shadow: 0 0 12px #ffd76e;
+}
+
+/* 버튼 기본 */
+button {
+  background: linear-gradient(#2f2b23, #1d1b17);
+  border: 1px solid rgba(255,215,130,0.4);
+  color: #f5f2e8;
+  padding: 8px 14px;
+  border-radius: 8px;
+  transition: 0.2s;
+}
+button:hover {
+  background: linear-gradient(#3b362d, #24221d);
+  border-color: #ffd76e;
+}
+
+.btn-main {
+  background: linear-gradient(#3c2f1b, #2a2214);
+}
+.btn-green {
+  background: linear-gradient(#37502e, #26331e);
+}
+.btn-orange {
+  background: linear-gradient(#5b3a1c, #3e2814);
+}
+.btn-purple {
+  background: linear-gradient(#3a2e5b, #271d3a);
+}
+
+/* ====================== */
+/*      HAND BASE         */
+/* ====================== */
+.handBoard {
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px;
+}
+
+.card-wrapper {
+  display: inline-block;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.2s ease;
+}
+.card-wrapper.selected {
+  border-color: #ffd76e;
+  box-shadow: 0 0 10px #ffd76e;
+}
+.card-wrapper canvas {
+  width: 90px;
+  height: 130px;
+}
+
+/* INSERT + 버튼 */
+.insert-overlay {
+  position: absolute;
+  top: -6px;
+  left: -5px;
+  background: rgba(0,0,0,0.8);
+  padding: 3px 6px;
+  border-radius: 6px;
+  font-size: 11px;
+  border: 1px solid rgba(255,215,130,0.6);
   z-index: 999;
 }
 
-#actionBar button {
-  flex: 1;
-  margin: 0 6px;
-  padding: 12px 0;
-  font-size: 15px;
-  border-radius: 10px;
-  background: linear-gradient(#3a2e1d, #221b12);
-}
-
-/* ---------------------------- */
-/* PLAYER LIST - 모바일 3열     */
-/* ---------------------------- */
-@media (max-width: 600px) {
-  #gamePlayerList {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 8px !important;
-    padding: 10px;
-  }
-  .playerBox {
-    text-align: center;
-    padding: 10px !important;
-    font-size: 13px !important;
-  }
-}
-
-/* ---------------------------- */
-/* TABLE 카드                    */
-/* ---------------------------- */
+/* ====================== */
+/*     TABLE CARDS        */
+/* ====================== */
 #tableArea {
   display: flex;
   justify-content: center;
-  flex-wrap: wrap;
   gap: 12px;
   padding: 10px;
 }
@@ -85,90 +129,154 @@ body {
   height: 130px;
 }
 
-/* ========================================= */
-/*              FAN LAYOUT (핸드)            */
-/* ========================================= */
+
+/* ======================================== */
+/*          MOBILE UI ENHANCED              */
+/* ======================================== */
 @media (max-width: 600px) {
 
+  /* START PAGE 중앙정렬 */
+  #startPage .board-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  #nicknameInput {
+    width: 85% !important;
+    margin: 12px auto;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 16px;
+  }
+  #startPage button {
+    width: 85% !important;
+    padding: 12px 0;
+    margin: 8px auto;
+    border-radius: 10px;
+    font-size: 16px;
+  }
+
+  /* ROOM PAGE 중앙정렬 */
+  #roomPage .board-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .room-bottom-row {
+    display: flex;
+    flex-direction: column;
+    width: 85%;
+    gap: 10px;
+  }
+  .room-bottom-row button {
+    width: 100%;
+    padding: 12px 0;
+    border-radius: 10px;
+    font-size: 16px;
+  }
+
+  /* PLAYER LIST - 3열 */
+  #gamePlayerList {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    padding: 10px;
+    width: 100%;
+  }
+  .playerBox {
+    text-align: center;
+    padding: 10px !important;
+    font-size: 13px !important;
+  }
+
+
+  /* ================== */
+  /*    FAN LAYOUT      */
+  /* ================== */
   #handArea {
     position: relative;
-    height: 180px;
-    margin-top: 10px;
+    height: 220px !important;     /* 카드 사라짐 해결 */
+    margin-top: 25px !important;
     overflow: visible !important;
   }
 
-  /* 카드 중앙 기준 배치 */
   .card-wrapper {
     position: absolute !important;
     left: 50%;
     transform-origin: bottom center;
     cursor: pointer;
-    transition: transform 0.2s ease, z-index 0.2s;
   }
 
-  /* 카드 기본 크기 */
-  .card-wrapper canvas {
-    width: 80px !important;
-    height: 120px !important;
-  }
-
-  /* 카드 확대 */
   .card-wrapper.active {
-    transform: translateX(-50%) scale(1.2) !important;
-    z-index: 50 !important;
+    transform: translate(-50%, -20px) scale(1.2) !important;
+    z-index: 20 !important;
+  }
+
+  .card-wrapper canvas {
+    width: 90px !important;
+    height: 135px !important;
+  }
+
+
+  /* ================== */
+  /*    ACTION BAR      */
+  /* ================== */
+  .action-row {
+    display:none !important;   /* 모바일에서 숨김 */
+  }
+
+  #actionBar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(25,25,25,0.92);
+    border-top: 1px solid rgba(255,215,130,0.25);
+    padding: 10px 0;
+    display: flex;
+    justify-content: space-around;
+    z-index: 999;
+  }
+
+  #actionBar button {
+    flex: 1;
+    margin: 0 6px;
+    padding: 12px 0;
+    border-radius: 12px;
+    font-size: 16px;
+    background: linear-gradient(#3c2f1b, #2a2214);
+    border: 1px solid rgba(255,215,130,0.4);
+  }
+
+
+  /* ======================= */
+  /*   MODAL SLIDE-UP        */
+  /* ======================= */
+  .modal {
+    position: fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background: rgba(0,0,0,0.55);
+    display:flex;
+    justify-content:center;
+    align-items:flex-end;
+    backdrop-filter: blur(4px);
+    z-index:999;
+  }
+  .modal.hidden { display:none; }
+
+  .modal-box {
+    background: rgba(40,40,40,0.95);
+    width:100%;
+    padding:20px;
+    border-radius: 16px 16px 0 0;
+    animation: slideUp 0.25s ease-out;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(70%); opacity:0.3; }
+    to { transform: translateY(0); opacity:1; }
   }
 }
-
-/* ---------------------------- */
-/* FAN 각도 & 위치 설정         */
-/* gameUI.js에서 position 적용 */
-/* ---------------------------- */
-
-/* ---------------------------- */
-/* SCOUT INSERT OVERLAY         */
-/* ---------------------------- */
-.insert-overlay {
-  position: absolute;
-  top: -6px;
-  left: -5px;
-  background: rgba(0,0,0,0.8);
-  padding: 3px 6px;
-  border-radius: 6px;
-  font-size: 10px;
-  border: 1px solid rgba(255,215,130,0.6);
-  z-index: 100;
-}
-
-/* ---------------------------- */
-/* MODAL 슬라이드 업 스타일      */
-/* ---------------------------- */
-.modal {
-  position: fixed;
-  left:0; top:0;
-  width:100%; height:100%;
-  background: rgba(0,0,0,0.55);
-  display:flex;
-  justify-content:center;
-  align-items:flex-end;  /* 아래에서 시작 */
-  z-index:999;
-  backdrop-filter: blur(4px);
-}
-.modal.hidden { display:none; }
-
-.modal-box {
-  background: rgba(40,40,40,0.95);
-  width:100%;
-  padding:20px 0;
-  border-radius:16px 16px 0 0;
-  animation: slideUp 0.25s ease-out;
-}
-
-@keyframes slideUp {
-  from { transform: translateY(70%); }
-  to { transform: translateY(0); }
-}
-
-/*──────────────────────────────────────────────*/
-/* PC 에서는 기존 레이아웃 그대로 유지됨         */
-/*──────────────────────────────────────────────*/
-
