@@ -1,11 +1,10 @@
 // =======================================
-// GAME UI — FINAL FULL VERSION (SCOUT PREVIEW ONLY)
+// GAME UI — SCOUT MODAL VERSION
 // =======================================
 
 import { drawScoutCard } from "./cardEngine.js";
 import { getComboType, isStrongerCombo } from "/shared.js";
 
-// DOM
 const gamePlayerList = document.getElementById("gamePlayerList");
 const tableArea = document.getElementById("tableArea");
 const handArea = document.getElementById("handArea");
@@ -16,9 +15,20 @@ const showBtn = document.getElementById("showBtn");
 const scoutBtn = document.getElementById("scoutBtn");
 const showScoutBtn = document.getElementById("showScoutBtn");
 
-// ========================================
-// SCOUT 미리보기 DOM
-// ========================================
+// ---------------------------
+// MODAL DOM
+// ---------------------------
+const modal = document.getElementById("scoutModal");
+const modalNormal = document.getElementById("modal-normal");
+const modalReverse = document.getElementById("modal-reverse");
+const modalClose = document.getElementById("modal-close");
+
+// 현재 선택된 side 저장 ("left" or "right")
+let scoutSide = null;
+
+// ================================
+// SCOUT PREVIEW
+// ================================
 const scoutPreview = document.createElement("div");
 scoutPreview.id = "scoutPreview";
 scoutPreview.style.marginTop = "12px";
@@ -26,7 +36,6 @@ scoutPreview.style.textAlign = "center";
 scoutPreview.style.display = "none";
 handArea.parentElement.appendChild(scoutPreview);
 
-// 미리보기 렌더 함수
 function renderScoutPreview(card) {
   if (!card) {
     scoutPreview.style.display = "none";
@@ -35,24 +44,20 @@ function renderScoutPreview(card) {
   }
 
   scoutPreview.style.display = "block";
-  scoutPreview.innerHTML = `
-    <div style="color:white; margin-bottom:6px; font-size:14px;">가져올 카드 미리보기</div>
-  `;
+  scoutPreview.innerHTML = `<div style="color:white; margin-bottom:6px;">가져올 카드 미리보기</div>`;
   scoutPreview.appendChild(drawScoutCard(card.top, card.bottom, 80, 120));
 }
 
-// 상태 변수
 let players = {};
 let tableCards = [];
 let myHand = [];
 let selected = new Set();
 let myTurn = false;
+let flipConfirmed = false;
 
-let flipConfirmed = false;  // 라운드 시작 시 false로 초기화
-
-//---------------------------------------------------------
-// flip 버튼 구성
-//---------------------------------------------------------
+// ---------------------------
+// 방향 버튼
+// ---------------------------
 const flipAllBtn = document.createElement("button");
 flipAllBtn.innerText = "전체 방향 전환";
 flipAllBtn.className = "btn-sub small";
@@ -64,22 +69,21 @@ confirmFlipBtn.className = "btn-green small";
 document.querySelector("#myCount").parentElement.appendChild(flipAllBtn);
 document.querySelector("#myCount").parentElement.appendChild(confirmFlipBtn);
 
+
 // ========================================================
-// 플레이어 리스트 업데이트
+// SOCKET EVENTS
 // ========================================================
+
 socket.on("playerListUpdate", (p) => {
   players = p;
   renderPlayers();
 });
 
-// ========================================================
-// 라운드 시작
-// ========================================================
 socket.on("roundStart", ({ round, players: p }) => {
   players = p;
   tableCards = [];
 
-  flipConfirmed = false;     // 라운드마다 방향 미확정
+  flipConfirmed = false;
   selected.clear();
 
   flipAllBtn.style.display = "inline-block";
@@ -92,9 +96,6 @@ socket.on("roundStart", ({ round, players: p }) => {
   renderScoutPreview(null);
 });
 
-// ========================================================
-// 내 패 수신
-// ========================================================
 socket.on("yourHand", (hand) => {
   myHand = hand;
   selected.clear();
@@ -102,70 +103,70 @@ socket.on("yourHand", (hand) => {
   renderScoutPreview(null);
 });
 
-// ========================================================
-// 턴 변경 — 팝업 없음!!
-// ========================================================
 socket.on("turnChange", (uid) => {
   myTurn = (uid === myUid);
   highlightTurn(uid);
 });
 
-// ========================================================
-// 테이블 갱신
-// ========================================================
 socket.on("tableUpdate", (cards) => {
   tableCards = cards;
   renderTable();
 });
 
+
 // ========================================================
-// TABLE 렌더링 + SCOUT 가능 카드 하이라이트 + 버튼용 영역 생성
+// TABLE RENDER — 카드 아래 버튼은 1개만 ("가져오기")
 // ========================================================
 function renderTable() {
   tableArea.innerHTML = "";
 
   if (tableCards.length === 0) {
-    tableArea.innerHTML = `<span style="color:#888">(비어 있음)</span>`;
+    tableArea.innerHTML = `<span style="color:#ccc">(비어 있음)</span>`;
     return;
   }
 
   let highlightIndex = [];
 
-  if (tableCards.length === 1) {
-    highlightIndex = [0];
-  } else if (tableCards.length === 2) {
-    highlightIndex = [0, 1];
-  } else {
-    highlightIndex = [0, tableCards.length - 1];
-  }
+  if (tableCards.length === 1) highlightIndex = [0];
+  else if (tableCards.length === 2) highlightIndex = [0, 1];
+  else highlightIndex = [0, tableCards.length - 1];
 
   tableCards.forEach((c, idx) => {
     const cardElem = drawScoutCard(c.top, c.bottom, 90, 130);
-
     const wrap = document.createElement("div");
+
     wrap.style.display = "inline-block";
-    wrap.style.margin = "0 10px";     // 🟢 테이블 카드 간격 넓힘
+    wrap.style.margin = "0 10px";
     wrap.style.textAlign = "center";
+
     wrap.appendChild(cardElem);
 
     if (highlightIndex.includes(idx)) {
       cardElem.classList.add("scout-highlight");
 
-      // 버튼 영역
       const zone = document.createElement("div");
       zone.className = "scoutBtnZone";
       wrap.appendChild(zone);
 
-      // 어떤 인덱스인지 표시
-      wrap.dataset.index = idx;
+      // 가져오기 버튼 1개만
+      const btn = document.createElement("button");
+      btn.innerText = "가져오기";
+      btn.className = "btn-green small scoutSelectBtn";
+      btn.onclick = () => {
+        scoutSide = idx === 0 ? "left" : "right";
+        openScoutModal();
+      };
+
+      zone.appendChild(btn);
     }
 
     tableArea.appendChild(wrap);
   });
 }
 
+
 // ========================================================
-// HAND 렌더링 (누락되어서 패가 안 보였던 부분!!)
+// HAND RENDER
 // ========================================================
 function renderHand() {
   handArea.innerHTML = "";
@@ -175,18 +176,12 @@ function renderHand() {
     const wrap = document.createElement("div");
     wrap.className = "card-wrapper";
 
-    // 선택 표시
-    if (selected.has(idx)) {
-      wrap.classList.add("selected");
-    }
+    if (selected.has(idx)) wrap.classList.add("selected");
 
     wrap.appendChild(drawScoutCard(card.top, card.bottom));
 
     wrap.onclick = () => {
-      if (!flipConfirmed) {
-        alert("패 방향 확정 후 선택 가능합니다!");
-        return;
-      }
+      if (!flipConfirmed) return alert("패 방향 확정 후 선택 가능합니다!");
 
       if (selected.has(idx)) selected.delete(idx);
       else selected.add(idx);
@@ -198,58 +193,41 @@ function renderHand() {
   });
 }
 
+
 // ========================================================
-// 플레이어 리스트
+// PLAYER LIST
 // ========================================================
 function renderPlayers() {
   gamePlayerList.innerHTML = "";
-
-  const arr = Object.values(players);
-
-  arr.forEach((p) => {
+  Object.values(players).forEach(p => {
     const div = document.createElement("div");
     div.className = "playerBox";
-
-    div.innerHTML = `
-      <b>${p.nickname}</b><br>
-      패: ${p.hand.length}장<br>
-      점수: ${p.score}
-    `;
-
+    div.innerHTML = `<b>${p.nickname}</b><br>패: ${p.hand.length}장<br>점수: ${p.score}`;
     gamePlayerList.appendChild(div);
   });
 }
 
-// ========================================================
-// 턴 표시
-// ========================================================
-function highlightTurn(turnUid) {
+function highlightTurn(uid) {
   const boxes = gamePlayerList.children;
   const arr = Object.values(players);
-
   for (let i = 0; i < arr.length; i++) {
-    const box = boxes[i];
-    if (arr[i].uid === turnUid) box.classList.add("turnGlow");
-    else box.classList.remove("turnGlow");
+    if (arr[i].uid === uid) boxes[i].classList.add("turnGlow");
+    else boxes[i].classList.remove("turnGlow");
   }
 }
 
+
 // ========================================================
-// FLIP 전체
+// FLIP 
 // ========================================================
 flipAllBtn.onclick = () => {
   if (flipConfirmed) return;
-
   myHand = myHand.map(c => ({ top: c.bottom, bottom: c.top }));
   renderHand();
 };
 
-// ========================================================
-// 방향 확정
-// ========================================================
 confirmFlipBtn.onclick = () => {
   flipConfirmed = true;
-
   flipAllBtn.style.display = "none";
   confirmFlipBtn.style.display = "none";
 
@@ -258,6 +236,7 @@ confirmFlipBtn.onclick = () => {
     flipped: myHand
   });
 };
+
 
 // ========================================================
 // SHOW
@@ -280,36 +259,20 @@ showBtn.onclick = () => {
   renderScoutPreview(null);
 };
 
+
 // ========================================================
-// SCOUT 버튼 → 선택 버튼 생성
+// SCOUT 버튼 → 기존 버튼 전부 삭제 후 "가져오기"만 남김
 // ========================================================
 scoutBtn.onclick = () => {
   if (!myTurn) return alert("당신의 턴이 아닙니다.");
   if (!flipConfirmed) return alert("패 방향을 먼저 확정해주세요.");
   if (tableCards.length === 0) return alert("테이블이 비어있습니다.");
 
-  // 기존 버튼 제거
   document.querySelectorAll(".scoutSelectBtn").forEach(b => b.remove());
 
-  // 하이라이트된 카드 아래 버튼 생성
-  document.querySelectorAll(".scoutBtnZone").forEach(zone => {
-    const idx = parseInt(zone.parentElement.dataset.index);
-    const side = (idx === 0 ? "left" : "right");
-
-    const btnKeep = document.createElement("button");
-    btnKeep.innerText = "그대로 가져오기";
-    btnKeep.className = "btn-green small scoutSelectBtn";
-    btnKeep.onclick = () => performScout(side, false);
-
-    const btnFlip = document.createElement("button");
-    btnFlip.innerText = "반대로 가져오기";
-    btnFlip.className = "btn-sub small scoutSelectBtn";
-    btnFlip.onclick = () => performScout(side, true);
-
-    zone.appendChild(btnKeep);
-    zone.appendChild(btnFlip);
-  });
+  // renderTable()에서 이미 "가져오기" 버튼 생성되므로 따로 처리 필요 없음
 };
+
 
 // ========================================================
 // SHOW+SCOUT (미구현)
@@ -319,9 +282,41 @@ showScoutBtn.onclick = () => {
 };
 
 
+// ========================================================
+// SCOUT MODAL LOGIC
+// ========================================================
+function openScoutModal() {
+  modal.classList.remove("hidden");
+}
+
+function closeScoutModal() {
+  modal.classList.add("hidden");
+}
+
+modalClose.onclick = closeScoutModal;
+
+modalNormal.onclick = () => {
+  performScout(false);
+};
+
+modalReverse.onclick = () => {
+  performScout(true);
+};
 
 
+// ========================================================
+// 실제 SCOUT 실행
+// ========================================================
+function performScout(isReverse) {
+  if (!scoutSide) return closeScoutModal();
 
+  socket.emit("scout", {
+    roomId,
+    side: scoutSide,
+    flip: isReverse,
+    pos: myHand.length
+  });
 
-
-
+  closeScoutModal();
+  scoutSide = null;
+}
