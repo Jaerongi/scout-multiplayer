@@ -321,3 +321,45 @@ button:disabled {
     padding: 12px 0 !important;
   }
 }
+/* ====================== */
+/*  START / ROOM BUTTON FIX */
+/* ====================== */
+@media (max-width: 600px) {
+
+  /* START PAGE */
+  #startPage .board-panel {
+    padding: 20px 10px !important;
+  }
+
+  #startPage button {
+    width: 90% !important;
+    margin: 6px auto !important;
+    display: block;
+    font-size: 16px !important;
+    padding: 12px 0 !important;
+  }
+
+  #nicknameInput {
+    width: 90% !important;
+    margin: 10px auto !important;
+    display: block;
+    font-size: 15px !important;
+    padding: 10px;
+  }
+
+  /* ROOM PAGE 버튼 크기 */
+  #roomPage button {
+    width: 90% !important;
+    margin: 8px auto !important;
+    font-size: 16px !important;
+    padding: 12px 0 !important;
+  }
+
+  .room-bottom-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+
