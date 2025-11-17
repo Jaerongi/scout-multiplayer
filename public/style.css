@@ -176,9 +176,9 @@ button:disabled {
 
 .insert-overlay {
   position: absolute;
-  top: -8px;
-  right: -6px;
-  transform: none;
+  top: -8px;        /* 위로 조금 올라가서 카드에 딱 붙음 */
+  left: -6px;       /* 카드의 맨 왼쪽으로 이동 */
+  transform: none;  /* X축 이동 없음 */
   background: rgba(0, 0, 0, 0.75);
   padding: 3px 7px;
   border-radius: 8px;
@@ -189,6 +189,7 @@ button:disabled {
   z-index: 10;
   transition: 0.15s;
 }
+
 
 .insert-overlay:hover {
   background: rgba(0, 0, 0, 0.9);
@@ -251,6 +252,7 @@ button:disabled {
     margin-top: 10px;
   }
 }
+
 
 
 
