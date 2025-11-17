@@ -238,3 +238,8 @@ export function confirmFlip() {
   flipConfirmed = true;
   renderHand();
 }
+// MOBILE BUTTON MIRROR
+document.getElementById("mShowBtn").onclick  = () => document.getElementById("showBtn").click();
+document.getElementById("mScoutBtn").onclick = () => document.getElementById("scoutBtn").click();
+document.getElementById("mShowScoutBtn").onclick = () => document.getElementById("showScoutBtn").click();
+
