@@ -165,6 +165,40 @@ function renderTable() {
 }
 
 // ========================================================
+// HAND 렌더링 (누락되어서 패가 안 보였던 부분!!)
+// ========================================================
+function renderHand() {
+  handArea.innerHTML = "";
+  myCountSpan.innerText = myHand.length;
+
+  myHand.forEach((card, idx) => {
+    const wrap = document.createElement("div");
+    wrap.className = "card-wrapper";
+
+    // 선택 표시
+    if (selected.has(idx)) {
+      wrap.classList.add("selected");
+    }
+
+    wrap.appendChild(drawScoutCard(card.top, card.bottom));
+
+    wrap.onclick = () => {
+      if (!flipConfirmed) {
+        alert("패 방향 확정 후 선택 가능합니다!");
+        return;
+      }
+
+      if (selected.has(idx)) selected.delete(idx);
+      else selected.add(idx);
+
+      renderHand();
+    };
+
+    handArea.appendChild(wrap);
+  });
+}
+
+// ========================================================
 // 플레이어 리스트
 // ========================================================
 function renderPlayers() {
@@ -283,6 +317,7 @@ scoutBtn.onclick = () => {
 showScoutBtn.onclick = () => {
   alert("아직 준비되지 않은 기능입니다!");
 };
+
 
 
 
