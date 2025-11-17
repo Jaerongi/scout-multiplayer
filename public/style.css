@@ -39,8 +39,25 @@ body {
   background: rgba(40,40,40,0.85);
   border: 1px solid rgba(255,215,130,0.35);
   border-radius: 10px;
-  padding: 10px;
+  padding: 12px;
   margin-bottom: 8px;
+  width: 85%;            /* 버튼과 정렬 맞춤 */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.ready-led {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-left: 6px;
+  border-radius: 50%;
+}
+.ready-led.on {
+  background: #29ff4c; /* 초록 LED */
+}
+.ready-led.off {
+  background: #ff3535; /* 빨강 LED */
 }
 
 .turnGlow {
@@ -58,14 +75,13 @@ button {
   transition: 0.15s;
 }
 
-
 /* ===================================================== */
 /*                    PC UI (min-width:601px)            */
 /* ===================================================== */
 
 @media (min-width: 601px) {
 
-  /* PC: START & ROOM 레이아웃 원래대로 유지 */
+  /* START & ROOM 원래대로 */
   #startPage .board-panel,
   #roomPage .board-panel {
     display: block !important;
@@ -90,13 +106,13 @@ button {
     font-size: 14px !important;
   }
 
-  /* PC 플레이어 목록은 세로 리스트 */
+  /* PC 플레이어 목록은 기본 세로 */
   #gamePlayerList {
     display: block !important;
     gap: 0 !important;
   }
 
-  /* PC 버튼은 action-row 유지 */
+  /* PC 버튼 정상 유지 */
   .action-row {
     display: flex !important;
     justify-content: center;
@@ -104,12 +120,12 @@ button {
     margin-top: 20px;
   }
 
-  /* 모바일 하단 버튼바 숨김 */
+  /* 모바일 버튼바 숨김 */
   #actionBar {
     display: none !important;
   }
 
-  /* PC 손패 — 기존 grid 방식 유지 */
+  /* PC 손패 */
   #handArea {
     position: relative !important;
     height: auto !important;
@@ -130,13 +146,10 @@ button {
     z-index: 5;
   }
 
-  /* PC에서는 모달 중앙 팝업 */
   .modal {
     align-items: center !important;
   }
-
 }
-
 
 /* ===================================================== */
 /*          MOBILE UI SUPER UPGRADE (max-width:600px)    */
@@ -144,7 +157,7 @@ button {
 
 @media (max-width: 600px) {
 
-  /* ============ START PAGE ============ */
+  /* START PAGE */
   #startPage .board-panel {
     display: flex;
     flex-direction: column;
@@ -169,8 +182,7 @@ button {
     border-radius: 12px !important;
   }
 
-
-  /* ============ ROOM PAGE ============ */
+  /* ROOM PAGE */
   #roomPage .board-panel {
     display: flex;
     flex-direction: column;
@@ -194,27 +206,25 @@ button {
     background: linear-gradient(#3c2f1b, #2a2214) !important;
   }
 
-
-  /* ============ PLAYER LIST — 3 COL ============ */
+  /* PLAYER LIST — 3 COL */
   #gamePlayerList {
     display: grid !important;
     grid-template-columns: repeat(3, 1fr) !important;
     gap: 8px !important;
-    width: 100%;
     padding: 10px;
+    width: 100%;
   }
 
   .playerBox {
-    text-align: center;
     padding: 10px;
+    text-align: center;
     font-size: 14px;
   }
 
-
-  /* ============ FAN LAYOUT (핸드) ============ */
+  /* FAN LAYOUT (핸드) */
   #handArea {
     position: relative;
-    height: 220px !important;
+    height: 230px !important;
     margin-top: 25px !important;
     overflow: visible !important;
   }
@@ -236,8 +246,7 @@ button {
     height: 135px !important;
   }
 
-
-  /* ============ MOBILE ONLY BUTTON BAR ============ */
+  /* ACTION BAR */
   .action-row {
     display: none !important;
   }
@@ -252,21 +261,20 @@ button {
     padding: 10px 0;
     display: flex;
     justify-content: space-around;
-    gap: 10px;
     z-index: 999;
   }
 
   #actionBar button {
     flex: 1;
+    margin: 0 6px;
     padding: 12px 0;
-    border-radius: 14px;
     background: linear-gradient(#3c2f1b, #2a2214);
-    border: 1px solid rgba(255,215,130,0.5);
+    border-radius: 12px;
+    border: 1px solid rgba(255,215,130,0.45);
     font-size: 16px;
   }
 
-
-  /* ============ MODAL — SLIDE UP ============ */
+  /* MODAL (SLIDE UP) */
   .modal {
     position: fixed;
     top:0; left:0;
@@ -293,5 +301,4 @@ button {
     from { transform: translateY(70%); opacity: 0.2; }
     to   { transform: translateY(0);   opacity: 1; }
   }
-
 }
