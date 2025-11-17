@@ -28,6 +28,10 @@ window.showPage = function(page) {
 
   document.getElementById(page).style.display = "block";
 };
+// 게임 화면 이동
+socket.on("goGamePage", () => {
+  showPage("gamePage");
+});
 
 // ================================
 // 방 생성
@@ -121,3 +125,4 @@ function generateRoomId() {
   for (let i = 0; i < 6; i++) r += s[Math.floor(Math.random() * s.length)];
   return r;
 }
+
