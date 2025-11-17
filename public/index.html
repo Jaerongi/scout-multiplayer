@@ -36,20 +36,32 @@
 <!-- =====================================================
      ROOM PAGE
 ===================================================== -->
+<!-- =====================================================
+     ROOM PAGE (정상 완전판)
+===================================================== -->
 <div id="roomPage" class="page">
 
   <div class="board-panel">
     <div id="roomTitle" class="game-title">방번호: -</div>
 
     <div class="section-title">플레이어 목록</div>
-    <div id="playerListBox"></div>
+    <div id="playerListBox" style="margin-top:10px;"></div>
+
+    <div style="margin-top:25px; text-align:center;">
+      <button id="readyBtn" class="large btn-sub">게임 준비</button>
+      <button id="copyLinkBtn" class="large btn-sub" style="margin-left:10px;">
+        초대 링크 복사
+      </button>
+    </div>
 
     <div style="margin-top:25px; text-align:center;">
       <button id="startGameBtn" class="large btn-orange">게임 시작</button>
     </div>
+
   </div>
 
 </div>
+
 
 
 <!-- =====================================================
@@ -117,3 +129,4 @@
 
 </body>
 </html>
+
