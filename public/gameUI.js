@@ -71,10 +71,12 @@ socket.on("roundStart", ({ round, players: p, startingPlayer }) => {
 // 내 패 받기 (핸드 갱신)
 // ===============================
 socket.on("yourHand", (handData) => {
-  myHand = handData;
-  selected.clear();
-  renderHand();
+  myHand = handData;       // 최신 패 적용
+  selected.clear();        // 선택 초기화
+  flipState = {};          // flip 상태 초기화
+  renderHand();            // UI 재출력
 });
+
 
 
 // 턴 변경
@@ -302,6 +304,7 @@ scoutBtn.onclick = () => {
 showScoutBtn.onclick = () => {
   alert("추가 개발 예정 기능입니다!");
 };
+
 
 
 
