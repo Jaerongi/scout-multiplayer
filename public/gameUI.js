@@ -114,6 +114,7 @@ socket.on("yourHand", (hand) => {
 socket.on("turnChange", (uid) => {
   myTurn = (uid === myUid);
   highlightTurn(uid);
+  updateActionButtons();
 });
 
 socket.on("tableUpdate", (cards) => {
@@ -306,4 +307,16 @@ function performScout(isReverse) {
   });
 
   scoutSide = null;
+}
+
+function updateActionButtons() {
+  const isActive = myTurn && flipConfirmed;
+
+  showBtn.disabled = !isActive;
+  scoutBtn.disabled = !isActive;
+  showScoutBtn.disabled = !isActive;
+
+  showBtn.style.opacity = isActive ? "1" : "0.4";
+  scoutBtn.style.opacity = isActive ? "1" : "0.4";
+  showScoutBtn.style.opacity = isActive ? "1" : "0.4";
 }
