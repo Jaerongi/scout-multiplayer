@@ -1,62 +1,149 @@
-/* ================================ */
-/*     GLOBAL DARK BOARDGAME UI     */
-/* ================================ */
+/* ====================================================== */
+/* PREMIUM BOARDGAME THEME                                */
+/* ====================================================== */
 
 body {
-  background: radial-gradient(#1b1b1b, #0f0f0f);
-  color: #f5f2e8;
-  font-family: 'Pretendard', sans-serif;
+  margin: 0;
+  padding: 0;
+  background: radial-gradient(circle at center, #1b1b1b, #0c0c0c 80%);
+  color: #f4e9cf;
+  font-family: "Pretendard", sans-serif;
+  overflow-x: hidden;
 }
 
+/* page control */
 .page { display: none; }
 .page.visible { display: block; }
 
-/* 오프라인 플레이어 */
+/* center layout */
+.board-panel,
+.sideBoard,
+.mainBoard,
+.player-list-board {
+  background: rgba(30, 30, 30, 0.92);
+  border: 2px solid rgba(255, 215, 130, 0.35);
+  border-radius: 16px;
+  box-shadow: 0 0 25px rgba(0,0,0,0.6);
+  padding: 22px;
+  max-width: 1200px;
+  margin: 20px auto;
+}
+
+/* titles */
+.game-title, .title-board {
+  text-align: center;
+  color: #ffecc5;
+  font-size: 36px;
+  margin-bottom: 15px;
+}
+
+.section-title {
+  font-size: 26px;
+  margin-top: 12px;
+  color: #f5e3b8;
+}
+
+/* buttons */
+button {
+  background: linear-gradient(#3b301a, #221c11);
+  border: 1px solid rgba(255,215,130,0.5);
+  color: #ffeec7;
+  padding: 12px 22px;
+  border-radius: 8px;
+  font-size: 18px;
+  cursor: pointer;
+}
+button:hover {
+  background: linear-gradient(#4a3d23, #2c2415);
+  border-color: #ffd76e;
+}
+
+/* players */
+.playerBox {
+  background: rgba(50,50,50,0.75);
+  border: 1px solid rgba(255,215,130,0.3);
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
 .offlinePlayer {
-  opacity: 0.35;
+  opacity: 0.3;
   filter: grayscale(1);
 }
 
-/* ================================ */
-/* HAND = 1열 구성 + 스크롤 */
-/* ================================ */
-
-.handBoard {
-  display: flex;
-  flex-wrap: nowrap;         /* 줄바꿈 금지 */
-  overflow-x: auto;          /* 가로 스크롤 */
-  gap: 6px;
-  padding: 10px;
+.turnGlow {
+  box-shadow: 0 0 12px #ffd76e;
+  border-color: #ffd76e !important;
 }
 
+/* HAND - 1 LINE */
+.handBoard {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 10px;
+  padding: 10px;
+}
 .card-wrapper {
-  display: inline-block;
-  cursor: pointer;
   border: 2px solid transparent;
-  border-radius: 6px;
+  border-radius: 10px;
+  cursor: pointer;
 }
 .card-wrapper.selected {
   border-color: #ffd76e;
-  box-shadow: 0 0 6px #ffd76e;
+  box-shadow: 0 0 10px #e6c05a;
 }
-
 .card-wrapper canvas {
-  width: 90px;
-  height: 130px;
+  width: 110px;
+  height: 160px;
 }
 
-/* ================================ */
-/* 모바일 패치 */
-/* ================================ */
-@media (max-width: 600px) {
-  .handBoard {
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    gap: 6px !important;
-  }
+/* TABLE */
+.tableBoard {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  padding: 12px;
+}
 
+/* MODAL */
+.modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.65);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+/* 🔥 critical fix */
+.modal.hidden {
+  display: none !important;
+}
+
+.modal-box {
+  background: rgba(45,45,45,0.95);
+  border: 2px solid rgba(255,215,130,0.55);
+  border-radius: 14px;
+  padding: 30px;
+  width: 320px;
+  text-align: center;
+}
+
+/* mobile */
+@media (max-width:600px) {
+  .game-title { font-size: 28px; }
+  .section-title { font-size: 20px; }
+  button {
+    font-size: 16px;
+    padding: 10px 16px;
+  }
   .card-wrapper canvas {
-    width: 65px !important;
-    height: 95px !important;
+    width: 85px;
+    height: 120px;
   }
 }
