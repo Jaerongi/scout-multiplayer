@@ -1,5 +1,5 @@
 // ======================================================
-// GAME UI FINAL — Premium Theme + Flip Selection + Modal Fix
+// GAME UI — SCOUT 정식 룰 패 방향 시스템 + Premium Theme
 // ======================================================
 
 import { drawScoutCard } from "./cardEngine.js";
@@ -17,10 +17,9 @@ const showBtn = document.getElementById("showBtn");
 const scoutBtn = document.getElementById("scoutBtn");
 const showScoutBtn = document.getElementById("showScoutBtn");
 
-// Flip selection UI
+// Flip selection UI (정식 스카우트 룰)
 const flipSelectArea = document.getElementById("flipSelectArea");
-const flipKeepBtn = document.getElementById("flipKeepBtn");
-const flipReverseBtn = document.getElementById("flipReverseBtn");
+const flipToggleBtn = document.getElementById("flipToggleBtn");
 const flipConfirmBtn = document.getElementById("flipConfirmBtn");
 
 // SCOUT modal
@@ -42,11 +41,11 @@ let myHand = [];
 let selected = new Set();
 let myTurn = false;
 
-// Flip 상태
-let flipSelect = true;     // 라운드 시작 후 패 방향 선택 필요
-let flipMode = "keep";     // keep or reverse
+// 패 방향 시스템
+let flipSelect = true;     // 라운드 시작 시 true
+let flipReversed = false;  // false = 기본, true = 뒤집힌 상태
 
-// Scout modal 상태
+// SCOUT modal 상태
 let scoutTargetSide = null;
 let scoutFlip = false;
 
@@ -74,13 +73,24 @@ function renderPlayers() {
 
 
 // ======================================================
-// Hand render (1-line scroll)
+// Hand render (패 방향 적용한 버전)
 // ======================================================
+function getDisplayedHand() {
+  if (!flipReversed) return myHand;
+
+  return myHand.map(c => ({
+    top: c.bottom,
+    bottom: c.top
+  }));
+}
+
 function renderHand() {
   handArea.innerHTML = "";
   myCountSpan.innerText = myHand.length;
 
-  myHand.forEach((c, index) => {
+  const disp = getDisplayedHand();
+
+  disp.forEach((c, index) => {
     const wrap = document.createElement("div");
     wrap.className = "card-wrapper";
 
@@ -115,7 +125,7 @@ function renderTable() {
     wrap.appendChild(drawScoutCard(c.top, c.bottom));
 
     wrap.onclick = () => {
-      if (!myTurn) return;
+      if (!myTurn || flipSelect) return;
       if (tableCards.length === 0) return;
 
       scoutTargetSide = idx === 0 ? "left" : "right";
@@ -142,14 +152,14 @@ function highlightTurn(uid) {
 
 
 // ======================================================
-// Action buttons enable/disable
+// BUTTON 활성화
 // ======================================================
 function updateActionButtons() {
-  const active = myTurn && !flipSelect;
+  const enabled = myTurn && !flipSelect;
 
   [showBtn, scoutBtn, showScoutBtn].forEach(btn => {
-    btn.disabled = !active;
-    btn.style.opacity = active ? "1" : "0.4";
+    btn.disabled = !enabled;
+    btn.style.opacity = enabled ? "1" : "0.4";
   });
 }
 
@@ -158,10 +168,11 @@ function updateActionButtons() {
 // SHOW
 // ======================================================
 showBtn.onclick = () => {
-  if (!myTurn) return;
-  if (flipSelect) return alert("패 방향을 확정하세요.");
+  if (!myTurn || flipSelect) return;
 
-  const chosen = Array.from(selected).map(i => myHand[i]);
+  const disp = getDisplayedHand();
+  const chosen = Array.from(selected).map(i => disp[i]);
+
   if (chosen.length === 0) return alert("카드를 선택하세요.");
 
   socket.emit("show", {
@@ -176,21 +187,18 @@ showBtn.onclick = () => {
 // SCOUT
 // ======================================================
 scoutBtn.onclick = () => {
-  if (!myTurn) return;
-  if (flipSelect) return alert("패 방향을 확정하세요.");
+  if (!myTurn || flipSelect) return;
   if (tableCards.length === 0) return;
 
   scoutModal.classList.remove("hidden");
 };
 
 modalClose.onclick = () => scoutModal.classList.add("hidden");
-
 modalKeep.onclick = () => {
   scoutFlip = false;
   scoutModal.classList.add("hidden");
   chooseInsertPosition();
 };
-
 modalReverse.onclick = () => {
   scoutFlip = true;
   scoutModal.classList.add("hidden");
@@ -221,6 +229,7 @@ function chooseInsertPosition() {
         pos: i
       });
     };
+
     insertModalContent.appendChild(btn);
   }
 
@@ -237,35 +246,27 @@ function chooseInsertPosition() {
 
 
 // ======================================================
-// FLIP SELECT (패 방향 선택)
+// 패 방향 선택 (스카우트 정식 룰)
 // ======================================================
-flipKeepBtn.onclick = () => flipMode = "keep";
-flipReverseBtn.onclick = () => flipMode = "reverse";
+flipToggleBtn.onclick = () => {
+  flipReversed = !flipReversed;
+  renderHand();
+};
 
 flipConfirmBtn.onclick = () => {
   if (!flipSelect) return;
 
-  let newHand = [...myHand].map(c =>
-    flipMode === "keep" ? c : { top: c.bottom, bottom: c.top }
-  );
-
-  socket.emit("confirmFlip", {
-    roomId,
-    permUid: window.permUid,
-    flipped: newHand
-  });
-
   flipSelect = false;
   flipSelectArea.classList.add("hidden");
-  renderHand();
+
   updateActionButtons();
+  renderHand();
 };
 
 
 // ======================================================
 // SOCKET EVENTS
 // ======================================================
-
 socket.on("playerListUpdate", (p) => {
   players = p;
   renderPlayers();
@@ -274,8 +275,10 @@ socket.on("playerListUpdate", (p) => {
 socket.on("roundStart", ({ round, players: p }) => {
   players = p;
   tableCards = [];
-  flipSelect = true;
   selected.clear();
+
+  flipSelect = true;
+  flipReversed = false;
 
   flipSelectArea.classList.remove("hidden");
 
