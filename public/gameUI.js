@@ -247,7 +247,7 @@ showBtn.onclick = () => {
 };
 
 // ========================================================
-// SCOUT — 기존 confirm 방식 + 미리보기 추가
+// SCOUT 버튼 → 선택 버튼 생성
 // ========================================================
 scoutBtn.onclick = () => {
   if (!myTurn) return alert("당신의 턴이 아닙니다.");
@@ -257,23 +257,23 @@ scoutBtn.onclick = () => {
   // 기존 버튼 제거
   document.querySelectorAll(".scoutSelectBtn").forEach(b => b.remove());
 
-  // 하이라이트 카드 아래 버튼 생성
+  // 하이라이트된 카드 아래 버튼 생성
   document.querySelectorAll(".scoutBtnZone").forEach(zone => {
     const idx = parseInt(zone.parentElement.dataset.index);
     const side = (idx === 0 ? "left" : "right");
 
-    const btn1 = document.createElement("button");
-    btn1.innerText = "그대로 가져오기";
-    btn1.className = "btn-green small scoutSelectBtn";
-    btn1.onclick = () => performScout(side, false);
+    const btnKeep = document.createElement("button");
+    btnKeep.innerText = "그대로 가져오기";
+    btnKeep.className = "btn-green small scoutSelectBtn";
+    btnKeep.onclick = () => performScout(side, false);
 
-    const btn2 = document.createElement("button");
-    btn2.innerText = "반대로 가져오기";
-    btn2.className = "btn-sub small scoutSelectBtn";
-    btn2.onclick = () => performScout(side, true);
+    const btnFlip = document.createElement("button");
+    btnFlip.innerText = "반대로 가져오기";
+    btnFlip.className = "btn-sub small scoutSelectBtn";
+    btnFlip.onclick = () => performScout(side, true);
 
-    zone.appendChild(btn1);
-    zone.appendChild(btn2);
+    zone.appendChild(btnKeep);
+    zone.appendChild(btnFlip);
   });
 };
 
@@ -283,6 +283,7 @@ scoutBtn.onclick = () => {
 showScoutBtn.onclick = () => {
   alert("아직 준비되지 않은 기능입니다!");
 };
+
 
 
 
