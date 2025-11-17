@@ -1,5 +1,5 @@
 // =======================================
-// GAME UI — SCOUT 모달 버전 (최종 안정판)
+// GAME UI — SCOUT 2단계 모달 + 위치 선택 (최종 안정본)
 // =======================================
 
 import { drawScoutCard } from "./cardEngine.js";
@@ -17,7 +17,7 @@ const scoutBtn = document.getElementById("scoutBtn");
 const showScoutBtn = document.getElementById("showScoutBtn");
 
 // ============================
-// SCOUT 팝업 모달 DOM
+// 1단계 SCOUT 모달 DOM
 // ============================
 const scoutModal = document.getElementById("scoutModal");
 const modalKeep = document.getElementById("modalKeep");
@@ -31,7 +31,64 @@ function closeScoutModal() {
   scoutModal.classList.add("hidden");
 }
 
-// 현재 선택된 스카우트 방향 (left/right)
+// ============================
+// 2단계 INSERT 모달 DOM
+// ============================
+const insertModal = document.getElementById("insertModal");
+const insertModalContent = document.getElementById("insertModalContent");
+
+function openInsertModal(isReverse) {
+  insertModal.classList.remove("hidden");
+  insertModalContent.innerHTML = `<p style="margin-bottom:12px;">어디에 넣을까요?</p>`;
+
+  // 내 패 위치에 따라 버튼 생성
+  for (let i = 0; i <= myHand.length; i++) {
+    let label = "";
+
+    if (i === 0) label = "(맨 앞)";
+    else if (i === myHand.length) label = "(맨 뒤)";
+    else {
+      const c = myHand[i];
+      label = `${c.top}/${c.bottom} 앞`;
+    }
+
+    const btn = document.createElement("button");
+    btn.innerText = "넣기 " + label;
+    btn.className = "btn-green small";
+
+    btn.onclick = () => {
+      performScoutInsert(isReverse, i);
+      closeInsertModal();
+    };
+
+    insertModalContent.appendChild(btn);
+  }
+
+  // 취소 버튼
+  const cancelBtn = document.createElement("button");
+  cancelBtn.innerText = "취소";
+  cancelBtn.className = "btn-sub small";
+  cancelBtn.onclick = closeInsertModal;
+  insertModalContent.appendChild(cancelBtn);
+}
+
+function closeInsertModal() {
+  insertModal.classList.add("hidden");
+}
+
+// 선택한 위치로 SCOUT 실행
+function performScoutInsert(isReverse, pos) {
+  socket.emit("scout", {
+    roomId,
+    side: scoutSide,
+    flip: isReverse,
+    pos: pos
+  });
+
+  scoutSide = null;
+}
+
+// 현재 선택된 스카우트 방향 저장
 let scoutSide = null;
 
 // ================================
@@ -64,9 +121,7 @@ let selected = new Set();
 let myTurn = false;
 let flipConfirmed = false;
 
-// ---------------------------
-// 방향 버튼 (기존 그대로)
-// ---------------------------
+// 방향 버튼
 const flipAllBtn = document.createElement("button");
 flipAllBtn.innerText = "전체 방향 전환";
 flipAllBtn.className = "btn-sub small";
@@ -81,7 +136,6 @@ document.querySelector("#myCount").parentElement.appendChild(confirmFlipBtn);
 // ========================================================
 // SOCKET EVENTS
 // ========================================================
-
 socket.on("playerListUpdate", (p) => {
   players = p;
   renderPlayers();
@@ -90,7 +144,6 @@ socket.on("playerListUpdate", (p) => {
 socket.on("roundStart", ({ round, players: p }) => {
   players = p;
   tableCards = [];
-
   flipConfirmed = false;
   selected.clear();
 
@@ -159,17 +212,14 @@ function renderTable() {
       zone.className = "scoutBtnZone";
       wrap.appendChild(zone);
 
-      // 가져오기 버튼 (조건 없이 생성)
+      // ★ 가져오기 버튼 (기본 생성)
       const btn = document.createElement("button");
       btn.innerText = "가져오기";
       btn.className = "btn-green small scoutSelectBtn";
 
       btn.onclick = () => {
         if (!myTurn) return;
-        if (!flipConfirmed) {
-          alert("패 방향을 먼저 확정해주세요!");
-          return;
-        }
+        if (!flipConfirmed) return alert("패 방향을 먼저 확정해주세요!");
 
         scoutSide = idx === 0 ? "left" : "right";
         openScoutModal();
@@ -289,40 +339,26 @@ scoutBtn.onclick = () => {
 };
 
 // ========================================================
-// 모달에서 SCOUT 수행
+// 1단계 모달에서 선택 후 → 2단계 모달 열기
 // ========================================================
 modalKeep.onclick = () => {
-  performScout(false);
+  openInsertModal(false);
   closeScoutModal();
 };
 
 modalReverse.onclick = () => {
-  performScout(true);
+  openInsertModal(true);
   closeScoutModal();
 };
 
 modalClose.onclick = closeScoutModal;
 
-function performScout(isReverse) {
-  if (!scoutSide) return;
-
-  socket.emit("scout", {
-    roomId,
-    side: scoutSide,
-    flip: isReverse,
-    pos: myHand.length
-  });
-
-  scoutSide = null;
-}
-
 // ========================================================
-// ACTION BUTTON CONTROL (★ 가져오기 버튼도 포함)
+// ACTION BUTTON CONTROL (가져오기 버튼 포함)
 // ========================================================
 function updateActionButtons() {
   const isActive = myTurn;
 
-  // 메인 버튼
   showBtn.disabled = !isActive;
   scoutBtn.disabled = !isActive;
   showScoutBtn.disabled = !isActive;
@@ -331,7 +367,7 @@ function updateActionButtons() {
   scoutBtn.style.opacity = isActive ? "1" : "0.4";
   showScoutBtn.style.opacity = isActive ? "1" : "0.4";
 
-  // 가져오기 버튼
+  // 가져오기 버튼도 동일 조건 적용
   document.querySelectorAll(".scoutSelectBtn").forEach(btn => {
     btn.disabled = !isActive;
     btn.style.opacity = isActive ? "1" : "0.4";
