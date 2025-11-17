@@ -188,3 +188,15 @@ button:hover {
   padding: 14px 26px;
 }
 
+.flip-area {
+  background: rgba(40,40,40,0.75);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,215,130,0.4);
+  margin-bottom: 12px;
+  text-align: center;
+}
+.flip-area.hidden {
+  display: none !important;
+}
+
