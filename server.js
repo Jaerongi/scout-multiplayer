@@ -179,31 +179,36 @@ io.on("connection", (socket) => {
   });
 
   // --------------------------
-  // SHOW (패 제출)
-  // --------------------------
-  socket.on("show", ({ roomId, cards }) => {
-    const room = rooms[roomId];
-    if (!room) return;
+// SHOW (패 제출)
+// --------------------------
+socket.on("show", ({ roomId, cards }) => {
+  const room = rooms[roomId];
+  if (!room) return;
 
-    const uid = socket.id;
-    const player = room.players[uid];
+  const uid = socket.id;
+  const player = room.players[uid];
 
-    // 기존 테이블 카드 수 만큼 점수 +
-    player.score += room.tableCards.length;
+  // 1. 점수: 기존 테이블 카드 수만큼 +
+  player.score += room.tableCards.length;
 
-    // 패 제거
-    player.hand = player.hand.filter(
-      h => !cards.some(c => c.top === h.top && c.bottom === h.bottom)
-    );
+  // 2. 내 패에서 제출한 카드 제거
+  player.hand = player.hand.filter(
+    h => !cards.some(c => c.top === h.top && c.bottom === h.bottom)
+  );
 
-    // 테이블 갱신
-    room.tableCards = cards;
+  // 3. 테이블에 새 카드 올림
+  room.tableCards = cards;
 
-    io.to(roomId).emit("tableUpdate", cards);
-    io.to(roomId).emit("playerListUpdate", room.players);
+  // 4. 클라이언트 패 갱신 이벤트 전달
+  io.to(uid).emit("yourHand", player.hand);
 
-    nextTurn(room);
-  });
+  // 5. 테이블 & 플레이어 리스트 갱신
+  io.to(roomId).emit("tableUpdate", room.tableCards);
+  io.to(roomId).emit("playerListUpdate", room.players);
+
+  // 6. 턴 넘기기
+  nextTurn(room);
+});
 
   // --------------------------
   // SCOUT
@@ -308,6 +313,7 @@ function nextTurn(room) {
     room.turnOrder[room.currentTurnIndex]
   );
 }
+
 
 
 
