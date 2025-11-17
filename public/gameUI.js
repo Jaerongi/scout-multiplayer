@@ -3,7 +3,7 @@
 // ================================
 
 import { drawScoutCard } from "./cardEngine.js";
-import { getComboType, isStrongerCombo } from "shared.js";
+import { getComboType, isStrongerCombo } from "/shared.js";
 
 // DOM
 const gamePlayerList = document.getElementById("gamePlayerList");
@@ -261,4 +261,5 @@ scoutBtn.onclick = () => {
 showScoutBtn.onclick = () => {
   alert("추가 개발 예정 기능입니다!");
 };
+
 
