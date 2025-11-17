@@ -216,21 +216,20 @@ function renderHand() {
   handArea.innerHTML = "";
   myCountSpan.innerText = myHand.length;
 
+  // ⭐ NEW: 카드 수 → CSS 전달
+  handArea.setAttribute("data-count", myHand.length);
+
   const inserting = pendingScoutCard !== null;
 
   for (let i = 0; i <= myHand.length; i++) {
 
-    // -- SCOUT 삽입 모드: 카드 위 +버튼 배치 --
     if (inserting) {
       if (i < myHand.length) {
         const card = myHand[i];
-
         const wrap = document.createElement("div");
         wrap.style.display = "inline-block";
         wrap.style.position = "relative";
-        wrap.style.margin = "0 6px";
 
-        // + 넣기 버튼
         const overlay = document.createElement("div");
         overlay.className = "insert-overlay";
         overlay.innerText = "+ 넣기";
@@ -241,24 +240,21 @@ function renderHand() {
         };
 
         wrap.appendChild(overlay);
-        wrap.appendChild(drawScoutCard(card.top, card.bottom, 90, 130));
+        wrap.appendChild(drawScoutCard(card.top, card.bottom));
         handArea.appendChild(wrap);
 
         continue;
       }
 
-      // 마지막 카드 뒤에도 넣기 버튼
       const lastSlot = document.createElement("div");
       lastSlot.style.display = "inline-block";
       lastSlot.style.position = "relative";
       lastSlot.style.width = "90px";
       lastSlot.style.height = "24px";
-      lastSlot.style.margin = "0 6px";
 
       const overlay = document.createElement("div");
       overlay.className = "insert-overlay";
       overlay.innerText = "+ 넣기";
-
       overlay.onclick = () => {
         performScoutInsert(pendingScoutCard.isReverse, i);
         pendingScoutCard = null;
@@ -269,7 +265,6 @@ function renderHand() {
       break;
     }
 
-    // ===== 삽입 모드가 아닐 때 기존 핸드 출력 =====
     if (i === myHand.length) break;
 
     const card = myHand[i];
@@ -281,11 +276,8 @@ function renderHand() {
     wrap.appendChild(drawScoutCard(card.top, card.bottom));
 
     wrap.onclick = () => {
-      if (pendingScoutCard) return; // 삽입모드에서는 선택 불가
-
-      if (!flipConfirmed) {
-        return alert("패 방향 확정 후 선택하세요!");
-      }
+      if (pendingScoutCard) return;
+      if (!flipConfirmed) return alert("패 방향을 먼저 확정해주세요!");
 
       if (selected.has(i)) selected.delete(i);
       else selected.add(i);
@@ -295,6 +287,9 @@ function renderHand() {
 
     handArea.appendChild(wrap);
   }
+
+  // ⭐ 인디케이터 업데이트
+  updateHandIndicator();
 }
 
 
@@ -411,4 +406,22 @@ function updateActionButtons() {
     btn.disabled = !isActive;
     btn.style.opacity = isActive ? "1" : "0.4";
   });
+}
+
+// ==========================
+//   HAND PAGE INDICATOR ●
+// ==========================
+const handIndicator = document.createElement("div");
+handIndicator.id = "handIndicator";
+handArea.parentElement.appendChild(handIndicator);
+
+function updateHandIndicator() {
+  const count = myHand.length;
+  const dots = [];
+
+  for (let i = 0; i < count; i++) {
+    dots.push(`<span class="${i === 0 ? "active" : ""}">●</span>`);
+  }
+
+  handIndicator.innerHTML = dots.join(" ");
 }
