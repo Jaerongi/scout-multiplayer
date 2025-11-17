@@ -176,9 +176,9 @@ button:disabled {
 
 .insert-overlay {
   position: absolute;
-  top: -6px;
+  top: -8px;
   right: -6px;
-  transform: translate(0, 0);
+  transform: none;
   background: rgba(0, 0, 0, 0.75);
   padding: 3px 7px;
   border-radius: 8px;
@@ -200,5 +200,6 @@ button:disabled {
 .card-wrapper {
   position: relative !important;
 }
+
 
 
