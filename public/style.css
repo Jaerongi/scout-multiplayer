@@ -147,3 +147,44 @@ button:hover {
     height: 120px;
   }
 }
+/* ========================= */
+/* 패 방향 선택 UI */
+/* ========================= */
+.flip-area {
+  background: rgba(40,40,40,0.75);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,215,130,0.4);
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.flip-btn-row {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+}
+
+.flip-area.hidden {
+  display: none !important;
+}
+
+/* ========================= */
+/* 하단 버튼 3개 고정 */
+/* ========================= */
+.action-row {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
+  position: sticky;  /* 화면 하단 고정 */
+  bottom: 0;
+  background: rgba(15,15,15,0.9);
+  border-top: 1px solid rgba(255,215,130,0.2);
+}
+
+.action-row button {
+  font-size: 22px;
+  padding: 14px 26px;
+}
+
