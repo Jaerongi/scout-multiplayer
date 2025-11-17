@@ -368,5 +368,24 @@ function updateActionButtons() {
   });
 }
 
+function applyFanLayout(count) {
+  const cards = document.querySelectorAll(".card-wrapper");
+  if (!cards.length) return;
+
+  // 최대 각도 ±35도
+  const maxAngle = 35;
+  const angleStep = count > 1 ? (maxAngle * 2) / (count - 1) : 0;
+
+  cards.forEach((card, i) => {
+    const angle = -maxAngle + angleStep * i;
+
+    // X축 퍼짐 정도
+    const spread = (i - (count - 1) / 2) * 45;
+
+    card.style.transform =
+      `translateX(${spread}px) rotate(${angle}deg)`;
+  });
+}
+
 
 
