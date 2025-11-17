@@ -185,8 +185,7 @@ function renderTable() {
 
     tableArea.appendChild(wrap);
   });
-}  // ★★★ renderTable 함수 종료
-
+} // ★★★ renderTable 정확하게 종료
 // ========================================================
 // HAND
 // ========================================================
@@ -332,6 +331,7 @@ function updateActionButtons() {
   scoutBtn.style.opacity = isActive ? "1" : "0.4";
   showScoutBtn.style.opacity = isActive ? "1" : "0.4";
 }
+
 
 
 
