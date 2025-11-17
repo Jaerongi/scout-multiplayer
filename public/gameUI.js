@@ -121,36 +121,6 @@ socket.on("tableUpdate", (cards) => {
 // ========================================================
 // 패 렌더링
 // ========================================================
-function renderHand() {
-  handArea.innerHTML = "";
-  myCountSpan.innerText = myHand.length;
-
-  myHand.forEach((card, idx) => {
-    const div = document.createElement("div");
-    div.className = "card-wrapper";
-
-    if (selected.has(idx)) div.classList.add("selected");
-    div.appendChild(drawScoutCard(card.top, card.bottom));
-
-    div.onclick = () => {
-      if (!flipConfirmed) {
-        alert("패 방향 확정 후 선택 가능합니다!");
-        return;
-      }
-
-      if (selected.has(idx)) selected.delete(idx);
-      else selected.add(idx);
-
-      renderHand();
-    };
-
-    handArea.appendChild(div);
-  });
-}
-
-// ========================================================
-// TABLE 렌더링 + SCOUT 가능 카드 하이라이트 + 클릭 SCOUT
-// ========================================================
 function renderTable() {
   tableArea.innerHTML = "";
 
@@ -159,7 +129,6 @@ function renderTable() {
     return;
   }
 
-  // SCOUT 가능 카드 인덱스 계산
   let highlightIndex = [];
 
   if (tableCards.length === 1) {
@@ -173,35 +142,23 @@ function renderTable() {
   tableCards.forEach((c, idx) => {
     const cardElem = drawScoutCard(c.top, c.bottom, 90, 130);
 
-    // 테두리 안겹치게 간격 적용
+    // wrapper — 버튼 생성 가능
     const wrap = document.createElement("div");
     wrap.style.display = "inline-block";
-    wrap.style.margin = "0 6px"; // ★ 간격 조금 넓힘
+    wrap.style.margin = "0 6px";
+    wrap.style.textAlign = "center";
+
     wrap.appendChild(cardElem);
 
-    // 하이라이트 대상이면 애니메이션
     if (highlightIndex.includes(idx)) {
       cardElem.classList.add("scout-highlight");
 
-      // 클릭하면 자동 SCOUT 동작
-      wrap.onclick = () => {
-        if (!myTurn) return;
-        if (!flipConfirmed) return alert("패 방향을 먼저 확정해주세요.");
+      // SCOUT 버튼 추가 영역 (scout mode일 때만 표시됨)
+      const btnZone = document.createElement("div");
+      btnZone.className = "scoutBtnZone";
+      wrap.appendChild(btnZone);
 
-        // SCOUT 동작
-        const side = (idx === 0 ? "left" : "right");
-        const doFlip = false;  // 필요 시 true/false 오픈 가능
-
-        // 기본은 맨 뒤 삽입
-        let pos = myHand.length;
-
-        socket.emit("scout", {
-          roomId,
-          side,
-          flip: doFlip,
-          pos
-        });
-      };
+      wrap.dataset.index = idx;  // 어느 카드인지 표시
     }
 
     tableArea.appendChild(wrap);
@@ -353,6 +310,7 @@ scoutBtn.onclick = () => {
 showScoutBtn.onclick = () => {
   alert("아직 준비되지 않은 기능입니다!");
 };
+
 
 
 
