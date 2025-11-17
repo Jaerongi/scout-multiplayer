@@ -1,10 +1,11 @@
 // =======================================
-// GAME UI — SCOUT MODAL VERSION
+// GAME UI — SCOUT 모달 버전 (최종본)
 // =======================================
 
 import { drawScoutCard } from "./cardEngine.js";
 import { getComboType, isStrongerCombo } from "/shared.js";
 
+// DOM
 const gamePlayerList = document.getElementById("gamePlayerList");
 const tableArea = document.getElementById("tableArea");
 const handArea = document.getElementById("handArea");
@@ -15,19 +16,26 @@ const showBtn = document.getElementById("showBtn");
 const scoutBtn = document.getElementById("scoutBtn");
 const showScoutBtn = document.getElementById("showScoutBtn");
 
-// ---------------------------
-// MODAL DOM
-// ---------------------------
-const modal = document.getElementById("scoutModal");
-const modalNormal = document.getElementById("modal-normal");
-const modalReverse = document.getElementById("modal-reverse");
-const modalClose = document.getElementById("modal-close");
+// ============================
+// SCOUT 팝업 모달 DOM
+// ============================
+const scoutModal = document.getElementById("scoutModal");
+const modalKeep = document.getElementById("modalKeep");
+const modalReverse = document.getElementById("modalReverse");
+const modalClose = document.getElementById("modalClose");
 
-// 현재 선택된 side 저장 ("left" or "right")
+function openScoutModal() {
+  scoutModal.classList.remove("hidden");
+}
+function closeScoutModal() {
+  scoutModal.classList.add("hidden");
+}
+
+// 현재 선택된 스카우트 방향 저장 (left/right)
 let scoutSide = null;
 
 // ================================
-// SCOUT PREVIEW
+// SCOUT PREVIEW (기존 유지)
 // ================================
 const scoutPreview = document.createElement("div");
 scoutPreview.id = "scoutPreview";
@@ -48,6 +56,7 @@ function renderScoutPreview(card) {
   scoutPreview.appendChild(drawScoutCard(card.top, card.bottom, 80, 120));
 }
 
+// 상태 변수
 let players = {};
 let tableCards = [];
 let myHand = [];
@@ -56,7 +65,7 @@ let myTurn = false;
 let flipConfirmed = false;
 
 // ---------------------------
-// 방향 버튼
+// 방향 버튼 (기존 그대로)
 // ---------------------------
 const flipAllBtn = document.createElement("button");
 flipAllBtn.innerText = "전체 방향 전환";
@@ -69,9 +78,8 @@ confirmFlipBtn.className = "btn-green small";
 document.querySelector("#myCount").parentElement.appendChild(flipAllBtn);
 document.querySelector("#myCount").parentElement.appendChild(confirmFlipBtn);
 
-
 // ========================================================
-// SOCKET EVENTS
+// SOCKET & GAME EVENTS
 // ========================================================
 
 socket.on("playerListUpdate", (p) => {
@@ -113,15 +121,14 @@ socket.on("tableUpdate", (cards) => {
   renderTable();
 });
 
-
 // ========================================================
-// TABLE RENDER — 카드 아래 버튼은 1개만 ("가져오기")
+// TABLE 렌더링 — “가져오기” 버튼 1개만!
 // ========================================================
 function renderTable() {
   tableArea.innerHTML = "";
 
   if (tableCards.length === 0) {
-    tableArea.innerHTML = `<span style="color:#ccc">(비어 있음)</span>`;
+    tableArea.innerHTML = `<span style="color:#888">(비어 있음)</span>`;
     return;
   }
 
@@ -148,10 +155,13 @@ function renderTable() {
       zone.className = "scoutBtnZone";
       wrap.appendChild(zone);
 
-      // 가져오기 버튼 1개만
+      // ===========================
+      // 가져오기 버튼 1개만 생성
+      // ===========================
       const btn = document.createElement("button");
       btn.innerText = "가져오기";
       btn.className = "btn-green small scoutSelectBtn";
+
       btn.onclick = () => {
         scoutSide = idx === 0 ? "left" : "right";
         openScoutModal();
@@ -164,9 +174,8 @@ function renderTable() {
   });
 }
 
-
 // ========================================================
-// HAND RENDER
+// HAND
 // ========================================================
 function renderHand() {
   handArea.innerHTML = "";
@@ -193,13 +202,13 @@ function renderHand() {
   });
 }
 
-
 // ========================================================
 // PLAYER LIST
 // ========================================================
 function renderPlayers() {
   gamePlayerList.innerHTML = "";
-  Object.values(players).forEach(p => {
+
+  Object.values(players).forEach((p) => {
     const div = document.createElement("div");
     div.className = "playerBox";
     div.innerHTML = `<b>${p.nickname}</b><br>패: ${p.hand.length}장<br>점수: ${p.score}`;
@@ -210,15 +219,16 @@ function renderPlayers() {
 function highlightTurn(uid) {
   const boxes = gamePlayerList.children;
   const arr = Object.values(players);
+
   for (let i = 0; i < arr.length; i++) {
-    if (arr[i].uid === uid) boxes[i].classList.add("turnGlow");
-    else boxes[i].classList.remove("turnGlow");
+    const box = boxes[i];
+    if (arr[i].uid === uid) box.classList.add("turnGlow");
+    else box.classList.remove("turnGlow");
   }
 }
 
-
 // ========================================================
-// FLIP 
+// FLIP
 // ========================================================
 flipAllBtn.onclick = () => {
   if (flipConfirmed) return;
@@ -228,6 +238,7 @@ flipAllBtn.onclick = () => {
 
 confirmFlipBtn.onclick = () => {
   flipConfirmed = true;
+
   flipAllBtn.style.display = "none";
   confirmFlipBtn.style.display = "none";
 
@@ -236,7 +247,6 @@ confirmFlipBtn.onclick = () => {
     flipped: myHand
   });
 };
-
 
 // ========================================================
 // SHOW
@@ -259,56 +269,34 @@ showBtn.onclick = () => {
   renderScoutPreview(null);
 };
 
-
 // ========================================================
-// SCOUT 버튼 → 기존 버튼 전부 삭제 후 "가져오기"만 남김
+// SCOUT 버튼 (기존 구조 유지)
 // ========================================================
 scoutBtn.onclick = () => {
   if (!myTurn) return alert("당신의 턴이 아닙니다.");
   if (!flipConfirmed) return alert("패 방향을 먼저 확정해주세요.");
   if (tableCards.length === 0) return alert("테이블이 비어있습니다.");
 
-  document.querySelectorAll(".scoutSelectBtn").forEach(b => b.remove());
-
-  // renderTable()에서 이미 "가져오기" 버튼 생성되므로 따로 처리 필요 없음
+  // 이미 테이블 렌더링에서 "가져오기 버튼" 생성됨 (여기선 아무것도 추가하지 않음)
 };
 
-
 // ========================================================
-// SHOW+SCOUT (미구현)
+// 모달에서 SCOUT 수행
 // ========================================================
-showScoutBtn.onclick = () => {
-  alert("아직 준비되지 않은 기능입니다!");
-};
-
-
-// ========================================================
-// SCOUT MODAL LOGIC
-// ========================================================
-function openScoutModal() {
-  modal.classList.remove("hidden");
-}
-
-function closeScoutModal() {
-  modal.classList.add("hidden");
-}
-
-modalClose.onclick = closeScoutModal;
-
-modalNormal.onclick = () => {
+modalKeep.onclick = () => {
   performScout(false);
+  closeScoutModal();
 };
 
 modalReverse.onclick = () => {
   performScout(true);
+  closeScoutModal();
 };
 
+modalClose.onclick = closeScoutModal;
 
-// ========================================================
-// 실제 SCOUT 실행
-// ========================================================
 function performScout(isReverse) {
-  if (!scoutSide) return closeScoutModal();
+  if (!scoutSide) return;
 
   socket.emit("scout", {
     roomId,
@@ -317,6 +305,5 @@ function performScout(isReverse) {
     pos: myHand.length
   });
 
-  closeScoutModal();
   scoutSide = null;
 }
