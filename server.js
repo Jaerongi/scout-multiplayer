@@ -5,7 +5,7 @@
 import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
-import { getComboType, isStrongerCombo } from "./shared.js";
+import { getComboType, isStrongerCombo } from "../shared.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -299,3 +299,4 @@ function nextTurn(room) {
     room.turnOrder[room.currentTurnIndex]
   );
 }
+
