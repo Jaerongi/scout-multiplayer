@@ -83,20 +83,33 @@ socket.on("playerListUpdate", (data) => {
   window.roomId = roomId;
   window.players = players;
 
-  // 내 정보 찾기
-  for (const uid in players) {
-    if (players[uid].uid === window.permUid) {
-      window.myName = players[uid].nickname;
-      break;
-    }
+  // ⭐️ 내가 존재하지 않으면 아무것도 하지 않음 (유령 생성 방지)
+  if (!players[window.permUid]) {
+    console.warn("⚠️ 아직 내 정보가 players에 없음 — 무시");
+    return;
   }
 
-  // 방 첫 입장 시 roomPage 이동
-  if (document.getElementById("roomPage").style.display !== "block") {
-    document.getElementById("roomTitle").innerText = `방번호: ${roomId}`;
+  // 내 정보 가져오기
+  window.myName = players[window.permUid].nickname;
+
+  // ⭐️ 내 정보가 players에 들어온 최초 순간에만 roomPage 진입
+  const roomPageVisible =
+    document.getElementById("roomPage").style.display === "block";
+  const gamePageVisible =
+    document.getElementById("gamePage").style.display === "block";
+
+  if (!roomPageVisible && !gamePageVisible) {
+    document.getElementById("roomTitle").innerText =
+      `방번호: ${roomId}`;
     showPage("roomPage");
   }
+
+  // 이후에는 roomUI에서 playerList 렌더링
+  if (typeof renderRoomPlayers === "function") {
+    renderRoomPlayers(players);
+  }
 });
+
 
 
 // =====================================================
@@ -141,5 +154,6 @@ function generateRoomId() {
   for (let i = 0; i < 6; i++) r += s[Math.floor(Math.random() * s.length)];
   return r;
 }
+
 
 
