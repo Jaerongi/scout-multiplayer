@@ -1,46 +1,48 @@
 // =====================================================
-// GLOBAL SOCKET + PERMANENT UID (재접속 복구 모드)
+// GLOBAL SOCKET + PERMANENT UID (재접속 복구)
 // =====================================================
 
-// 브라우저 영구 UID
+// perm UID
 if (!localStorage.getItem("scout_uid")) {
   localStorage.setItem("scout_uid", crypto.randomUUID());
 }
 window.permUid = localStorage.getItem("scout_uid");
 
-// SOCKET
+// SOCKET INIT
 window.socket = io({
   autoConnect: true,
   transports: ["websocket"]
 });
 
+// 상태 변수
 window.myUid = null;
-window.myName = null;   // ⚠️ 서버에서 받은 닉네임으로만 설정함
-window.roomId = null;   // ⚠️ UI에서 직접 세팅하지 않음
+window.myName = null;
+window.roomId = null;
 
 socket.on("connect", () => {
   window.myUid = socket.id;
-  console.log("SOCKET CONNECTED:", myUid);
+  console.log("SOCKET CONNECTED:", window.myUid);
 });
 
-// 페이지 스위치
+// 페이지 관리
 window.showPage = function(page) {
   document.getElementById("startPage").style.display = "none";
   document.getElementById("roomPage").style.display = "none";
   document.getElementById("gamePage").style.display = "none";
-
   document.getElementById(page).style.display = "block";
 };
 
+
 // =====================================================
-// 방 생성
+// 방 만들기
 // =====================================================
 makeRoomBtn.onclick = () => {
   const name = nicknameInput.value.trim();
   if (!name) return alert("닉네임을 입력하세요.");
 
-  // 👉 UI에서 roomId/myName 직접 저장하지 않는다!
   const rid = generateRoomId();
+
+  console.log("🟦 방 생성 요청:", rid);
 
   socket.emit("joinRoom", {
     roomId: rid,
@@ -48,6 +50,7 @@ makeRoomBtn.onclick = () => {
     permUid: window.permUid
   });
 };
+
 
 // =====================================================
 // 초대 링크 입장
@@ -61,7 +64,8 @@ enterRoomBtn.onclick = () => {
 
     if (!rid || !nickname) return alert("잘못된 링크입니다.");
 
-    // 👉 여기서도 직접 roomId/myName 저장 안 함
+    console.log("🟩 초대방 입장:", rid);
+
     socket.emit("joinRoom", {
       roomId: rid,
       nickname,
@@ -73,52 +77,53 @@ enterRoomBtn.onclick = () => {
   }
 };
 
+
 // =====================================================
-// 서버가 joinRoom 후 상태를 브로드캐스트하면
-// 이 클라이언트도 playerListUpdate를 통해 자신 정보 확인
+// playerListUpdate — ★ 유령 플레이어 방지 핵심 ★
 // =====================================================
 socket.on("playerListUpdate", (data) => {
   const { roomId, players } = data;
 
+  console.log("📡 playerListUpdate:", data);
+
   window.roomId = roomId;
   window.players = players;
 
-  // ⭐️ 내가 존재하지 않으면 아무것도 하지 않음 (유령 생성 방지)
+  // ⭐ 아직 내가 room.players에 없다면 → joinRoom이 아직 반영 안됨
   if (!players[window.permUid]) {
-    console.warn("⚠️ 아직 내 정보가 players에 없음 — 무시");
+    console.warn("⛔ 내 permUid가 players에 아직 없음 → 무시 (유령 방지)");
     return;
   }
 
-  // 내 정보 가져오기
+  // 내 닉네임 동기화
   window.myName = players[window.permUid].nickname;
 
-  // ⭐️ 내 정보가 players에 들어온 최초 순간에만 roomPage 진입
   const roomPageVisible =
     document.getElementById("roomPage").style.display === "block";
   const gamePageVisible =
     document.getElementById("gamePage").style.display === "block";
 
+  // ⭐ 최초 진입 시에만 roomPage로 이동
   if (!roomPageVisible && !gamePageVisible) {
-    document.getElementById("roomTitle").innerText =
-      `방번호: ${roomId}`;
+    document.getElementById("roomTitle").innerText = `방번호: ${roomId}`;
     showPage("roomPage");
   }
 
-  // 이후에는 roomUI에서 playerList 렌더링
+  // 방 UI 렌더
   if (typeof renderRoomPlayers === "function") {
     renderRoomPlayers(players);
   }
 });
 
 
-
 // =====================================================
-// 서버에서 복구 상태 제공
+// restoreState — 재접속
 // =====================================================
 socket.on("restoreState", (state) => {
   if (!state) return;
 
-  // 복구된 roomId
+  console.log("🔄 restoreState:", state);
+
   window.roomId = state.roomId ?? window.roomId;
 
   showPage("gamePage");
@@ -126,6 +131,7 @@ socket.on("restoreState", (state) => {
   window.players = state.players;
   window.tableCards = state.table;
   window.myHand = state.hand;
+
   roundInfo.innerText = `라운드 ${state.round}`;
 
   renderPlayers();
@@ -137,13 +143,15 @@ socket.on("restoreState", (state) => {
   updateActionButtons();
 });
 
+
 // =====================================================
-// 서버가 "goGamePage" 보낼 때 roomId 전달되도록 server.js 수정됨
+// goGamePage
 // =====================================================
 socket.on("goGamePage", (data) => {
   if (data?.roomId) window.roomId = data.roomId;
   showPage("gamePage");
 });
+
 
 // =====================================================
 // 방 ID 생성
@@ -154,6 +162,3 @@ function generateRoomId() {
   for (let i = 0; i < 6; i++) r += s[Math.floor(Math.random() * s.length)];
   return r;
 }
-
-
-
