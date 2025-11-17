@@ -19,7 +19,7 @@ body {
   overflow-x: hidden;
 }
 
-/* 공통 패널 스타일 (START / ROOM / GAME 모두 적용) */
+/* 공통 패널 스타일 */
 .board-panel,
 .sideBoard,
 .mainBoard,
@@ -30,7 +30,6 @@ body {
   border: 1px solid rgba(255, 215, 130, 0.25);
   border-radius: 14px;
   box-shadow: 0 0 15px rgba(0,0,0,0.7);
-  backdrop-filter: blur(2px);
 }
 
 /* 제목 */
@@ -41,344 +40,170 @@ body {
 
 /* 플레이어 박스 */
 .playerBox {
-  background: rgba(40, 40, 40, 0.8);
-  border: 1px solid rgba(255, 215, 130, 0.3);
+  background: rgba(40,40,40,0.8);
+  border: 1px solid rgba(255,215,130,0.3);
   border-radius: 10px;
   padding: 10px;
-  color: #f5f2e8;
   margin-bottom: 8px;
 }
 
 /* 현재 턴 강조 */
 .turnGlow {
   border-color: #ffd76e !important;
-  box-shadow: 0 0 12px #e6c05a;
+  box-shadow: 0 0 12px #ffd76e;
 }
 
-/* 카드 하이라이트 애니메이션 */
+/* 카드 애니메이션 */
 .scout-highlight {
   animation: scout-glow 1s infinite;
   border-radius: 8px;
 }
 @keyframes scout-glow {
-  0% { box-shadow: 0 0 12px 4px rgba(255, 215, 130, 0.6); }
-  50% { box-shadow: 0 0 18px 6px rgba(255, 215, 130, 0.9); }
-  100% { box-shadow: 0 0 12px 4px rgba(255, 215, 130, 0.6); }
+  0% { box-shadow: 0 0 12px rgba(255,215,130,0.5); }
+  100% { box-shadow: 0 0 20px rgba(255,215,130,1); }
 }
 
-/* 버튼 공통 */
+/* 버튼 */
 button {
   background: linear-gradient(#2f2b23, #1d1b17);
-  border: 1px solid rgba(255, 215, 130, 0.4);
+  border: 1px solid rgba(255,215,130,0.5);
   color: #f5f2e8;
   padding: 8px 14px;
   border-radius: 6px;
-  transition: 0.18s;
-  cursor: pointer;
+  transition: 0.2s;
 }
 button:hover {
   background: linear-gradient(#3b362d, #24221d);
   border-color: #ffd76e;
-  transform: translateY(-1px);
-}
-button:disabled {
-  opacity: 0.35;
-  cursor: default;
-  transform: none;
 }
 
-/* 메인 버튼 색조절 */
-.btn-main {
-  background: linear-gradient(#3c2f1b, #2a2214);
-  border-color: rgba(255, 215, 130, 0.5);
-}
-.btn-green {
-  background: linear-gradient(#3b502d, #26351d);
-}
-.btn-orange {
-  background: linear-gradient(#5b3a1c, #3e2814);
-}
-.btn-purple {
-  background: linear-gradient(#3a2e5b, #271d3a);
-}
-
-/* START / ROOM 화면 버튼 정렬 */
-.btn-main, .btn-sub {
-  width: 200px;
-}
-
-/* SCOUT 모달 */
-.modal {
-  position: fixed;
-  left: 0; top: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.55);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
-}
-.modal.hidden { display: none; }
-
-.modal-box {
-  background: rgba(40, 40, 40, 0.95);
-  border: 1px solid rgba(255, 215, 130, 0.4);
-  border-radius: 12px;
-  padding: 22px 26px;
-  width: 250px;
-  text-align: center;
-  box-shadow: 0 0 20px rgba(0,0,0,0.8);
-  backdrop-filter: blur(3px);
-}
-
-/* 팝업 버튼 모두 동일 크기 */
-.modal-box button {
-  width: 200px;
-  padding: 10px 0;
-  margin: 6px 0;
-  font-size: 15px;
-}
-
-/* ===================================== */
-/*   HAND AREA : 가로 정렬 + 클릭 복구   */
-/* ===================================== */
-
+/* =================================== */
+/*           HAND BOARD BASE          */
+/* =================================== */
 .handBoard {
   display: flex !important;
-  flex-wrap: wrap !important;
+  flex-wrap: wrap;
   gap: 8px;
   padding: 10px;
 }
 
 .card-wrapper {
   display: inline-block;
-  cursor: pointer;
   border: 2px solid transparent;
   border-radius: 6px;
-  position: relative !important;
+  cursor: pointer;
+  position: relative;
 }
-
 .card-wrapper.selected {
-  border-color: #ffd76e !important;
-  box-shadow: 0 0 8px #e6c05a;
+  border-color: #ffd76e;
+  box-shadow: 0 0 10px #ffd76e;
 }
-
 .card-wrapper canvas {
   width: 90px;
   height: 130px;
 }
 
-/* INSERT MODAL BUTTON */
-#insertModalContent button {
-  width: 180px;
-  padding: 8px 0;
-  margin: 6px 0;
-  font-size: 14px;
-  border-radius: 6px;
-}
-
-/* ==================================== */
-/*  INSERT OVERLAY BUTTON (카드 위 버튼) */
-/* ==================================== */
-
+/* ========================= */
+/* INSERT OVERLAY (+넣기) */
+/* ========================= */
 .insert-overlay {
   position: absolute;
   top: -8px;
   left: -6px;
-  transform: none;
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(0,0,0,0.75);
   padding: 3px 7px;
-  border-radius: 8px;
   font-size: 11px;
   color: #ffd76e;
-  border: 1px solid rgba(255, 215, 130, 0.6);
+  border: 1px solid rgba(255,215,130,0.6);
+  border-radius: 8px;
   cursor: pointer;
   z-index: 10;
-  transition: 0.15s;
 }
 
-.insert-overlay:hover {
-  background: rgba(0, 0, 0, 0.9);
-  border-color: #ffdc85;
-  transform: scale(1.06);
-}
+/* ================================ */
+/*        MOBILE UI FINAL           */
+/*  포함: 3열 플레이어, 손패 자동축소 */
+/* ================================ */
 
-/* ======================== */
-/*      MOBILE UI 2.0       */
-/*  완전 반응형 최적화용     */
-/* ======================== */
 @media (max-width: 600px) {
 
-  body {
-    padding: 0;
-    margin: 0;
-    overflow-x: hidden;
-    font-size: 14px;
-  }
-
-  /* 전체 레이아웃 세로화 */
-  .game-layout {
-    display: block !important;
-    width: 100%;
-  }
-
-  /* 플레이어 리스트 상단 고정 */
-  #gamePlayerList {
-    width: 100% !important;
-    margin-bottom: 10px;
-    padding: 10px;
-    max-height: 110px;
-    overflow-y: auto;
-  }
-
-  .playerBox {
-    font-size: 13px;
-    padding: 8px;
-    margin-bottom: 6px;
-  }
-
-  /* 테이블 카드 */
-  #tableArea {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    justify-content: center !important;
-    gap: 10px !important;
-    padding: 5px;
-  }
-
-  canvas {
-    width: 80px !important;
-    height: 120px !important;
-  }
-
-  .scout-highlight {
-    animation: scout-glow 1s infinite;
-    border-radius: 6px;
-  }
-
-  /* 핸드 카드 */
-  #handArea, .handBoard {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    justify-content: center;
-    gap: 8px !important;
-    margin-top: 8px;
-  }
-
-  .card-wrapper canvas {
-    width: 80px !important;
-    height: 120px !important;
-  }
-
-  .card-wrapper.selected {
-    border-width: 2px;
-  }
-
-  /* + 넣기 버튼 */
-  .insert-overlay {
-    top: -6px !important;
-    left: -5px !important;
-    padding: 3px 6px !important;
-    font-size: 11px !important;
-    border-radius: 6px !important;
-  }
-
-  /* 액션 버튼 2열 */
-  .action-row {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    justify-content: center !important;
-    gap: 10px !important;
-    padding: 10px;
-    margin-top: 12px;
-  }
-
-  .action-row button {
-    width: 48% !important;
-    font-size: 14px !important;
-    padding: 10px 0 !important;
-  }
-
-  #showBtn {
-    background: linear-gradient(#6c532e, #463720) !important;
-  }
-  #scoutBtn {
-    background: linear-gradient(#7a3d1f, #532a15) !important;
-  }
-  #showScoutBtn {
-    background: linear-gradient(#4e3a7a, #352758) !important;
-  }
-
-  /* 모달 */
-  .modal-box {
-    width: 85% !important;
-    padding: 20px !important;
-  }
-
-  .modal-box button {
-    width: 100% !important;
-    font-size: 15px !important;
-    padding: 12px 0 !important;
-  }
-}
-/* ====================== */
-/*  START / ROOM BUTTON FIX */
-/* ====================== */
-@media (max-width: 600px) {
-
-  /* START PAGE */
-  #startPage .board-panel {
-    padding: 20px 10px !important;
-  }
-
-  #startPage button {
-    width: 90% !important;
-    margin: 6px auto !important;
-    display: block;
-    font-size: 16px !important;
-    padding: 12px 0 !important;
-  }
-
-  #nicknameInput {
-    width: 90% !important;
-    margin: 10px auto !important;
-    display: block;
-    font-size: 15px !important;
-    padding: 10px;
-  }
-
-  /* ROOM PAGE 버튼 크기 */
-  #roomPage button {
-    width: 90% !important;
-    margin: 8px auto !important;
-    font-size: 16px !important;
-    padding: 12px 0 !important;
-  }
-
-  .room-bottom-row {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-}
-
-/* ======================== */
-/*   PLAYER LIST 3-COLUMN   */
-/* ======================== */
-@media (max-width: 600px) {
+  /* ---------------------------- */
+  /*  PLAYER LIST — 3 COLUMN GRID */
+  /* ---------------------------- */
   #gamePlayerList {
     display: grid !important;
     grid-template-columns: repeat(3, 1fr) !important;
     gap: 10px !important;
-    max-height: none !important;
+    padding: 10px;
   }
 
   .playerBox {
-    width: 100% !important;
-    font-size: 13px !important;
-    padding: 8px !important;
-    text-align: center !important;
+    text-align: center;
+    padding: 8px;
+    font-size: 13px;
+  }
+
+  /* ---------------------------- */
+  /*       HAND — 1 LINE CENTER  */
+  /* ---------------------------- */
+  #handArea {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    justify-content: center !important;
+    overflow-x: auto !important;
+    white-space: nowrap;
+    gap: 8px !important;
+    padding: 10px 0;
+    scroll-behavior: smooth !important;
+  }
+
+  #handArea::-webkit-scrollbar {
+    height: 5px;
+  }
+  #handArea::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.25);
+    border-radius: 4px;
+  }
+
+  /* (1) 카드 간격 자동 감소 */
+  #handArea[data-count="11"] .card-wrapper,
+  #handArea[data-count="12"] .card-wrapper {
+    margin-right: 4px !important;
+  }
+
+  /* (2) 카드 수 기준 자동 크기 변경 */
+  #handArea[data-count="10"] canvas,
+  #handArea[data-count="11"] canvas,
+  #handArea[data-count="12"] canvas {
+    width: 70px !important;
+    height: 105px !important;
+  }
+
+  #handArea[data-count="7"] canvas,
+  #handArea[data-count="8"] canvas,
+  #handArea[data-count="9"] canvas {
+    width: 78px !important;
+    height: 115px !important;
+  }
+
+  #handArea[data-count="1"] canvas,
+  #handArea[data-count="2"] canvas,
+  #handArea[data-count="3"] canvas,
+  #handArea[data-count="4"] canvas,
+  #handArea[data-count="5"] canvas,
+  #handArea[data-count="6"] canvas {
+    width: 85px !important;
+    height: 125px !important;
+  }
+
+  /* (4) 페이지 인디케이터 ●●●●● */
+  #handIndicator {
+    text-align: center;
+    margin-top: 4px;
+    color: rgba(255,255,255,0.6);
+    font-size: 12px;
+  }
+  #handIndicator span.active {
+    color: #fff;
   }
 }
-
-
