@@ -362,4 +362,23 @@ button:disabled {
   }
 }
 
+/* ======================== */
+/*   PLAYER LIST 3-COLUMN   */
+/* ======================== */
+@media (max-width: 600px) {
+  #gamePlayerList {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 10px !important;
+    max-height: none !important;
+  }
+
+  .playerBox {
+    width: 100% !important;
+    font-size: 13px !important;
+    padding: 8px !important;
+    text-align: center !important;
+  }
+}
+
 
