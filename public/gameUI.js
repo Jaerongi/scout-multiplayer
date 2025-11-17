@@ -119,7 +119,7 @@ socket.on("tableUpdate", (cards) => {
 });
 
 // ========================================================
-// 패 렌더링
+// TABLE 렌더링 + SCOUT 가능 카드 하이라이트 + 버튼용 영역 생성
 // ========================================================
 function renderTable() {
   tableArea.innerHTML = "";
@@ -142,23 +142,22 @@ function renderTable() {
   tableCards.forEach((c, idx) => {
     const cardElem = drawScoutCard(c.top, c.bottom, 90, 130);
 
-    // wrapper — 버튼 생성 가능
     const wrap = document.createElement("div");
     wrap.style.display = "inline-block";
-    wrap.style.margin = "0 6px";
+    wrap.style.margin = "0 10px";     // 🟢 테이블 카드 간격 넓힘
     wrap.style.textAlign = "center";
-
     wrap.appendChild(cardElem);
 
     if (highlightIndex.includes(idx)) {
       cardElem.classList.add("scout-highlight");
 
-      // SCOUT 버튼 추가 영역 (scout mode일 때만 표시됨)
-      const btnZone = document.createElement("div");
-      btnZone.className = "scoutBtnZone";
-      wrap.appendChild(btnZone);
+      // 버튼 영역
+      const zone = document.createElement("div");
+      zone.className = "scoutBtnZone";
+      wrap.appendChild(zone);
 
-      wrap.dataset.index = idx;  // 어느 카드인지 표시
+      // 어떤 인덱스인지 표시
+      wrap.dataset.index = idx;
     }
 
     tableArea.appendChild(wrap);
@@ -284,6 +283,7 @@ scoutBtn.onclick = () => {
 showScoutBtn.onclick = () => {
   alert("아직 준비되지 않은 기능입니다!");
 };
+
 
 
 
