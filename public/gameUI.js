@@ -310,7 +310,7 @@ function performScout(isReverse) {
 }
 
 function updateActionButtons() {
-  const isActive = myTurn && flipConfirmed;
+  const isActive = myTurn;   // ★ 내 턴이면 일단 버튼 활성화
 
   showBtn.disabled = !isActive;
   scoutBtn.disabled = !isActive;
@@ -320,3 +320,5 @@ function updateActionButtons() {
   scoutBtn.style.opacity = isActive ? "1" : "0.4";
   showScoutBtn.style.opacity = isActive ? "1" : "0.4";
 }
+
+
