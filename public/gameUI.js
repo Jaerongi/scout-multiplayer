@@ -187,11 +187,6 @@ btn.onclick = () => {
 
 zone.appendChild(btn);
 
-
-    tableArea.appendChild(wrap);
-  });
-}
-
 // ========================================================
 // HAND
 // ========================================================
@@ -337,6 +332,7 @@ function updateActionButtons() {
   scoutBtn.style.opacity = isActive ? "1" : "0.4";
   showScoutBtn.style.opacity = isActive ? "1" : "0.4";
 }
+
 
 
 
