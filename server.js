@@ -13,16 +13,16 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer);
 
-app.use(express.static("public"));
-
-app.get("/shared.js", (req, res) => {
-  res.sendFile(process.cwd() + "/shared.js");
-});
-
-const PORT = process.env.PORT || 3000;
-httpServer.listen(PORT, () => {
-  console.log("SERVER START", PORT);
-});
+app.use(express.static("public", {
+  setHeaders: (res, path) => {
+    if (path.endsWith(".js")) {
+      res.set("Content-Type", "application/javascript");
+    }
+    if (path.endsWith(".css")) {
+      res.set("Content-Type", "text/css");
+    }
+  }
+}));
 
 const rooms = {};
 
@@ -345,4 +345,5 @@ function nextTurn(room) {
   // 턴 넘기기
   io.to(room.roomId).emit("turnChange", currentPlayer);
 }
+
 
