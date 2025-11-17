@@ -1,6 +1,5 @@
 // =====================================================
-// SCOUT MULTIPLAYER — ULTIMATE SERVER FINAL
-// (재접속 복구 + 오프라인 스킵 + SCOUT 규칙 + 안정성 패치)
+// SCOUT MULTIPLAYER — FINAL SERVER (ROUND ROTATION + GAME END)
 // =====================================================
 
 import express from "express";
@@ -27,7 +26,9 @@ const rooms = {};
 function createDeck() {
   const deck = [];
   for (let t = 1; t <= 9; t++) {
-    for (let b = t + 1; b <= 10; b++) deck.push({ top: t, bottom: b });
+    for (let b = t + 1; b <= 10; b++) {
+      deck.push({ top: t, bottom: b });
+    }
   }
   return deck;
 }
@@ -40,9 +41,8 @@ function shuffle(arr) {
   return arr;
 }
 
-
 // =====================================================
-// 핸드 분배
+// 패 분배
 // =====================================================
 function deal(playerCount) {
   let deck = shuffle(createDeck());
@@ -57,21 +57,21 @@ function deal(playerCount) {
   for (let i = 0; i < drop; i++) deck.pop();
 
   const size = deck.length / playerCount;
-  const res = [];
+  const result = [];
 
   for (let i = 0; i < playerCount; i++) {
     let hand = deck.splice(0, size);
     hand = hand.map(c =>
       Math.random() < 0.5 ? c : { top: c.bottom, bottom: c.top }
     );
-    res.push(hand);
+    result.push(hand);
   }
-  return res;
+  return result;
 }
 
 
 // =====================================================
-// SOCKET.IO
+// SOCKET HANDLING
 // =====================================================
 io.on("connection", (socket) => {
 
@@ -80,7 +80,6 @@ io.on("connection", (socket) => {
   // ---------------------------------------------------
   socket.on("joinRoom", ({ roomId, nickname, permUid }) => {
     if (!roomId || !nickname || !permUid) return;
-
     socket.join(roomId);
 
     if (!rooms[roomId]) {
@@ -92,14 +91,16 @@ io.on("connection", (socket) => {
         table: [],
         round: 1,
         host: null,
-        lastShowPlayer: null
+        lastShowPlayer: null,
+
+        firstPlayerIndex: 0,
+        totalRounds: 0
       };
     }
 
     const room = rooms[roomId];
     const isFirst = Object.keys(room.players).length === 0;
 
-    // 신규
     if (!room.players[permUid]) {
       room.players[permUid] = {
         uid: permUid,
@@ -112,18 +113,13 @@ io.on("connection", (socket) => {
         isOnline: true
       };
       if (isFirst) room.host = permUid;
-    }
-    // 복구
-    else {
+    } else {
       room.players[permUid].socketId = socket.id;
       room.players[permUid].isOnline = true;
     }
 
     io.to(roomId).emit("playerListUpdate", room.players);
 
-    // ---------------------------------------------------
-    // 🔥 복구 조건: 게임이 실제 시작되었을 때만 restoreState 전달
-    // ---------------------------------------------------
     const gameStarted = room.turnOrder.length > 0;
     const p = room.players[permUid];
 
@@ -139,10 +135,7 @@ io.on("connection", (socket) => {
     }
   });
 
-
-  // ---------------------------------------------------
   // READY
-  // ---------------------------------------------------
   socket.on("playerReady", ({ roomId, permUid }) => {
     const room = rooms[roomId];
     if (!room) return;
@@ -153,7 +146,6 @@ io.on("connection", (socket) => {
     io.to(roomId).emit("playerListUpdate", room.players);
   });
 
-
   // ---------------------------------------------------
   // START GAME
   // ---------------------------------------------------
@@ -162,25 +154,26 @@ io.on("connection", (socket) => {
     if (!room) return;
     if (room.host !== permUid) return;
 
-    const readyOK = Object.values(room.players)
+    const ok = Object.values(room.players)
       .filter(p => !p.isHost)
       .every(p => p.ready);
 
-    if (!readyOK) return;
+    if (!ok) return;
+
+    room.turnOrder = Object.keys(room.players);
+    room.totalRounds = room.turnOrder.length;
+    room.firstPlayerIndex = 0;
+    room.round = 1;
 
     startRound(room);
     io.to(roomId).emit("goGamePage");
   });
 
-
-  // ---------------------------------------------------
-  // FLIP CONFIRM
-  // ---------------------------------------------------
+  // 방향 확정
   socket.on("confirmFlip", ({ roomId, permUid, flipped }) => {
     const room = rooms[roomId];
     if (room) room.players[permUid].hand = flipped;
   });
-
 
   // ---------------------------------------------------
   // SHOW
@@ -190,11 +183,8 @@ io.on("connection", (socket) => {
     if (!room) return;
 
     const player = room.players[permUid];
-
-    // 점수 = 기존 테이블 카드 수
     player.score += room.table.length;
 
-    // 패에서 제거
     player.hand = player.hand.filter(
       h => !cards.some(c => c.top === h.top && c.bottom === h.bottom)
     );
@@ -208,7 +198,6 @@ io.on("connection", (socket) => {
 
     nextTurn(room);
   });
-
 
   // ---------------------------------------------------
   // SCOUT
@@ -228,7 +217,6 @@ io.on("connection", (socket) => {
     pos = Math.max(0, Math.min(player.hand.length, pos));
     player.hand.splice(pos, 0, card);
 
-    // SCOUT 점수 = lastShowPlayer +1
     if (room.lastShowPlayer && room.lastShowPlayer !== permUid)
       room.players[room.lastShowPlayer].score += 1;
 
@@ -239,10 +227,7 @@ io.on("connection", (socket) => {
     nextTurn(room);
   });
 
-
-  // ---------------------------------------------------
-  // DISCONNECT – 유저 삭제 X, offline 처리
-  // ---------------------------------------------------
+  // disconnect
   socket.on("disconnect", () => {
     for (const rid in rooms) {
       const room = rooms[rid];
@@ -256,25 +241,26 @@ io.on("connection", (socket) => {
 
 
 // =====================================================
-// 라운드 시작
+// ROUND START
 // =====================================================
 function startRound(room) {
-  const uids = Object.keys(room.players);
+  const uids = room.turnOrder;
   const hands = deal(uids.length);
 
   uids.forEach((uid, i) => {
     room.players[uid].hand = hands[i];
   });
 
-  room.turnOrder = [...uids];
-  room.currentTurn = 0;
+  // 회전된 플레이 순서의 시작점
+  room.currentTurn = room.firstPlayerIndex;
+
   room.table = [];
   room.lastShowPlayer = null;
 
   io.to(room.roomId).emit("roundStart", {
     round: room.round,
     players: room.players,
-    startingPlayer: room.turnOrder[0]
+    startingPlayer: room.turnOrder[room.currentTurn]
   });
 
   uids.forEach(uid => {
@@ -282,15 +268,14 @@ function startRound(room) {
     if (p.isOnline) io.to(p.socketId).emit("yourHand", p.hand);
   });
 
-  io.to(room.roomId).emit("turnChange", room.turnOrder[0]);
+  io.to(room.roomId).emit("turnChange", room.turnOrder[room.currentTurn]);
 }
 
 
 // =====================================================
-// 턴 진행 + 오프라인 스킵 + 종료 판정
+// TURN LOGIC + ROUND END + GAME END
 // =====================================================
 function nextTurn(room) {
-
   for (let i = 0; i < room.turnOrder.length; i++) {
 
     room.currentTurn =
@@ -299,16 +284,13 @@ function nextTurn(room) {
     const uid = room.turnOrder[room.currentTurn];
     const p = room.players[uid];
 
-    // 오프라인 → 스킵
     if (!p.isOnline) continue;
 
-    // 라운드 종료 조건:
-    // 마지막 SHOW한 사람에게 턴이 다시 돌아오면 종료
+    // 라운드 종료 조건
     if (room.lastShowPlayer && uid === room.lastShowPlayer) {
 
       const winner = room.lastShowPlayer;
 
-      // 점수 계산
       for (const u of Object.keys(room.players)) {
         if (u !== winner)
           room.players[u].score -= room.players[u].hand.length;
@@ -319,7 +301,21 @@ function nextTurn(room) {
         players: room.players
       });
 
+      // 🔥 라운드 증가
       room.round++;
+
+      // 🔥 다음 라운드 첫 플레이어를 회전
+      room.firstPlayerIndex =
+        (room.firstPlayerIndex + 1) % room.turnOrder.length;
+
+      // 🔥 게임 종료 여부 체크
+      if (room.round > room.totalRounds) {
+        io.to(room.roomId).emit("gameOver", {
+          players: room.players
+        });
+        return;
+      }
+
       startRound(room);
       return;
     }
