@@ -42,27 +42,53 @@ document.querySelector("#myCount").parentElement.appendChild(flipAllBtn);
 document.querySelector("#myCount").parentElement.appendChild(confirmFlipBtn);
 
 // ===============================
-// 플레이어 리스트 업데이트
+// SOCKET EVENTS
 // ===============================
+
+// 플레이어 목록 업데이트
 socket.on("playerListUpdate", (p) => {
   players = p;
   renderPlayers();
 });
 
-// ===============================
 // 라운드 시작
-// ===============================
-socket.on("roundStart", ({ round, players: pl, startingPlayer }) => {
-  players = pl;
+socket.on("roundStart", ({ round, players: p, startingPlayer }) => {
+  players = p;
   tableCards = [];
+
   flipConfirmed = false;
-  flipWarnShown = false;
+  flipCheckDone = false;
 
   roundInfo.innerText = `라운드 ${round}`;
 
   renderPlayers();
   renderTable();
 });
+
+
+// ★★★ 바로 여기!!! ★★★
+// ===============================
+// 내 패 받기 (핸드 갱신)
+// ===============================
+socket.on("yourHand", (handData) => {
+  myHand = handData;
+  selected.clear();
+  renderHand();
+});
+
+
+// 턴 변경
+socket.on("turnChange", (uid) => {
+  myTurn = (uid === myUid);
+
+  if (myTurn && !flipConfirmed && !flipCheckDone) {
+    alert("패 방향 확정 버튼을 눌러주세요!");
+    flipCheckDone = true;
+  }
+
+  highlightTurn(uid);
+});
+
 
 // ===============================
 // 내 패 받음
@@ -276,6 +302,7 @@ scoutBtn.onclick = () => {
 showScoutBtn.onclick = () => {
   alert("추가 개발 예정 기능입니다!");
 };
+
 
 
 
