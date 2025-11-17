@@ -149,7 +149,7 @@ function renderHand() {
 }
 
 // ========================================================
-// TABLE 렌더링 + SCOUT 가능 카드 하이라이트
+// TABLE 렌더링 + SCOUT 가능 카드 하이라이트 + 클릭 SCOUT
 // ========================================================
 function renderTable() {
   tableArea.innerHTML = "";
@@ -159,33 +159,31 @@ function renderTable() {
     return;
   }
 
-  // -----------------------------
   // SCOUT 가능 카드 인덱스 계산
-  // -----------------------------
   let highlightIndex = [];
 
   if (tableCards.length === 1) {
-    highlightIndex = [0];                           // 1장 → 그 카드
+    highlightIndex = [0];
   } else if (tableCards.length === 2) {
-    highlightIndex = [0, 1];                        // 2장 → 왼쪽 & 오른쪽
+    highlightIndex = [0, 1];
   } else {
-    highlightIndex = [0, tableCards.length - 1];    // 3장↑ → 맨 왼쪽 & 맨 오른쪽
+    highlightIndex = [0, tableCards.length - 1];
   }
 
-  // -----------------------------
-  // 테이블 카드 렌더링
-  // -----------------------------
   tableCards.forEach((c, idx) => {
     const cardElem = drawScoutCard(c.top, c.bottom, 90, 130);
 
-    // 하이라이트 대상이면 클래스 추가
+    // 테두리 안겹치게 간격 적용
+    const wrap = document.createElement("div");
+    wrap.style.display = "inline-block";
+    wrap.style.margin = "0 6px"; // ★ 간격 조금 넓힘
+    wrap.appendChild(cardElem);
+
+    // 하이라이트 대상이면 애니메이션
     if (highlightIndex.includes(idx)) {
       cardElem.classList.add("scout-highlight");
-    }
 
-    tableArea.appendChild(cardElem);
-  });
-}
+      // 클릭하면
 
 
 // ========================================================
@@ -333,4 +331,5 @@ scoutBtn.onclick = () => {
 showScoutBtn.onclick = () => {
   alert("아직 준비되지 않은 기능입니다!");
 };
+
 
