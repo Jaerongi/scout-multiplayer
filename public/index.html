@@ -54,6 +54,22 @@
       <div id="tableArea" class="tableBoard"></div>
 
       <h3 class="section-title">내 패 (<span id="myCount">0</span>)</h3>
+      <!-- ========================= -->
+      <!--   패 방향 선택 섹션      -->
+      <!-- ========================= -->
+      <div id="flipSelectArea" class="flip-area hidden">
+        <h3 class="section-title">패 방향 선택</h3>
+      
+        <div class="flip-btn-row">
+          <button id="flipKeepBtn" class="btn-main">그대로</button>
+          <button id="flipReverseBtn" class="btn-orange">뒤집기</button>
+        </div>
+      
+        <button id="flipConfirmBtn" class="btn-green" style="margin-top:14px;">
+          방향 확정하기
+        </button>
+      </div>
+
       <div id="handArea" class="handBoard"></div>
 
       <div class="action-row">
@@ -123,3 +139,4 @@ window.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
