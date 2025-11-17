@@ -208,30 +208,53 @@ io.on("connection", (socket) => {
   // --------------------------
   // SCOUT
   // --------------------------
-  socket.on("scout", ({ roomId, chosen, pos }) => {
-    const room = rooms[roomId];
-    if (!room) return;
+ //------------------------------------------------------
+// SCOUT — 완전체 구현
+//------------------------------------------------------
+socket.on("scout", ({ roomId, side, flip, pos }) => {
+  const room = rooms[roomId];
+  if (!room) return;
 
-    let take = null;
+  const uid = socket.id;
+  const player = room.players[uid];
 
-    if (room.tableCards.length === 1) take = room.tableCards.pop();
-    else if (room.tableCards.length >= 2) {
-      if (chosen === "left") take = room.tableCards.shift();
-      else take = room.tableCards.pop();
-    }
+  // 1) 테이블에서 가져올 카드 결정
+  let take = null;
 
-    if (!take) return;
+  if (room.tableCards.length === 1) {
+    take = room.tableCards.pop();
+  } else {
+    take = (side === "left")
+      ? room.tableCards.shift()
+      : room.tableCards.pop();
+  }
 
-    const player = room.players[socket.id];
+  if (!take) return;
 
-    if (pos === "front") player.hand.unshift(take);
-    else player.hand.push(take);
+  // 2) flip 적용
+  if (flip) {
+    take = { top: take.bottom, bottom: take.top };
+  }
 
-    io.to(roomId).emit("tableUpdate", room.tableCards);
-    io.to(roomId).emit("playerListUpdate", room.players);
+  // 3) pos를 안전하게 보정
+  if (pos < 0) pos = 0;
+  if (pos > player.hand.length) pos = player.hand.length;
 
-    nextTurn(room);
-  });
+  // 4) 원하는 위치에 삽입
+  player.hand.splice(pos, 0, take);
+
+  // 5) 내 패 상태 갱신 보내기
+  io.to(uid).emit("yourHand", player.hand);
+
+  // 6) 테이블 갱신
+  io.to(roomId).emit("tableUpdate", room.tableCards);
+
+  // 7) 플레이어 리스트 갱신
+  io.to(roomId).emit("playerListUpdate", room.players);
+
+  // 8) 턴 넘기기
+  nextTurn(room);
+});
 
   // --------------------------
   // DISCONNECT
@@ -285,5 +308,6 @@ function nextTurn(room) {
     room.turnOrder[room.currentTurnIndex]
   );
 }
+
 
 
