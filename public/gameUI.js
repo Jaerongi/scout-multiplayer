@@ -183,8 +183,30 @@ function renderTable() {
     if (highlightIndex.includes(idx)) {
       cardElem.classList.add("scout-highlight");
 
-      // 클릭하면
+      // 클릭하면 자동 SCOUT 동작
+      wrap.onclick = () => {
+        if (!myTurn) return;
+        if (!flipConfirmed) return alert("패 방향을 먼저 확정해주세요.");
 
+        // SCOUT 동작
+        const side = (idx === 0 ? "left" : "right");
+        const doFlip = false;  // 필요 시 true/false 오픈 가능
+
+        // 기본은 맨 뒤 삽입
+        let pos = myHand.length;
+
+        socket.emit("scout", {
+          roomId,
+          side,
+          flip: doFlip,
+          pos
+        });
+      };
+    }
+
+    tableArea.appendChild(wrap);
+  });
+}
 
 // ========================================================
 // 플레이어 리스트
@@ -331,5 +353,6 @@ scoutBtn.onclick = () => {
 showScoutBtn.onclick = () => {
   alert("아직 준비되지 않은 기능입니다!");
 };
+
 
 
