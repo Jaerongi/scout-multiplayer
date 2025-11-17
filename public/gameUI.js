@@ -408,20 +408,4 @@ function updateActionButtons() {
   });
 }
 
-// ==========================
-//   HAND PAGE INDICATOR ●
-// ==========================
-const handIndicator = document.createElement("div");
-handIndicator.id = "handIndicator";
-handArea.parentElement.appendChild(handIndicator);
 
-function updateHandIndicator() {
-  const count = myHand.length;
-  const dots = [];
-
-  for (let i = 0; i < count; i++) {
-    dots.push(`<span class="${i === 0 ? "active" : ""}">●</span>`);
-  }
-
-  handIndicator.innerHTML = dots.join(" ");
-}
