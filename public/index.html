@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 
-<!-- 모바일 UI 강제 적용 (필수) -->
+<!-- 모바일 완전 대응 (필수) -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 
 <title>SCOUT MULTIPLAYER</title>
@@ -14,7 +14,7 @@
 
 <!-- START PAGE -->
 <div id="startPage" class="page visible">
-  <div class="board-panel panel-center">
+  <div class="board-panel panel-center" style="padding:25px 15px;">
     <h1 class="game-title">🎴 스카우트 🎴</h1>
 
     <input id="nicknameInput" placeholder="닉네임 입력" class="input-box">
@@ -27,7 +27,7 @@
 
 <!-- ROOM PAGE -->
 <div id="roomPage" class="page">
-  <div class="board-panel wide">
+  <div class="board-panel wide" style="padding:25px 15px;">
 
     <h2 id="roomTitle" class="title-board"></h2>
 
@@ -64,7 +64,7 @@
       <!-- FAN LAYOUT 영역 -->
       <div id="handArea" class="handBoard"></div>
 
-      <!-- (PC용 버튼 - 모바일에서는 CSS로 숨겨짐) -->
+      <!-- (PC용 버튼 - 모바일에서는 CSS로 자동 숨김) -->
       <div class="action-row">
         <button id="showBtn" class="btn-main same">SHOW</button>
         <button id="scoutBtn" class="btn-orange same">SCOUT</button>
@@ -85,15 +85,16 @@
 
 
 <!-- =============================== -->
-<!--              SCRIPT             -->
+<!--             SCRIPT              -->
 <!-- =============================== -->
+
 <script src="/socket.io/socket.io.js"></script>
 
 <script type="module" src="./socket.js"></script>
 <script type="module" src="./roomUI.js"></script>
 <script type="module" src="./gameUI.js"></script>
 
-<!-- 초대 링크로 자동 입장 -->
+<!-- 초대 링크 자동 입장 -->
 <script>
 window.addEventListener("DOMContentLoaded", () => {
   const params = new URLSearchParams(location.search);
@@ -132,7 +133,7 @@ window.addEventListener("DOMContentLoaded", () => {
 <!-- INSERT POSITION MODAL -->
 <div id="insertModal" class="modal hidden">
   <div class="modal-box" id="insertModalContent">
-    <!-- 자동 생성 -->
+    <!-- 자동 생성됨 -->
   </div>
 </div>
 
