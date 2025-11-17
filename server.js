@@ -15,6 +15,11 @@ const io = new Server(httpServer);
 
 app.use(express.static("public"));
 
+// ★ public 밖의 shared.js 를 브라우저에서 접근 가능하게!
+app.get("/shared.js", (req, res) => {
+  res.sendFile(process.cwd() + "/shared.js");
+});
+
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
   console.log("SERVER START", PORT);
@@ -280,3 +285,4 @@ function nextTurn(room) {
     room.turnOrder[room.currentTurnIndex]
   );
 }
+
