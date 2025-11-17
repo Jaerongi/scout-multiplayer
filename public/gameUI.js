@@ -127,4 +127,86 @@ function renderHand() {
 function renderTable() {
   tableArea.innerHTML = "";
 
-  if (tableCards.length =
+  if (tableCards.length === 0) {
+    tableArea.innerHTML = `<span style="color:#888">(비어 있음)</span>`;
+    return;
+  }
+
+  tableCards.forEach((c) => {
+    tableArea.appendChild(drawScoutCard(c.top, c.bottom, 90, 130));
+  });
+}
+
+// ========================================================
+// 플레이어 리스트
+// ========================================================
+function renderPlayers() {
+  gamePlayerList.innerHTML = "";
+
+  const arr = Object.values(players);
+
+  arr.forEach((p) => {
+    const div = document.createElement("div");
+    div.className = "playerBox";
+
+    div.innerHTML = `
+      <b>${p.nickname}</b><br>
+      패: ${p.hand.length}장<br>
+      점수: ${p.score}
+    `;
+
+    gamePlayerList.appendChild(div);
+  });
+}
+
+// ========================================================
+// 턴 표시
+// ========================================================
+function highlightTurn(turnUid) {
+  const boxes = gamePlayerList.children;
+  const arr = Object.values(players);
+
+  for (let i = 0; i < arr.length; i++) {
+    const box = boxes[i];
+    if (arr[i].uid === turnUid) box.classList.add("turnGlow");
+    else box.classList.remove("turnGlow");
+  }
+}
+
+// ========================================================
+// FLIP 전체
+// ========================================================
+flipAllBtn.onclick = () => {
+  if (flipConfirmed) return;
+
+  myHand = myHand.map(c => ({ top: c.bottom, bottom: c.top }));
+  renderHand();
+};
+
+// ========================================================
+// 방향 확정
+// ========================================================
+confirmFlipBtn.onclick = () => {
+  flipConfirmed = true;
+
+  flipAllBtn.style.display = "none";
+  confirmFlipBtn.style.display = "none";
+
+  socket.emit("confirmFlip", {
+    roomId,
+    flipped: myHand
+  });
+};
+
+// ========================================================
+// SHOW
+// ========================================================
+showBtn.onclick = () => {
+  if (!myTurn) return alert("내 턴이 아닙니다.");
+  if (!flipConfirmed) return alert("패 방향을 확정해주세요.");
+  if (selected.size === 0) return alert("카드를 선택하세요.");
+
+  const cards = [...selected].map(i => myHand[i]);
+
+  if (getComboType(cards) === "invalid")
+    return alert("세트 또는 런이 아닙니
