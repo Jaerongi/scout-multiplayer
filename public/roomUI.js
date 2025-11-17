@@ -1,5 +1,5 @@
 // ===============================
-// ROOM UI FINAL v4
+// ROOM UI FINAL v5
 // ===============================
 
 // DOM
@@ -21,16 +21,15 @@ function renderRoomPlayers(players) {
 
   arr.forEach((p) => {
     const div = document.createElement("div");
-    div.className = "playerBox waiting";
+    div.className = "playerBox";
 
-    // 방장 디자인
-    let crown = p.isHost ? "👑 " : "";
+    // 방장 아이콘
+    const crown = p.isHost ? "👑 " : "";
 
-    // 준비 LED
-    let led =
-      !p.isHost
-        ? `<span class="ready-led ${p.ready ? "on" : "off"}"></span>`
-        : "";
+    // 준비 LED (방장 제외)
+    const led = !p.isHost
+      ? `<span class="ready-led ${p.ready ? "on" : "off"}"></span>`
+      : "";
 
     div.innerHTML = `
       <div class="nick">${crown}${p.nickname}</div>
@@ -52,14 +51,16 @@ function updateStartButtonState(players) {
   const me = players[myUid];
   if (!me) return;
 
+  // 방장이 아니면 START 버튼 숨김
   if (!me.isHost) {
     startGameBtn.style.display = "none";
     return;
   }
 
-  // 방장일 때만 start 버튼 표시
+  // 방장은 버튼 표시
   startGameBtn.style.display = "inline-block";
 
+  // 모든 참가자 준비 확인
   const everyoneReady = Object.values(players)
     .filter((p) => !p.isHost)
     .every((p) => p.ready);
@@ -101,7 +102,6 @@ readyBtn.onclick = () => {
 // ===================================
 startGameBtn.onclick = () => {
   if (!roomId) return;
-
   socket.emit("startGame", { roomId });
 };
 
