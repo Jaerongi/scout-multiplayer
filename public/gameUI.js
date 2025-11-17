@@ -160,16 +160,33 @@ function renderTable() {
       // 가져오기 버튼 1개만 생성
       // ===========================
       const btn = document.createElement("button");
-      btn.innerText = "가져오기";
-      btn.className = "btn-green small scoutSelectBtn";
+btn.innerText = "가져오기";
+btn.className = "btn-green small scoutSelectBtn";
 
-      btn.onclick = () => {
-        scoutSide = idx === 0 ? "left" : "right";
-        openScoutModal();
-      };
+// ⭐ 내 턴 아닐 때 비활성화
+if (!myTurn) {
+  btn.disabled = true;
+  btn.style.opacity = "0.4";
+} else {
+  btn.disabled = false;
+  btn.style.opacity = "1";
+}
 
-      zone.appendChild(btn);
-    }
+// 클릭 이벤트 (턴일 때만 실행됨)
+btn.onclick = () => {
+  if (!myTurn) return;  // 혹시 모를 방지
+
+  if (!flipConfirmed) {
+    alert("패 방향을 먼저 확정해주세요!");
+    return;
+  }
+
+  scoutSide = idx === 0 ? "left" : "right";
+  openScoutModal();
+};
+
+zone.appendChild(btn);
+
 
     tableArea.appendChild(wrap);
   });
@@ -320,5 +337,6 @@ function updateActionButtons() {
   scoutBtn.style.opacity = isActive ? "1" : "0.4";
   showScoutBtn.style.opacity = isActive ? "1" : "0.4";
 }
+
 
 
