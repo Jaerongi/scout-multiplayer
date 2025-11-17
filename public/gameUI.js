@@ -109,19 +109,6 @@ socket.on("yourHand", (hand) => {
 });
 
 // ===============================
-// 턴 변경
-// ===============================
-socket.on("turnChange", (uid) => {
-  myTurn = uid === myUid;
-  highlightTurn(uid);
-
-  if (myTurn && !flipConfirmed && !flipWarnShown) {
-    alert("패 방향 확정 버튼을 눌러주세요!");
-    flipWarnShown = true;
-  }
-});
-
-// ===============================
 // 테이블 갱신
 // ===============================
 socket.on("tableUpdate", (cards) => {
@@ -306,6 +293,7 @@ scoutBtn.onclick = () => {
 showScoutBtn.onclick = () => {
   alert("추가 개발 예정 기능입니다!");
 };
+
 
 
 
