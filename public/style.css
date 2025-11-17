@@ -97,5 +97,35 @@
   font-size: 15px;
   border-radius: 6px;
 }
+/* 다크 고급 테마 */
+body {
+  background: #121212;
+  color: #f0f0f0;
+  font-family: 'Pretendard', sans-serif;
+}
+
+/* 패널 */
+.board-panel, .sideBoard, .mainBoard, .player-list-board {
+  background: rgba(30, 30, 30, 0.8);
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 0 12px rgba(0,0,0,0.6);
+}
+
+/* 버튼 공통 */
+button {
+  background: #2a2a2a;
+  color: #fff;
+  border: 1px solid #444;
+  padding: 8px 14px;
+  border-radius: 6px;
+}
+
+button:hover {
+  background: #3b3b3b;
+  border-color: #666;
+}
+
 
 
