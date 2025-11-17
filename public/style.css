@@ -170,26 +170,35 @@ button:disabled {
   border-radius: 6px;
 }
 
-/* ====================== */
-/*   INSERT BUTTON FLOAT  */
-/* ====================== */
+/* ==================================== */
+/*  INSERT OVERLAY BUTTON (카드 위 버튼) */
+/* ==================================== */
 
 .insert-overlay {
   position: absolute;
-  top: 4px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0,0,0,0.65);
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 12px;
+  top: -6px;
+  right: -6px;
+  transform: translate(0, 0);
+  background: rgba(0, 0, 0, 0.75);
+  padding: 3px 7px;
+  border-radius: 8px;
+  font-size: 11px;
   color: #ffd76e;
   border: 1px solid rgba(255, 215, 130, 0.6);
   cursor: pointer;
-  z-index: 5;
+  z-index: 10;
+  transition: 0.15s;
 }
 
-.card-wrapper {
-  position: relative; /* 카드 위에 버튼 띄우기 위해 필요 */
+.insert-overlay:hover {
+  background: rgba(0, 0, 0, 0.9);
+  border-color: #ffdc85;
+  transform: scale(1.06);
 }
+
+/* 카드 자체는 relative 필수 */
+.card-wrapper {
+  position: relative !important;
+}
+
 
