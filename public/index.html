@@ -88,11 +88,12 @@
 <!--             SCRIPT              -->
 <!-- =============================== -->
 
-<!-- socket.io ES module 버전 로드 -->
-<script type="module" src="/socket.io/socket.io.esm.min.js"></script>
+<!-- socket.io UMD -->
+<script src="/socket.io/socket.io.js"></script>
 
-<!-- 우리의 socket.js -->
+<!-- 우리의 socket.js (모듈) -->
 <script type="module" src="./socket.js"></script>
+
 
 <script type="module" src="./roomUI.js"></script>
 <script type="module" src="./gameUI.js"></script>
@@ -140,4 +141,5 @@ window.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
 
