@@ -1,5 +1,5 @@
 // ===============================
-// ROOM UI FINAL (오프라인 표시 지원)
+// ROOM UI FINAL (Offline + Premium Theme)
 // ===============================
 
 const playerListDiv = document.getElementById("playerList");
@@ -43,14 +43,17 @@ function updateStartButtonState(players) {
   }
 
   startGameBtn.style.display = "inline-block";
+
   const everyoneReady = Object.values(players)
     .filter(p => !p.isHost)
     .every(p => p.ready);
+
   startGameBtn.disabled = !everyoneReady;
 }
 
 socket.on("playerListUpdate", (players) => {
   window.currentPlayers = players;
+
   renderRoomPlayers(players);
   updateStartButtonState(players);
 });
