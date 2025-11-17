@@ -149,7 +149,7 @@ function renderHand() {
 }
 
 // ========================================================
-// 테이블 렌더링
+// TABLE 렌더링 + SCOUT 가능 카드 하이라이트
 // ========================================================
 function renderTable() {
   tableArea.innerHTML = "";
@@ -159,10 +159,34 @@ function renderTable() {
     return;
   }
 
-  tableCards.forEach((c) => {
-    tableArea.appendChild(drawScoutCard(c.top, c.bottom, 90, 130));
+  // -----------------------------
+  // SCOUT 가능 카드 인덱스 계산
+  // -----------------------------
+  let highlightIndex = [];
+
+  if (tableCards.length === 1) {
+    highlightIndex = [0];                           // 1장 → 그 카드
+  } else if (tableCards.length === 2) {
+    highlightIndex = [0, 1];                        // 2장 → 왼쪽 & 오른쪽
+  } else {
+    highlightIndex = [0, tableCards.length - 1];    // 3장↑ → 맨 왼쪽 & 맨 오른쪽
+  }
+
+  // -----------------------------
+  // 테이블 카드 렌더링
+  // -----------------------------
+  tableCards.forEach((c, idx) => {
+    const cardElem = drawScoutCard(c.top, c.bottom, 90, 130);
+
+    // 하이라이트 대상이면 클래스 추가
+    if (highlightIndex.includes(idx)) {
+      cardElem.classList.add("scout-highlight");
+    }
+
+    tableArea.appendChild(cardElem);
   });
 }
+
 
 // ========================================================
 // 플레이어 리스트
@@ -309,3 +333,4 @@ scoutBtn.onclick = () => {
 showScoutBtn.onclick = () => {
   alert("아직 준비되지 않은 기능입니다!");
 };
+
