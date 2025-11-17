@@ -88,9 +88,12 @@
 <!--             SCRIPT              -->
 <!-- =============================== -->
 
-<script src="/socket.io/socket.io.js"></script>
+<!-- socket.io ES module 버전 로드 -->
+<script type="module" src="/socket.io/socket.io.esm.min.js"></script>
 
+<!-- 우리의 socket.js -->
 <script type="module" src="./socket.js"></script>
+
 <script type="module" src="./roomUI.js"></script>
 <script type="module" src="./gameUI.js"></script>
 
@@ -137,3 +140,4 @@ window.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
