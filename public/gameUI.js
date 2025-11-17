@@ -1,5 +1,5 @@
 // =======================================
-// GAME UI — FINAL FULL VERSION (V3)
+// GAME UI — FINAL FULL VERSION (SCOUT PREVIEW ONLY)
 // =======================================
 
 import { drawScoutCard } from "./cardEngine.js";
@@ -15,6 +15,31 @@ const roundInfo = document.getElementById("roundInfo");
 const showBtn = document.getElementById("showBtn");
 const scoutBtn = document.getElementById("scoutBtn");
 const showScoutBtn = document.getElementById("showScoutBtn");
+
+// ========================================
+// SCOUT 미리보기 DOM
+// ========================================
+const scoutPreview = document.createElement("div");
+scoutPreview.id = "scoutPreview";
+scoutPreview.style.marginTop = "12px";
+scoutPreview.style.textAlign = "center";
+scoutPreview.style.display = "none";
+handArea.parentElement.appendChild(scoutPreview);
+
+// 미리보기 렌더 함수
+function renderScoutPreview(card) {
+  if (!card) {
+    scoutPreview.style.display = "none";
+    scoutPreview.innerHTML = "";
+    return;
+  }
+
+  scoutPreview.style.display = "block";
+  scoutPreview.innerHTML = `
+    <div style="color:white; margin-bottom:6px; font-size:14px;">가져올 카드 미리보기</div>
+  `;
+  scoutPreview.appendChild(drawScoutCard(card.top, card.bottom, 80, 120));
+}
 
 // 상태 변수
 let players = {};
@@ -64,6 +89,7 @@ socket.on("roundStart", ({ round, players: p }) => {
 
   renderPlayers();
   renderTable();
+  renderScoutPreview(null);
 });
 
 // ========================================================
@@ -73,10 +99,11 @@ socket.on("yourHand", (hand) => {
   myHand = hand;
   selected.clear();
   renderHand();
+  renderScoutPreview(null);
 });
 
 // ========================================================
-// 턴 변경 — 절대 팝업 없음!!
+// 턴 변경 — 팝업 없음!!
 // ========================================================
 socket.on("turnChange", (uid) => {
   myTurn = (uid === myUid);
@@ -216,132 +243,68 @@ showBtn.onclick = () => {
 
   socket.emit("show", { roomId, cards });
   selected.clear();
+  renderScoutPreview(null);
 };
 
 // ========================================================
-// SCOUT 버튼 → UI 열기
+// SCOUT — 기존 confirm 방식 + 미리보기 추가
 // ========================================================
 scoutBtn.onclick = () => {
   if (!myTurn) return alert("당신의 턴이 아닙니다.");
   if (!flipConfirmed) return alert("패 방향을 먼저 확정해주세요.");
   if (tableCards.length === 0) return alert("테이블이 비어있습니다.");
 
-  openScoutUI();
+  // ---------------------------
+  // 1. 가져올 카드 방향 선택
+  // ---------------------------
+  const pickLeft = confirm("왼쪽 카드를 가져올까요?\n취소 = 오른쪽");
+  const side = pickLeft ? "left" : "right";
+
+  let targetCard = null;
+
+  if (tableCards.length === 1) {
+    targetCard = tableCards[0];
+  } else {
+    targetCard = pickLeft ? tableCards[0] : tableCards[tableCards.length - 1];
+  }
+
+  // 미리보기 출력
+  renderScoutPreview(targetCard);
+
+  // ---------------------------
+  // 2. 뒤집을지 여부
+  // ---------------------------
+  const doFlip = confirm("카드를 뒤집어서 가져올까요?");
+  if (doFlip) {
+    targetCard = { top: targetCard.bottom, bottom: targetCard.top };
+    renderScoutPreview(targetCard); // flip 적용된 모습 갱신
+  }
+
+  // ---------------------------
+  // 3. 삽입 위치 선택
+  // ---------------------------
+  let pos = prompt(
+    `카드를 어디에 넣을까요?\n0 = 맨 앞 / ${myHand.length} = 맨 뒤`
+  );
+  pos = parseInt(pos);
+  if (isNaN(pos) || pos < 0 || pos > myHand.length) pos = myHand.length;
+
+  // ---------------------------
+  // 4. 서버 전달
+  // ---------------------------
+  socket.emit("scout", {
+    roomId,
+    side,
+    flip: doFlip,
+    pos
+  });
+
+  // SCOUT 완료 → 미리보기 자동 제거
+  setTimeout(() => renderScoutPreview(null), 1000);
 };
 
 // ========================================================
-// SCOUT UI 생성 함수
-// ========================================================
-function openScoutUI() {
-  // 이미 UI가 있으면 제거
-  const oldUI = document.getElementById("scoutUI");
-  if (oldUI) oldUI.remove();
-
-  const ui = document.createElement("div");
-  ui.id = "scoutUI";
-  ui.style.padding = "12px";
-  ui.style.background = "#222";
-  ui.style.color = "#fff";
-  ui.style.marginTop = "10px";
-  ui.style.borderRadius = "10px";
-
-  let pickedSide = null;
-  let flip = false;
-  let insertPos = null;
-
-  ui.innerHTML = `
-    <div style="margin-bottom:8px;">SCOUT 옵션 선택</div>
-
-    <button id="btnLeft" class="btn-sub small">왼쪽 가져오기</button>
-    <button id="btnRight" class="btn-sub small">오른쪽 가져오기</button>
-    <br><br>
-
-    <button id="btnFlip" class="btn-sub small">뒤집기 OFF</button>
-    <br><br>
-
-    <div>삽입 위치 선택:</div>
-    <div id="insertButtons" style="display:flex; gap:4px; flex-wrap:wrap; margin:6px 0;"></div>
-
-    <button id="btnScoutConfirm" class="btn-green small" style="margin-top:10px;">
-      선택 완료
-    </button>
-  `;
-
-  handArea.appendChild(ui);
-
-  //----------------------------------------------------
-  // 왼쪽 / 오른쪽
-  //----------------------------------------------------
-  document.getElementById("btnLeft").onclick = () => {
-    pickedSide = "left";
-    highlightSelect("btnLeft", "btnRight");
-  };
-
-  document.getElementById("btnRight").onclick = () => {
-    pickedSide = "right";
-    highlightSelect("btnRight", "btnLeft");
-  };
-
-  //----------------------------------------------------
-  // 뒤집기 ON/OFF
-  //----------------------------------------------------
-  document.getElementById("btnFlip").onclick = () => {
-    flip = !flip;
-    document.getElementById("btnFlip").innerText = flip ? "뒤집기 ON" : "뒤집기 OFF";
-  };
-
-  //----------------------------------------------------
-  // 삽입 위치 버튼 구성
-  //----------------------------------------------------
-  createInsertButtons();
-
-  function createInsertButtons() {
-    const con = document.getElementById("insertButtons");
-    con.innerHTML = "";
-
-    for (let i = 0; i <= myHand.length; i++) {
-      const b = document.createElement("button");
-      b.innerText = i;
-      b.className = "btn-sub tiny";
-      b.style.padding = "4px 6px";
-
-      b.onclick = () => {
-        insertPos = i;
-        [...con.children].forEach(x => x.classList.remove("btn-green"));
-        b.classList.add("btn-green");
-      };
-      con.appendChild(b);
-    }
-  }
-
-  //----------------------------------------------------
-  // 완료 버튼
-  //----------------------------------------------------
-  document.getElementById("btnScoutConfirm").onclick = () => {
-    if (!pickedSide) return alert("왼쪽/오른쪽을 선택하세요.");
-    if (insertPos === null) return alert("삽입 위치를 선택하세요.");
-
-    socket.emit("scout", {
-      roomId,
-      side: pickedSide,
-      flip,
-      pos: insertPos
-    });
-
-    ui.remove(); // UI 제거
-  };
-
-  //----------------------------------------------------
-  // helper
-  //----------------------------------------------------
-  function highlightSelect(on, off) {
-    document.getElementById(on).classList.add("btn-green");
-    document.getElementById(off).classList.remove("btn-green");
-  }
-}
-
-// ========================================================
-// SHOW + SCOUT (미구현)
+// SHOW+SCOUT (미구현)
 // ========================================================
 showScoutBtn.onclick = () => {
   alert("아직 준비되지 않은 기능입니다!");
