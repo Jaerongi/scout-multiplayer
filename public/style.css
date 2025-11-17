@@ -52,3 +52,16 @@
   padding: 5px 10px;
   margin-left: 5px;
 }
+
+/* SCOUT 가능한 카드 반짝임 효과 */
+@keyframes scout-glow {
+  0% { box-shadow: 0 0 8px 2px yellow; }
+  50% { box-shadow: 0 0 15px 5px orange; }
+  100% { box-shadow: 0 0 8px 2px yellow; }
+}
+
+.scout-highlight {
+  animation: scout-glow 1s infinite;
+  border-radius: 8px;
+}
+
