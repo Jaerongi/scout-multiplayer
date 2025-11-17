@@ -161,3 +161,12 @@ button:disabled {
   width: 90px;
   height: 130px;
 }
+/* INSERT MODAL BUTTON */
+#insertModalContent button {
+  width: 180px;
+  padding: 8px 0;
+  margin: 6px 0;
+  font-size: 14px;
+  border-radius: 6px;
+}
+
