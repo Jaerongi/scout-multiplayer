@@ -201,5 +201,56 @@ button:disabled {
   position: relative !important;
 }
 
+/* ======================== */
+/*      MOBILE UI PATCH     */
+/* ======================== */
+@media (max-width: 600px) {
+
+  body {
+    padding: 0;
+    margin: 0;
+    overflow-x: hidden;
+  }
+
+  .handBoard, #handArea {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .card-wrapper canvas {
+    width: 65px !important;
+    height: 90px !important;
+  }
+
+  .insert-overlay {
+    top: -4px !important;
+    left: -4px !important;
+    padding: 2px 6px !important;
+    font-size: 10px !important;
+  }
+
+  #tableArea {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  button {
+    font-size: 13px !important;
+    padding: 6px 10px !important;
+  }
+
+  #actionButtons {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+}
+
 
 
