@@ -1,5 +1,5 @@
 // =============================
-// SCOUT MULTIPLAYER – server.js (FINAL)
+// SCOUT MULTIPLAYER – server.js (FINAL CLEAN VERSION)
 // =============================
 import express from "express";
 import { createServer } from "http";
@@ -86,6 +86,7 @@ function deal(playerCount) {
 }
 
 
+
 // =========================================
 // CONNECTION
 // =========================================
@@ -107,9 +108,7 @@ io.on("connection", (socket) => {
         tableCards: [],
         round: 1,
         host: null,
-
-        // ★ 추가: 마지막 SHOW를 한 플레이어 기록
-        lastShowPlayer: null,
+        lastShowPlayer: null, // 마지막 SHOW한 사람 기록
       };
     }
 
@@ -130,6 +129,7 @@ io.on("connection", (socket) => {
     io.to(roomId).emit("playerListUpdate", room.players);
   });
 
+
   // READY
   socket.on("playerReady", ({ roomId }) => {
     const room = rooms[roomId];
@@ -140,6 +140,7 @@ io.on("connection", (socket) => {
     room.players[socket.id].ready = !room.players[socket.id].ready;
     io.to(roomId).emit("playerListUpdate", room.players);
   });
+
 
   // START GAME
   socket.on("startGame", ({ roomId }) => {
@@ -161,12 +162,16 @@ io.on("connection", (socket) => {
     io.to(roomId).emit("goGamePage");
   });
 
+
+
   // CONFIRM FLIP
   socket.on("confirmFlip", ({ roomId, flipped }) => {
     const room = rooms[roomId];
     if (!room) return;
     room.players[socket.id].hand = flipped;
   });
+
+
 
   // ============================
   // SHOW (패 제출)
@@ -178,74 +183,92 @@ io.on("connection", (socket) => {
     const uid = socket.id;
     const player = room.players[uid];
 
-    // ★ 마지막 SHOW 한 사람 기록
+    // 마지막 SHOW한 사람 기록
     room.lastShowPlayer = uid;
 
-    // 점수: 기존 테이블 카드 수
+    // SHOW 점수 = 기존 테이블 카드 수
     player.score += room.tableCards.length;
 
-    // 내 패에서 제거
+    // 내 패에서 삭제
     player.hand = player.hand.filter(
       h => !cards.some(c => c.top === h.top && c.bottom === h.bottom)
     );
 
-    // 테이블 업데이트
+    // 테이블 교체
     room.tableCards = cards;
 
-    // 패 갱신
+    // 갱신
     io.to(uid).emit("yourHand", player.hand);
-
     io.to(roomId).emit("tableUpdate", room.tableCards);
     io.to(roomId).emit("playerListUpdate", room.players);
 
-    // 다음 턴
     nextTurn(room);
   });
+
+
 
   // ============================
   // SCOUT
   // ============================
   socket.on("scout", ({ roomId, side, flip, pos }) => {
-  const room = rooms[roomId];
-  if (!room) return;
+    const room = rooms[roomId];
+    if (!room) return;
 
-  const uid = socket.id;
-  const player = room.players[uid];
+    const uid = socket.id;
+    const player = room.players[uid];
 
-  // 가져올 카드 결정
-  let take = null;
-  if (room.tableCards.length === 1) {
-    take = room.tableCards.pop();
-  } else {
-    take = (side === "left")
-      ? room.tableCards.shift()
-      : room.tableCards.pop();
-  }
+    // 가져올 카드
+    let take = null;
+    if (room.tableCards.length === 1) {
+      take = room.tableCards.pop();
+    } else {
+      take = (side === "left")
+        ? room.tableCards.shift()
+        : room.tableCards.pop();
+    }
 
-  if (!take) return;
+    if (!take) return;
 
-  // flip 적용
-  if (flip) take = { top: take.bottom, bottom: take.top };
+    // 방향 뒤집기
+    if (flip) take = { top: take.bottom, bottom: take.top };
 
-  if (pos < 0) pos = 0;
-  if (pos > player.hand.length) pos = player.hand.length;
+    // 삽입 위치 보정
+    if (pos < 0) pos = 0;
+    if (pos > player.hand.length) pos = player.hand.length;
 
-  // ★ 핸드 삽입
-  player.hand.splice(pos, 0, take);
+    // 핸드 삽입
+    player.hand.splice(pos, 0, take);
 
-  // ★ SCOUT 점수 로직 추가
-  if (room.lastShowPlayer) {
-    room.players[room.lastShowPlayer].score += 1;
-  }
+    // ⭐ SCOUT 점수 — 제출자에게만 +1점
+    if (room.lastShowPlayer) {
+      room.players[room.lastShowPlayer].score += 1;
+    }
 
-  // 카드/점수 UI 갱신
-  io.to(uid).emit("yourHand", player.hand);
-  io.to(roomId).emit("tableUpdate", room.tableCards);
-  io.to(roomId).emit("playerListUpdate", room.players);
+    // 갱신
+    io.to(uid).emit("yourHand", player.hand);
+    io.to(roomId).emit("tableUpdate", room.tableCards);
+    io.to(roomId).emit("playerListUpdate", room.players);
 
-  // 턴 넘기기
-  nextTurn(room);
-});
+    nextTurn(room);
+  });
+
+
+
+  // DISCONNECT
+  socket.on("disconnect", () => {
+    for (const r in rooms) {
+      const room = rooms[r];
+      if (room.players[socket.id]) {
+        delete room.players[socket.id];
+        io.to(r).emit("playerListUpdate", room.players);
+      }
+    }
+  });
+
+}); // END io.on("connection")
+
+
+
 
 // =========================================
 // ROUND START
@@ -261,8 +284,6 @@ function startRound(room) {
   room.turnOrder = uids;
   room.currentTurnIndex = 0;
   room.tableCards = [];
-
-  // ★ 라운드 시작 → lastShowPlayer 초기화
   room.lastShowPlayer = null;
 
   io.to(room.roomId).emit("roundStart", {
@@ -279,18 +300,19 @@ function startRound(room) {
 }
 
 
+
 // =========================================
-// TURN CHANGE + 승리 조건 체크 (NEW LOGIC)
+// TURN CHANGE + 승리 조건 체크
 // =========================================
 function nextTurn(room) {
+
   room.currentTurnIndex =
     (room.currentTurnIndex + 1) % room.turnOrder.length;
 
   const currentPlayer = room.turnOrder[room.currentTurnIndex];
 
-  // =======================================================
-  // ★★ 승리 조건: 모두 SCOUT만 해서 → 마지막 SHOW한 사람에게 턴이 돌아옴
-  // =======================================================
+  // === 승리 조건 ===
+  // 모두 SCOUT만 해서 → 마지막 SHOW한 사람에게 턴이 돌아옴
   if (room.lastShowPlayer && currentPlayer === room.lastShowPlayer) {
 
     const winner = room.lastShowPlayer;
@@ -303,26 +325,24 @@ function nextTurn(room) {
         // 승리자 0점
         player.score += 0;
       } else {
-        // 나머지 인원은 손패 장수 × -1
+        // 패 남은 장수 × -1
         player.score -= player.hand.length;
       }
     }
 
-    // 라운드 종료 안내
+    // 라운드 종료 알림
     io.to(room.roomId).emit("roundEnd", {
       winner,
       players: room.players
     });
 
-    // 다음 라운드 시작
+    // 다음 라운드
     room.round++;
     startRound(room);
     return;
   }
 
-  // =======================================================
-  // 기존 턴 넘기기
-  // =======================================================
+  // 턴 넘기기
   io.to(room.roomId).emit("turnChange", currentPlayer);
 }
 
