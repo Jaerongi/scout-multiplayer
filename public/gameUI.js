@@ -221,76 +221,36 @@ function renderHand() {
 
   const inserting = pendingScoutCard !== null;
 
-  for (let i = 0; i <= myHand.length; i++) {
+  for (let i =function renderHand() {
+  handArea.innerHTML = "";
 
-    if (inserting) {
-      if (i < myHand.length) {
-        const card = myHand[i];
-        const wrap = document.createElement("div");
-        wrap.style.display = "inline-block";
-        wrap.style.position = "relative";
+  // 카드 개수
+  const count = myHand.length;
 
-        const overlay = document.createElement("div");
-        overlay.className = "insert-overlay";
-        overlay.innerText = "+ 넣기";
-
-        overlay.onclick = () => {
-          performScoutInsert(pendingScoutCard.isReverse, i);
-          pendingScoutCard = null;
-        };
-
-        wrap.appendChild(overlay);
-        wrap.appendChild(drawScoutCard(card.top, card.bottom));
-        handArea.appendChild(wrap);
-
-        continue;
-      }
-
-      const lastSlot = document.createElement("div");
-      lastSlot.style.display = "inline-block";
-      lastSlot.style.position = "relative";
-      lastSlot.style.width = "90px";
-      lastSlot.style.height = "24px";
-
-      const overlay = document.createElement("div");
-      overlay.className = "insert-overlay";
-      overlay.innerText = "+ 넣기";
-      overlay.onclick = () => {
-        performScoutInsert(pendingScoutCard.isReverse, i);
-        pendingScoutCard = null;
-      };
-
-      lastSlot.appendChild(overlay);
-      handArea.appendChild(lastSlot);
-      break;
-    }
-
-    if (i === myHand.length) break;
-
+  // 기본 DOM 생성
+  for (let i = 0; i < count; i++) {
     const card = myHand[i];
+
     const wrap = document.createElement("div");
     wrap.className = "card-wrapper";
+    wrap.dataset.index = i;
 
-    if (selected.has(i)) wrap.classList.add("selected");
+    const cardCanvas = drawScoutCard(card.top, card.bottom);
+    wrap.appendChild(cardCanvas);
 
-    wrap.appendChild(drawScoutCard(card.top, card.bottom));
-
+    // 클릭 시 확대
     wrap.onclick = () => {
-      if (pendingScoutCard) return;
-      if (!flipConfirmed) return alert("패 방향을 먼저 확정해주세요!");
-
-      if (selected.has(i)) selected.delete(i);
-      else selected.add(i);
-
-      renderHand();
+      document.querySelectorAll(".card-wrapper").forEach(el => el.classList.remove("active"));
+      wrap.classList.add("active");
     };
 
     handArea.appendChild(wrap);
   }
 
-  // ⭐ 인디케이터 업데이트
-  updateHandIndicator();
+  // ⭐ FAN 레이아웃 적용
+  applyFanLayout(count);
 }
+
 
 
 // ========================================================
@@ -407,5 +367,6 @@ function updateActionButtons() {
     btn.style.opacity = isActive ? "1" : "0.4";
   });
 }
+
 
 
