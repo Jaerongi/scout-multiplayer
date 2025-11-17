@@ -1,7 +1,13 @@
 /* ================================ */
 /*     GLOBAL DARK BOARDGAME UI     */
 /* ================================ */
+.page {
+  display: none;
+}
 
+.page.visible {
+  display: block;
+}
 body {
   background: radial-gradient(#1b1b1b, #0f0f0f);
   color: #f5f2e8;
@@ -152,5 +158,6 @@ button:disabled {
   flex-direction: column;
   align-items: center;
 }
+
 
 
