@@ -127,5 +127,133 @@ button:hover {
   border-color: #666;
 }
 
+/* ================================ */
+/*     GLOBAL DARK BOARDGAME UI     */
+/* ================================ */
+
+body {
+  background: radial-gradient(#1b1b1b, #0f0f0f);
+  color: #f5f2e8;
+  font-family: 'Pretendard', sans-serif;
+}
+
+/* 공통 패널 스타일 (START / ROOM / GAME 모두 적용) */
+.board-panel,
+.sideBoard,
+.mainBoard,
+.player-list-board,
+.tableBoard,
+.handBoard {
+  background: rgba(30, 30, 30, 0.85);
+  border: 1px solid rgba(255, 215, 130, 0.25);
+  border-radius: 14px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.7);
+  backdrop-filter: blur(2px);
+}
+
+/* 제목 */
+.title-board, .section-title {
+  color: #f6e9c8;
+  text-shadow: 0 0 6px rgba(255, 215, 130, 0.5);
+}
+
+/* 플레이어 박스 */
+.playerBox {
+  background: rgba(40, 40, 40, 0.8);
+  border: 1px solid rgba(255, 215, 130, 0.3);
+  border-radius: 10px;
+  padding: 10px;
+  color: #f5f2e8;
+}
+
+/* 현재 턴 강조 */
+.turnGlow {
+  border-color: #ffd76e !important;
+  box-shadow: 0 0 12px #e6c05a;
+}
+
+/* 카드 하이라이트 */
+.scout-highlight {
+  animation: scout-glow 1s infinite;
+  border-radius: 8px;
+}
+@keyframes scout-glow {
+  0% { box-shadow: 0 0 12px 4px rgba(255, 215, 130, 0.6); }
+  50% { box-shadow: 0 0 18px 6px rgba(255, 215, 130, 0.9); }
+  100% { box-shadow: 0 0 12px 4px rgba(255, 215, 130, 0.6); }
+}
+
+/* 버튼 공통 */
+button {
+  background: linear-gradient(#2f2b23, #1d1b17);
+  border: 1px solid rgba(255, 215, 130, 0.4);
+  color: #f5f2e8;
+  padding: 8px 14px;
+  border-radius: 6px;
+  transition: 0.18s;
+}
+button:hover {
+  background: linear-gradient(#3b362d, #24221d);
+  border-color: #ffd76e;
+  transform: translateY(-1px);
+}
+button:disabled {
+  opacity: 0.35;
+  cursor: default;
+  transform: none;
+}
+
+/* 메인 버튼 색조절 */
+.btn-main {
+  background: linear-gradient(#3c2f1b, #2a2214);
+  border-color: rgba(255, 215, 130, 0.5);
+}
+.btn-green {
+  background: linear-gradient(#3b502d, #26351d);
+}
+.btn-orange {
+  background: linear-gradient(#5b3a1c, #3e2814);
+}
+.btn-purple {
+  background: linear-gradient(#3a2e5b, #271d3a);
+}
+
+/* START / ROOM 화면 버튼 정렬 */
+.btn-main, .btn-sub {
+  width: 200px;
+}
+
+/* SCOUT 모달 */
+.modal {
+  position: fixed;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+.modal.hidden { display: none; }
+
+.modal-box {
+  background: rgba(40, 40, 40, 0.95);
+  border: 1px solid rgba(255, 215, 130, 0.4);
+  border-radius: 12px;
+  padding: 22px 26px;
+  width: 250px;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(0,0,0,0.8);
+  backdrop-filter: blur(3px);
+}
+
+/* 팝업 버튼 모두 동일 크기 */
+.modal-box button {
+  width: 200px;
+  padding: 10px 0;
+  margin: 6px 0;
+  font-size: 15px;
+}
+
 
 
