@@ -1,5 +1,5 @@
 // =======================================
-// GAME UI — SCOUT 모달 버전 (최종본)
+// GAME UI — SCOUT 모달 버전 (최종 안정판)
 // =======================================
 
 import { drawScoutCard } from "./cardEngine.js";
@@ -31,11 +31,11 @@ function closeScoutModal() {
   scoutModal.classList.add("hidden");
 }
 
-// 현재 선택된 스카우트 방향 저장 (left/right)
+// 현재 선택된 스카우트 방향 (left/right)
 let scoutSide = null;
 
 // ================================
-// SCOUT PREVIEW (기존 유지)
+// SCOUT PREVIEW
 // ================================
 const scoutPreview = document.createElement("div");
 scoutPreview.id = "scoutPreview";
@@ -79,7 +79,7 @@ document.querySelector("#myCount").parentElement.appendChild(flipAllBtn);
 document.querySelector("#myCount").parentElement.appendChild(confirmFlipBtn);
 
 // ========================================================
-// SOCKET & GAME EVENTS
+// SOCKET EVENTS
 // ========================================================
 
 socket.on("playerListUpdate", (p) => {
@@ -102,6 +102,7 @@ socket.on("roundStart", ({ round, players: p }) => {
   renderPlayers();
   renderTable();
   renderScoutPreview(null);
+  updateActionButtons();
 });
 
 socket.on("yourHand", (hand) => {
@@ -109,6 +110,7 @@ socket.on("yourHand", (hand) => {
   selected.clear();
   renderHand();
   renderScoutPreview(null);
+  updateActionButtons();
 });
 
 socket.on("turnChange", (uid) => {
@@ -120,10 +122,11 @@ socket.on("turnChange", (uid) => {
 socket.on("tableUpdate", (cards) => {
   tableCards = cards;
   renderTable();
+  updateActionButtons();
 });
 
 // ========================================================
-// TABLE 렌더링 — “가져오기” 버튼 1개만!
+// TABLE RENDER – 가져오기 버튼 생성
 // ========================================================
 function renderTable() {
   tableArea.innerHTML = "";
@@ -156,21 +159,13 @@ function renderTable() {
       zone.className = "scoutBtnZone";
       wrap.appendChild(zone);
 
+      // 가져오기 버튼 (조건 없이 생성)
       const btn = document.createElement("button");
       btn.innerText = "가져오기";
       btn.className = "btn-green small scoutSelectBtn";
 
-      if (!myTurn) {
-        btn.disabled = true;
-        btn.style.opacity = "0.4";
-      } else {
-        btn.disabled = false;
-        btn.style.opacity = "1";
-      }
-
       btn.onclick = () => {
         if (!myTurn) return;
-
         if (!flipConfirmed) {
           alert("패 방향을 먼저 확정해주세요!");
           return;
@@ -185,7 +180,8 @@ function renderTable() {
 
     tableArea.appendChild(wrap);
   });
-} // ★★★ renderTable 정확하게 종료
+}
+
 // ========================================================
 // HAND
 // ========================================================
@@ -258,6 +254,8 @@ confirmFlipBtn.onclick = () => {
     roomId,
     flipped: myHand
   });
+
+  updateActionButtons();
 };
 
 // ========================================================
@@ -282,14 +280,12 @@ showBtn.onclick = () => {
 };
 
 // ========================================================
-// SCOUT 버튼 (기존 구조 유지)
+// SCOUT 버튼 (UI용)
 // ========================================================
 scoutBtn.onclick = () => {
   if (!myTurn) return alert("당신의 턴이 아닙니다.");
   if (!flipConfirmed) return alert("패 방향을 먼저 확정해주세요.");
   if (tableCards.length === 0) return alert("테이블이 비어있습니다.");
-
-  // 이미 테이블 렌더링에서 "가져오기 버튼" 생성됨 (여기선 아무것도 추가하지 않음)
 };
 
 // ========================================================
@@ -320,9 +316,13 @@ function performScout(isReverse) {
   scoutSide = null;
 }
 
+// ========================================================
+// ACTION BUTTON CONTROL (★ 가져오기 버튼도 포함)
+// ========================================================
 function updateActionButtons() {
-  const isActive = myTurn;   // ★ 내 턴이면 일단 버튼 활성화
+  const isActive = myTurn;
 
+  // 메인 버튼
   showBtn.disabled = !isActive;
   scoutBtn.disabled = !isActive;
   showScoutBtn.disabled = !isActive;
@@ -330,10 +330,10 @@ function updateActionButtons() {
   showBtn.style.opacity = isActive ? "1" : "0.4";
   scoutBtn.style.opacity = isActive ? "1" : "0.4";
   showScoutBtn.style.opacity = isActive ? "1" : "0.4";
+
+  // 가져오기 버튼
+  document.querySelectorAll(".scoutSelectBtn").forEach(btn => {
+    btn.disabled = !isActive;
+    btn.style.opacity = isActive ? "1" : "0.4";
+  });
 }
-
-
-
-
-
-
