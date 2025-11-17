@@ -209,4 +209,140 @@ showBtn.onclick = () => {
   const cards = [...selected].map(i => myHand[i]);
 
   if (getComboType(cards) === "invalid")
-    return alert("세트 또는 런이 아닙니
+    return alert("세트 또는 런이 아닙니다.");
+
+  if (!isStrongerCombo(cards, tableCards))
+    return alert("기존 테이블보다 약합니다.");
+
+  socket.emit("show", { roomId, cards });
+  selected.clear();
+};
+
+// ========================================================
+// SCOUT 버튼 → UI 열기
+// ========================================================
+scoutBtn.onclick = () => {
+  if (!myTurn) return alert("당신의 턴이 아닙니다.");
+  if (!flipConfirmed) return alert("패 방향을 먼저 확정해주세요.");
+  if (tableCards.length === 0) return alert("테이블이 비어있습니다.");
+
+  openScoutUI();
+};
+
+// ========================================================
+// SCOUT UI 생성 함수
+// ========================================================
+function openScoutUI() {
+  // 이미 UI가 있으면 제거
+  const oldUI = document.getElementById("scoutUI");
+  if (oldUI) oldUI.remove();
+
+  const ui = document.createElement("div");
+  ui.id = "scoutUI";
+  ui.style.padding = "12px";
+  ui.style.background = "#222";
+  ui.style.color = "#fff";
+  ui.style.marginTop = "10px";
+  ui.style.borderRadius = "10px";
+
+  let pickedSide = null;
+  let flip = false;
+  let insertPos = null;
+
+  ui.innerHTML = `
+    <div style="margin-bottom:8px;">SCOUT 옵션 선택</div>
+
+    <button id="btnLeft" class="btn-sub small">왼쪽 가져오기</button>
+    <button id="btnRight" class="btn-sub small">오른쪽 가져오기</button>
+    <br><br>
+
+    <button id="btnFlip" class="btn-sub small">뒤집기 OFF</button>
+    <br><br>
+
+    <div>삽입 위치 선택:</div>
+    <div id="insertButtons" style="display:flex; gap:4px; flex-wrap:wrap; margin:6px 0;"></div>
+
+    <button id="btnScoutConfirm" class="btn-green small" style="margin-top:10px;">
+      선택 완료
+    </button>
+  `;
+
+  handArea.appendChild(ui);
+
+  //----------------------------------------------------
+  // 왼쪽 / 오른쪽
+  //----------------------------------------------------
+  document.getElementById("btnLeft").onclick = () => {
+    pickedSide = "left";
+    highlightSelect("btnLeft", "btnRight");
+  };
+
+  document.getElementById("btnRight").onclick = () => {
+    pickedSide = "right";
+    highlightSelect("btnRight", "btnLeft");
+  };
+
+  //----------------------------------------------------
+  // 뒤집기 ON/OFF
+  //----------------------------------------------------
+  document.getElementById("btnFlip").onclick = () => {
+    flip = !flip;
+    document.getElementById("btnFlip").innerText = flip ? "뒤집기 ON" : "뒤집기 OFF";
+  };
+
+  //----------------------------------------------------
+  // 삽입 위치 버튼 구성
+  //----------------------------------------------------
+  createInsertButtons();
+
+  function createInsertButtons() {
+    const con = document.getElementById("insertButtons");
+    con.innerHTML = "";
+
+    for (let i = 0; i <= myHand.length; i++) {
+      const b = document.createElement("button");
+      b.innerText = i;
+      b.className = "btn-sub tiny";
+      b.style.padding = "4px 6px";
+
+      b.onclick = () => {
+        insertPos = i;
+        [...con.children].forEach(x => x.classList.remove("btn-green"));
+        b.classList.add("btn-green");
+      };
+      con.appendChild(b);
+    }
+  }
+
+  //----------------------------------------------------
+  // 완료 버튼
+  //----------------------------------------------------
+  document.getElementById("btnScoutConfirm").onclick = () => {
+    if (!pickedSide) return alert("왼쪽/오른쪽을 선택하세요.");
+    if (insertPos === null) return alert("삽입 위치를 선택하세요.");
+
+    socket.emit("scout", {
+      roomId,
+      side: pickedSide,
+      flip,
+      pos: insertPos
+    });
+
+    ui.remove(); // UI 제거
+  };
+
+  //----------------------------------------------------
+  // helper
+  //----------------------------------------------------
+  function highlightSelect(on, off) {
+    document.getElementById(on).classList.add("btn-green");
+    document.getElementById(off).classList.remove("btn-green");
+  }
+}
+
+// ========================================================
+// SHOW + SCOUT (미구현)
+// ========================================================
+showScoutBtn.onclick = () => {
+  alert("아직 준비되지 않은 기능입니다!");
+};
