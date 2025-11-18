@@ -145,3 +145,17 @@ function generateRoomId() {
   for (let i=0; i<6; i++) r += s[Math.floor(Math.random()*s.length)];
   return r;
 }
+// ===============================
+// 로그아웃
+// ===============================
+const logoutBtn = document.getElementById("logoutBtn");
+
+if (logoutBtn) {
+  logoutBtn.onclick = () => {
+    if (confirm("로그아웃하시겠습니까?")) {
+      localStorage.removeItem("scout_userId");
+      location.href = "/login.html";
+    }
+  };
+}
+
