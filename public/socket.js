@@ -1,14 +1,10 @@
 // =====================================================
-// SOCKET.JS — 로그인 기반 / 방 만들기 / 초대 링크 자동입장 / 재접속 복구
+// SOCKET.JS — 로그인 기반 / 방 만들기 / 초대 링크 / 재접속 복구
 // =====================================================
 
-// 로그인한 사용자 ID 체크
+// 로그인 유저 체크
 window.userId = localStorage.getItem("scout_userId");
-
-// 로그인 안 되어 있으면 login.html 이동
-if (!window.userId) {
-  location.href = "/login.html";
-}
+if (!window.userId) location.href = "/login.html";
 
 // 소켓 연결
 window.socket = io({
@@ -16,32 +12,29 @@ window.socket = io({
   autoConnect: true
 });
 
-// 전역 변수
 window.roomId = null;
 
 
 // ------------------------------------------------------
-// 페이지 전환 함수
+// showPage() — 페이지 전환
 // ------------------------------------------------------
-window.showPage = function (page) {
-  ["startPage", "roomPage", "gamePage"].forEach(id => {
+window.showPage = function(page) {
+  ["startPage","roomPage","gamePage"].forEach(id=>{
     const el = document.getElementById(id);
     if (el) el.style.display = "none";
   });
-  const pg = document.getElementById(page);
-  if (pg) pg.style.display = "block";
+  document.getElementById(page).style.display = "block";
 };
 
 
 // ======================================================
-// SOCKET CONNECTED — (초대 링크 로그인 후 자동 입장)
+// 소켓 연결 후 처리 (초대 링크 로그인 후 자동입장)
 // ======================================================
-socket.on("connect", () => {
+socket.on("connect", ()=>{
 
   const params = new URLSearchParams(location.search);
   const rid = params.get("room");
 
-  // 초대 링크로 들어온 경우
   if (rid) {
     window.roomId = rid;
 
@@ -50,23 +43,20 @@ socket.on("connect", () => {
       userId: window.userId
     });
 
-    const title = document.getElementById("roomTitle");
-    if (title) title.innerText = `방번호: ${rid}`;
-
+    document.getElementById("roomTitle").innerText = `방번호: ${rid}`;
     showPage("roomPage");
     return;
   }
 
-  // 기본 화면 (index.html)
   showPage("startPage");
 });
 
 
+// ======================================================
+// DOM 로드 후 방 만들기 버튼 연결
+// ======================================================
+window.addEventListener("load", ()=>{
 
-// ======================================================
-// (중요!) DOM 로드 후 방 만들기 버튼 이벤트 연결
-// ======================================================
-window.addEventListener("load", () => {
   const btn = document.getElementById("makeRoomBtn");
   if (!btn) return;
 
@@ -79,35 +69,85 @@ window.addEventListener("load", () => {
       userId: window.userId
     });
 
-    const title = document.getElementById("roomTitle");
-    if (title) title.innerText = `방번호: ${id}`;
-
+    document.getElementById("roomTitle").innerText = `방번호: ${id}`;
     showPage("roomPage");
   };
+
+  // 초대 링크 복사
+  const copyBtn = document.getElementById("copyInviteBtn");
+  if (copyBtn) {
+    copyBtn.onclick = () => {
+      const url = `${location.origin}/index.html?room=${window.roomId}`;
+      navigator.clipboard.writeText(url);
+      alert("초대 링크 복사 완료!");
+    };
+  }
+
+  // 준비 버튼
+  const readyBtn = document.getElementById("readyBtn");
+  if (readyBtn) {
+    readyBtn.onclick = () => {
+      socket.emit("playerReady", {
+        roomId: window.roomId,
+        userId: window.userId
+      });
+    };
+  }
+
+  // 방장 전용 게임 시작
+  const startGameBtn = document.getElementById("startGameBtn");
+  if (startGameBtn) {
+    startGameBtn.onclick = () => {
+      socket.emit("startGame", {
+        roomId: window.roomId,
+        userId: window.userId
+      });
+    };
+  }
+
 });
 
 
+// ======================================================
+// 플레이어 리스트 업데이트
+// ======================================================
+socket.on("playerListUpdate", (players) => {
+  window.players = players;
+  renderPlayers();
+});
+
+function renderPlayers() {
+  const box = document.getElementById("playerList");
+  if (!box) return;
+
+  let html = "";
+  for (const uid in players) {
+    const p = players[uid];
+    html += `<div>${p.nickname} ${p.ready ? "✔" : ""} ${p.isHost ? "(방장)" : ""}</div>`;
+  }
+  box.innerHTML = html;
+}
+
 
 // ======================================================
-// 서버에서 게임 시작 신호
+// 게임 UI 이벤트
 // ======================================================
-socket.on("goGamePage", () => {
+socket.on("goGamePage", () => showPage("gamePage"));
+
+socket.on("roundStart", data => {
   showPage("gamePage");
+  roundInfo.innerText = `라운드 ${data.round}`;
+  renderPlayers();
 });
 
-
 // ======================================================
-// 방 폭파
+// 방 폭파 / 강퇴
 // ======================================================
 socket.on("roomClosed", () => {
-  alert("방장이 나가서 방이 종료되었습니다.");
+  alert("방장이 나가 방이 종료되었습니다.");
   showPage("startPage");
 });
 
-
-// ======================================================
-// 강퇴 처리
-// ======================================================
 socket.on("kicked", () => {
   alert("강퇴되었습니다.");
   showPage("startPage");
@@ -115,86 +155,13 @@ socket.on("kicked", () => {
 
 
 // ======================================================
-// 재접속 복구
-// ======================================================
-socket.on("restoreState", (state) => {
-  showPage("gamePage");
-
-  window.players = state.players;
-  window.tableCards = state.table;
-  window.myHand = state.hand;
-
-  roundInfo.innerText = `라운드 ${state.round}`;
-
-  renderPlayers();
-  renderHand();
-  renderTable();
-
-  // 내 턴 여부
-  window.myTurn = (state.turn === window.userId);
-  highlightTurn(state.turn);
-  updateActionButtons();
-});
-
-
-// ======================================================
-// 플레이어 목록 갱신
-// ======================================================
-socket.on("playerListUpdate", (players) => {
-  window.players = players;
-  renderPlayers();
-});
-
-
-// ======================================================
-// 테이블 업데이트
-// ======================================================
-socket.on("tableUpdate", (cards) => {
-  window.tableCards = cards;
-  renderTable();
-});
-
-
-// ======================================================
-// 턴 변경
-// ======================================================
-socket.on("turnChange", (uid) => {
-  window.myTurn = (uid === window.userId);
-  highlightTurn(uid);
-  updateActionButtons();
-});
-
-
-// ======================================================
-// 라운드 / 게임 이벤트
-// ======================================================
-socket.on("roundStart", (data) => {
-  showPage("gamePage");
-  roundInfo.innerText = `라운드 ${data.round}`;
-  renderPlayers();
-  renderHand();
-  renderTable();
-});
-
-socket.on("roundEnd", (data) => {
-  const winner = window.players[data.winner].nickname;
-  alert(`라운드 종료!\n승자: ${winner}`);
-});
-
-socket.on("gameOver", (data) => {
-  const winner = window.players[data.winner].nickname;
-  alert(`🎉 게임 종료!\n최종 우승자: ${winner}`);
-});
-
-
-// ======================================================
-// 방 번호 생성기
+// 방번호 생성
 // ======================================================
 function generateRoomId() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let r = "";
-  for (let i = 0; i < 6; i++) {
-    r += chars[Math.floor(Math.random() * chars.length)];
+  for (let i=0; i<6; i++) {
+    r += chars[Math.floor(Math.random()*chars.length)];
   }
   return r;
 }
