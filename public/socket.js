@@ -1,8 +1,9 @@
 // =====================================================
-// SOCKET.JS — FINAL (2025) 
-// login.html 로그인 → index.html 방만들기 → 대기실 UI → 게임 UI (원본 구조 유지)
+// SOCKET.JS — FINAL (2025 안정화)
+// login.html 로그인 → index.html 방만들기 → 대기실 → 기존 게임UI 그대로 작동
 // =====================================================
 
+// 로그인 정보
 window.userId = localStorage.getItem("scout_userId");
 window.roomId = null;
 
@@ -31,13 +32,13 @@ socket.on("connect", () => {
   const params = new URLSearchParams(location.search);
   const inviteRoom = params.get("room");
 
-  // 로그인 확인
+  // 로그인 안 되어있으면 로그인 페이지로
   if (!window.userId) {
     location.href = "/login.html";
     return;
   }
 
-  // 초대링크로 접근했을 경우
+  // 초대 링크로 들어왔을 때
   if (inviteRoom) {
     window.roomId = inviteRoom;
 
@@ -46,7 +47,7 @@ socket.on("connect", () => {
       userId: window.userId
     });
 
-    // playerListUpdate가 올 때 방 화면 전환
+    // playerListUpdate가 오면 자동 방 입장 처리됨
     return;
   }
 
@@ -71,21 +72,21 @@ window.addEventListener("load", () => {
         userId: window.userId
       });
 
-      // playerListUpdate가 올 때 자동으로 roomPage로 전환됨
+      // 이제는 playerListUpdate가 오면 roomPage로 자동 이동
     };
   }
 
-  // 초대링크 복사
+  // 초대링크 복사 버튼
   const copyBtn = document.getElementById("copyInviteBtn");
   if (copyBtn) {
     copyBtn.onclick = () => {
       const url = `${location.origin}/index.html?room=${window.roomId}`;
       navigator.clipboard.writeText(url);
-      alert("초대 링크가 복사되었습니다.");
+      alert("초대 링크가 복사되었습니다!");
     };
   }
 
-  // READY 버튼
+  // READY
   const readyBtn = document.getElementById("readyBtn");
   if (readyBtn) {
     readyBtn.onclick = () => {
@@ -110,15 +111,17 @@ window.addEventListener("load", () => {
 
 
 // ======================================================
-// 3) playerListUpdate — 대기실 UI 업데이트 + 최초 입장 처리
+// 3) playerListUpdate — 대기실 UI + 자동 입장 처리
 // ======================================================
 let firstJoinCompleted = false;
 
 socket.on("playerListUpdate", (players) => {
   window.players = players;
-  renderPlayers(); // roomUI.js에서 구현됨
 
-  // 최초 입장 시 방 화면 전환
+  // 🔥 roomUI.js 의 함수 이름과 맞춤 (renderPlayers → updateRoomPlayers)
+  updateRoomPlayers(players);  
+
+  // 방 처음 입장 시 들어가기
   if (!firstJoinCompleted && window.roomId) {
     firstJoinCompleted = true;
 
@@ -131,7 +134,7 @@ socket.on("playerListUpdate", (players) => {
 
 
 // ======================================================
-// 4) 게임 시작 화면 이동
+// 4) 게임 페이지 이동 (UI 원본 유지용)
 // ======================================================
 socket.on("goGamePage", () => {
   showPage("gamePage");
@@ -139,39 +142,39 @@ socket.on("goGamePage", () => {
 
 
 // ======================================================
-// 5) 게임 UI 업데이트 (기존 gameUI.js 그대로 사용)
+// 5) 게임 UI 업데이트 (gameUI.js에 구현됨)
 // ======================================================
 socket.on("yourHand", (hand) => {
-  renderHand(hand);  // gameUI.js의 함수
+  renderHand(hand);
 });
 
 socket.on("tableUpdate", (cards) => {
-  renderTable(cards);  // gameUI.js의 함수
+  renderTable(cards);
 });
 
 socket.on("turnChange", (uid) => {
-  updateTurnHighlight(uid); // gameUI.js의 함수
+  updateTurnHighlight(uid);
 });
 
 socket.on("roundStart", (data) => {
-  startRoundUI(data); // gameUI.js의 함수
+  startRoundUI(data);
 });
 
 socket.on("roundEnd", (data) => {
-  showRoundWinner(data); // gameUI.js 함수
+  showRoundWinner(data);
 });
 
 socket.on("gameOver", (data) => {
-  showFinalWinner(data); // gameUI.js 함수
+  showFinalWinner(data);
 });
 
 socket.on("restoreState", (data) => {
-  restoreGameUI(data); // gameUI.js 함수
+  restoreGameUI(data);
 });
 
 
 // ======================================================
-// 6) 강퇴 / 방폭파
+// 6) 방 폭파 / 강퇴
 // ======================================================
 socket.on("kicked", () => {
   alert("강퇴되었습니다.");
@@ -185,11 +188,13 @@ socket.on("roomClosed", () => {
 
 
 // ======================================================
-// 7) 방번호 생성기
+// 7) 방 번호 생성
 // ======================================================
 function generateRoomId() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let r = "";
-  for (let i = 0; i < 6; i++) r += chars[Math.floor(Math.random() * chars.length)];
+  for (let i = 0; i < 6; i++) {
+    r += chars[Math.floor(Math.random() * chars.length)];
+  }
   return r;
 }
