@@ -1,105 +1,83 @@
-/* =======================================
-   GLOBAL SETUP
-======================================= */
+/* ====================================================== */
+/* PREMIUM BOARDGAME THEME                                */
+/* ====================================================== */
+
 body {
   margin: 0;
   padding: 0;
-  background: #111;
-  color: #ffeec7;
+  background: radial-gradient(circle at center, #1b1b1b, #0c0c0c 80%);
+  color: #f4e9cf;
   font-family: "Pretendard", sans-serif;
   overflow-x: hidden;
 }
 
-.page {
-  display: none;
-}
+/* page control */
+.page { display: none; }
+.page.visible { display: block; }
 
-.page.visible {
-  display: block;
-}
-
-/* =======================================
-   COMMON PANELS
-======================================= */
+/* common panels */
 .board-panel,
 .sideBoard,
-.mainBoard {
-  background: #1e1e1e;
-  border: 2px solid rgba(255, 215, 130, 0.4);
-  border-radius: 14px;
-  padding: 20px;
+.mainBoard,
+.player-list-board {
+  background: rgba(30, 30, 30, 0.92);
+  border: 2px solid rgba(255, 215, 130, 0.35);
+  border-radius: 16px;
+  box-shadow: 0 0 25px rgba(0,0,0,0.6);
+  padding: 22px;
+  max-width: 1200px;
   margin: 20px auto;
-  box-shadow: 0 0 25px rgba(0,0,0,0.5);
 }
 
-/* =======================================
-   TITLES
-======================================= */
+/* titles */
+.game-title,
 .title-board {
   text-align: center;
   color: #ffecc5;
-  font-size: 32px;
-  margin: 10px 0 25px;
+  font-size: 36px;
+  margin-bottom: 15px;
 }
 
 .section-title {
   font-size: 26px;
-  color: #ffecc5;
-  margin: 12px 0;
+  margin-top: 12px;
+  color: #f5e3b8;
 }
 
-/* =======================================
-   BUTTONS
-======================================= */
+/* buttons */
 button {
-  background: linear-gradient(#3b301a, #2a2316);
+  background: linear-gradient(#3b301a, #221c11);
   border: 1px solid rgba(255, 215, 130, 0.5);
   color: #ffeec7;
-  padding: 10px 18px;
+  padding: 12px 22px;
   border-radius: 8px;
   font-size: 18px;
   cursor: pointer;
 }
 
 button:hover {
-  background: linear-gradient(#4c3e23, #362c1b);
+  background: linear-gradient(#4a3d23, #2c2415);
   border-color: #ffd76e;
 }
 
-.btn-main {
-  background: linear-gradient(#4c3b22, #2d2517);
-}
+.btn-main     { background: linear-gradient(#4c3b22, #2d2517); }
+.btn-green    { background: linear-gradient(#3a5f2c, #233a1c); }
+.btn-orange   { background: linear-gradient(#824515, #532a0c); }
+.btn-purple   { background: linear-gradient(#4f2a6a, #2e1740); }
+.btn-sub      { background: linear-gradient(#2e2e2e, #1a1a1a); }
 
-.btn-green {
-  background: linear-gradient(#3d6f2f, #2a4b20);
-}
-
-.btn-orange {
-  background: linear-gradient(#8a4819, #532b0d);
-}
-
-.btn-purple {
-  background: linear-gradient(#4f2a6a, #361b46);
-}
-
-.btn-sub {
-  background: linear-gradient(#2e2e2e, #1b1b1b);
-}
-
-/* =======================================
-   PLAYER LIST
-======================================= */
+/* players */
 .playerBox {
-  background: rgba(55,55,55,0.55);
-  border: 1px solid rgba(255,215,130,0.35);
+  background: rgba(50, 50, 50, 0.75);
+  border: 1px solid rgba(255, 215, 130, 0.3);
+  border-radius: 12px;
   padding: 14px;
-  margin-bottom: 12px;
-  border-radius: 10px;
   font-size: 18px;
+  margin-bottom: 10px;
 }
 
 .offlinePlayer {
-  opacity: 0.4;
+  opacity: 0.3;
   filter: grayscale(1);
 }
 
@@ -108,14 +86,27 @@ button:hover {
   border-color: #ffd76e !important;
 }
 
-/* =======================================
-   HAND
-======================================= */
+/* READY Indicator */
+.ready-led {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: #444;
+  border: 1px solid #999;
+}
+
+.ready-led.on  { background: #33ff66; }
+.ready-led.off { background: #444; }
+
+/* HAND */
 .handBoard {
   display: flex;
-  gap: 10px;
+  flex-wrap: nowrap;
   overflow-x: auto;
-  padding: 12px;
+  gap: 10px;
+  padding: 10px;
 }
 
 .card-wrapper {
@@ -126,7 +117,7 @@ button:hover {
 
 .card-wrapper.selected {
   border-color: #ffd76e;
-  box-shadow: 0 0 12px #ffd76e;
+  box-shadow: 0 0 10px #e6c05a;
 }
 
 .card-wrapper canvas {
@@ -134,30 +125,24 @@ button:hover {
   height: 160px;
 }
 
-/* =======================================
-   TABLE
-======================================= */
+/* TABLE */
 .tableBoard {
   display: flex;
+  gap: 14px;
   justify-content: center;
-  gap: 16px;
   padding: 12px;
 }
 
-/* =======================================
-   MODAL
-======================================= */
+/* MODAL */
 .modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   background: rgba(0,0,0,0.65);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 9000;
+  z-index: 9999;
 }
 
 .modal.hidden {
@@ -169,98 +154,53 @@ button:hover {
   border: 2px solid rgba(255,215,130,0.55);
   border-radius: 14px;
   padding: 30px;
-  width: 340px;
+  width: 320px;
   text-align: center;
 }
 
-/* =======================================
-   INSERT BUTTON
-======================================= */
-.insert-btn {
-  background: #444;
-  border: 1px solid #ffd76e;
-  color: #ffeec7;
-  padding: 5px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  margin: 6px;
-}
-
-.insert-btn:hover {
-  background: #555;
-  border-color: #ffe184;
-}
-
-/* =======================================
-   ACTION ROW
-======================================= */
-.action-row {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  padding: 16px;
-  position: sticky;
-  bottom: 0;
-  background: rgba(0,0,0,0.85);
-  border-top: 1px solid rgba(255,215,130,0.25);
-}
-
-/* =======================================
-   FLIP AREA
-======================================= */
+/* Flip Select Area */
 .flip-area {
-  background: rgba(40,40,40,0.8);
-  padding: 18px;
+  background: rgba(40,40,40,0.75);
+  padding: 16px;
   border-radius: 12px;
   border: 1px solid rgba(255,215,130,0.4);
-  margin-bottom: 15px;
+  margin-bottom: 12px;
+  text-align: center;
 }
 
 .flip-area.hidden {
   display: none !important;
 }
 
-/* =======================================
-   NEON BORDER (깜박이는 카드 테두리)
-======================================= */
-.neon-border {
-  animation: neonPulse 0.8s infinite alternate;
-  border-radius: 10px;
+/* 하단 SHOW/SCOUT 버튼 줄 */
+.action-row {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
+  position: sticky;
+  bottom: 0;
+  background: rgba(15,15,15,0.9);
+  border-top: 1px solid rgba(255,215,130,0.2);
 }
 
-@keyframes neonPulse {
-  0% {
-    outline: 3px solid #ffd76e;
-    outline-offset: 3px;
-    box-shadow: 0 0 6px #ffd76e;
-  }
-  100% {
-    outline: 4px solid #fff09c;
-    outline-offset: 6px;
-    box-shadow: 0 0 14px #ffeaa2;
-  }
+.action-row button {
+  font-size: 22px;
+  padding: 14px 26px;
 }
 
-/* =======================================
-   MOBILE
-======================================= */
-@media (max-width: 600px) {
+/* mobile UI */
+@media (max-width:600px) {
+  .game-title { font-size: 28px; }
+  .section-title { font-size: 20px; }
+
+  button {
+    font-size: 16px;
+    padding: 10px 16px;
+  }
 
   .card-wrapper canvas {
     width: 85px;
     height: 120px;
-  }
-
-  button {
-    font-size: 16px;
-    padding: 9px 14px;
-  }
-
-  .title-board {
-    font-size: 26px;
-  }
-
-  .section-title {
-    font-size: 20px;
   }
 }
