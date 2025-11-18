@@ -14,7 +14,9 @@
 <div id="startPage" class="page visible">
   <div class="board-panel panel-center">
     <h1 class="game-title">🎴 스카우트 🎴</h1>
+
     <input id="nicknameInput" placeholder="닉네임 입력" class="input-box">
+
     <button id="makeRoomBtn" class="btn-main">방 만들기</button>
     <button id="enterRoomBtn" class="btn-sub">초대 링크로 입장</button>
   </div>
@@ -26,6 +28,7 @@
 <div id="roomPage" class="page">
   <div class="board-panel wide">
     <h2 id="roomTitle" class="title-board"></h2>
+
     <div id="playerList" class="player-list-board"></div>
 
     <div class="room-bottom-row">
@@ -48,40 +51,40 @@
     <!-- 플레이어 리스트 -->
     <div id="gamePlayerList" class="sideBoard"></div>
 
-    <!-- 게임 보드 -->
+    <!-- 메인 보드 -->
     <div class="mainBoard">
+
       <h3 class="section-title">테이블</h3>
       <div id="tableArea" class="tableBoard"></div>
 
       <h3 class="section-title">내 패 (<span id="myCount">0</span>)</h3>
-      <!-- ========================= -->
-      <!--   패 방향 선택 (정식)    -->
-      <!-- ========================= -->
+
+      <!-- 패 방향 선택 -->
       <div id="flipSelectArea" class="flip-area hidden">
         <h3 class="section-title">패 방향 선택</h3>
-      
+
         <button id="flipToggleBtn" class="btn-main">↺ 방향 바꾸기</button>
         <br><br>
-      
+
         <button id="flipConfirmBtn" class="btn-green" style="margin-top:10px;">
           ✔ 방향 확정
         </button>
       </div>
 
+      <!-- 내 손패 -->
       <div id="handArea" class="handBoard"></div>
 
+      <!-- SHOW / SCOUT -->
       <div class="action-row">
         <button id="showBtn" class="btn-main same">SHOW</button>
         <button id="scoutBtn" class="btn-orange same">SCOUT</button>
         <button id="showScoutBtn" class="btn-purple same">SHOW & SCOUT</button>
       </div>
+
     </div>
   </div>
 
-
-  <!-- =============================== -->
-  <!-- SCOUT 모달 (게임 화면 전용)     -->
-  <!-- =============================== -->
+  <!-- SCOUT 모달 -->
   <div id="scoutModal" class="modal hidden">
     <div class="modal-box">
       <p style="margin-bottom:12px;">어떻게 가져올까요?</p>
@@ -92,17 +95,14 @@
     </div>
   </div>
 
-  <!-- =============================== -->
-  <!-- 삽입 위치 모달                 -->
-  <!-- =============================== -->
+  <!-- 삽입 위치 모달 -->
   <div id="insertModal" class="modal hidden">
     <div class="modal-box" id="insertModalContent"></div>
   </div>
 
 </div>
 
-
-<!-- SOCKET -->
+<!-- SOCKET.IO -->
 <script src="/socket.io/socket.io.js"></script>
 
 <!-- MODULES -->
@@ -110,7 +110,7 @@
 <script type="module" src="./roomUI.js"></script>
 <script type="module" src="./gameUI.js"></script>
 
-<!-- 초대링크 자동 입장 -->
+<!-- 자동 초대 링크 입장 -->
 <script>
 window.addEventListener("DOMContentLoaded", () => {
   const params = new URLSearchParams(location.search);
@@ -123,10 +123,13 @@ window.addEventListener("DOMContentLoaded", () => {
     window.roomId = invitedRoom;
     window.myName = nickname;
 
+    // 초대 링크 = 항상 NEW permUid
+    window.permUid = crypto.randomUUID();
+
     window.socket.emit("joinRoom", {
       roomId,
       nickname: myName,
-      permUid: localStorage.getItem("scout_uid")
+      permUid: window.permUid
     });
 
     roomTitle.innerText = `방번호: ${roomId}`;
@@ -137,5 +140,3 @@ window.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
-
-
