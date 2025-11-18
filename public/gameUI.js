@@ -1,6 +1,6 @@
 // ======================================================
 // GAME UI — SCOUT 패 방향 선택 + SHOW + SCOUT + TURN UI
-// (A안 적용: 카드 아래 "가져오기" 버튼 생성)
+// (삽입 모달 제거하고 +넣기 버튼 방식으로 완전 변경됨)
 // ======================================================
 
 import { drawScoutCard } from "./cardEngine.js";
@@ -29,10 +29,6 @@ const modalKeep = document.getElementById("modalKeep");
 const modalReverse = document.getElementById("modalReverse");
 const modalClose = document.getElementById("modalClose");
 
-// Insert position modal
-const insertModal = document.getElementById("insertModal");
-const insertModalContent = document.getElementById("insertModalContent");
-
 // ======================================================
 // STATE
 // ======================================================
@@ -50,6 +46,10 @@ let flipReversed = false;
 let scoutMode = false;
 let scoutTargetSide = null;
 let scoutFlip = false;
+
+// 새 insert 모드 (삽입 모달 제거)
+let insertMode = false;
+let insertCardInfo = null; // { side:"left"/"right", flip:true/false }
 
 // ======================================================
 // 플레이어 리스트
@@ -74,7 +74,7 @@ function renderPlayers() {
 }
 
 // ======================================================
-// 핸드 렌더링
+// 패(카드) 렌더링
 // ======================================================
 function getDisplayedHand() {
   if (!flipReversed) return myHand;
@@ -87,6 +87,31 @@ function renderHand() {
 
   const disp = getDisplayedHand();
 
+  // insert mode일 때 +넣기 버튼 생성 함수
+  function createInsertButton(pos) {
+    const btn = document.createElement("button");
+    btn.className = "insert-btn";
+    btn.innerText = "+ 넣기";
+    btn.onclick = () => {
+      insertMode = false;
+      handArea.innerHTML = "";
+
+      socket.emit("scout", {
+        roomId,
+        permUid: window.permUid,
+        side: insertCardInfo.side,
+        flip: insertCardInfo.flip,
+        pos,
+      });
+
+      renderHand(); // 버튼 제거 목적
+    };
+    return btn;
+  }
+
+  // 0번째 위치
+  if (insertMode) handArea.appendChild(createInsertButton(0));
+
   disp.forEach((c, i) => {
     const wrap = document.createElement("div");
     wrap.className = "card-wrapper";
@@ -95,6 +120,7 @@ function renderHand() {
 
     wrap.onclick = () => {
       if (flipSelect) return alert("패 방향을 먼저 확정하세요!");
+      if (insertMode) return; // 삽입 중에는 선택 불가
 
       if (selected.has(i)) selected.delete(i);
       else selected.add(i);
@@ -104,11 +130,14 @@ function renderHand() {
 
     wrap.appendChild(drawScoutCard(c.top, c.bottom));
     handArea.appendChild(wrap);
+
+    // 다음 위치 insert 버튼
+    if (insertMode) handArea.appendChild(createInsertButton(i + 1));
   });
 }
 
 // ======================================================
-// 테이블 렌더링 (A안 적용: 카드 아래 "가져오기" 버튼)
+// 테이블 렌더링 (카드 아래 SCOUT 가져오기 버튼)
 // ======================================================
 function renderTable() {
   tableArea.innerHTML = "";
@@ -122,19 +151,17 @@ function renderTable() {
     const wrap = document.createElement("div");
     wrap.className = "table-card-wrapper";
 
-    // 카드 이미지
-    const cardCanvas = drawScoutCard(c.top, c.bottom);
-    wrap.appendChild(cardCanvas);
+    // 카드
+    wrap.appendChild(drawScoutCard(c.top, c.bottom));
 
-    // SCOUT 가능한지 체크
+    // scout 가능 여부
     const canScout =
       myTurn &&
       !flipSelect &&
       scoutMode &&
       (
         tableCards.length === 1 ||
-        (tableCards.length === 2 && (idx === 0 || idx === 1)) ||
-        (tableCards.length >= 3 && (idx === 0 || idx === tableCards.length - 1))
+        (idx === 0 || idx === tableCards.length - 1)
       );
 
     if (canScout) {
@@ -145,14 +172,9 @@ function renderTable() {
       btn.innerText = "가져오기";
 
       btn.onclick = () => {
-        // 어떤 쪽인지 결정
-        if (tableCards.length === 1) {
-          scoutTargetSide = "left";
-        } else if (idx === 0) {
-          scoutTargetSide = "left";
-        } else if (idx === tableCards.length - 1) {
-          scoutTargetSide = "right";
-        }
+        if (tableCards.length === 1) scoutTargetSide = "left";
+        else if (idx === 0) scoutTargetSide = "left";
+        else scoutTargetSide = "right";
 
         scoutModal.classList.remove("hidden");
       };
@@ -217,61 +239,30 @@ scoutBtn.onclick = () => {
   renderTable();
 };
 
-// 모달 동작
+// ======================================================
+// SCOUT 모달 UI (삽입 모달 제거, insertMode ON)
+// ======================================================
 modalClose.onclick = () => scoutModal.classList.add("hidden");
 
 modalKeep.onclick = () => {
   scoutFlip = false;
   scoutModal.classList.add("hidden");
-  chooseInsertPosition();
+
+  insertMode = true;
+  insertCardInfo = { side: scoutTargetSide, flip: false };
+
+  renderHand();
 };
 
 modalReverse.onclick = () => {
   scoutFlip = true;
   scoutModal.classList.add("hidden");
-  chooseInsertPosition();
+
+  insertMode = true;
+  insertCardInfo = { side: scoutTargetSide, flip: true };
+
+  renderHand();
 };
-
-// ======================================================
-// 삽입 위치 선택
-// ======================================================
-function chooseInsertPosition() {
-  insertModalContent.innerHTML = `<h3>삽입 위치 선택</h3><br>`;
-
-  for (let i = 0; i <= myHand.length; i++) {
-    const btn = document.createElement("button");
-    btn.innerText = `${i} 번째`;
-    btn.className = "btn-main small";
-    btn.style.margin = "4px";
-
-    btn.onclick = () => {
-      insertModal.classList.add("hidden");
-
-      socket.emit("scout", {
-        roomId,
-        permUid: window.permUid,
-        side: scoutTargetSide,
-        flip: scoutFlip,
-        pos: i,
-      });
-
-      scoutMode = false;
-      renderTable();
-    };
-
-    insertModalContent.appendChild(btn);
-  }
-
-  const close = document.createElement("button");
-  close.innerText = "닫기";
-  close.className = "btn-sub small";
-  close.onclick = () => insertModal.classList.add("hidden");
-
-  insertModalContent.appendChild(document.createElement("br"));
-  insertModalContent.appendChild(close);
-
-  insertModal.classList.remove("hidden");
-}
 
 // ======================================================
 // 패 방향 선택 UI
@@ -303,6 +294,7 @@ socket.on("roundStart", ({ round, players: p }) => {
   flipSelect = true;
   flipReversed = false;
   scoutMode = false;
+  insertMode = false;
 
   flipSelectArea.classList.remove("hidden");
 
@@ -317,6 +309,7 @@ socket.on("roundStart", ({ round, players: p }) => {
 socket.on("yourHand", (hand) => {
   myHand = hand;
   selected.clear();
+  insertMode = false; // 삽입 완료 후 버튼 숨기기
   renderHand();
   updateActionButtons();
 });
@@ -330,12 +323,11 @@ socket.on("tableUpdate", (cards) => {
 // 턴 변경
 socket.on("turnChange", (uid) => {
   myTurn = uid === window.permUid;
-
-  // 턴 넘어가면 SCOUT 모드 종료
   scoutMode = false;
+  insertMode = false;
 
   highlightTurn(uid);
   renderTable();
+  renderHand();
   updateActionButtons();
 });
-
