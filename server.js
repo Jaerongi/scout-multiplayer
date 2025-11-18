@@ -161,28 +161,73 @@ io.on("connection", (socket) => {
    * JOIN ROOM
    * --------------------------- */
   socket.on("joinRoom", ({ roomId, userId }) => {
-    if (!roomId || !userId) return;
+  if (!roomId || !userId) return;
 
-    const db = loadUserDB();
-    if (!db.users[userId]) return; // 유효하지 않은 계정
+  const db = loadUserDB();
+  if (!db.users[userId]) return;
 
-    const nickname = db.users[userId].nickname;
-    socket.join(roomId);
+  const nickname = db.users[userId].nickname;
+  socket.join(roomId);
 
-    if (!rooms[roomId]) {
-      rooms[roomId] = {
-        roomId,
-        players: {},
-        turnOrder: [],
-        currentTurn: 0,
-        table: [],
-        round: 1,
-        host: null,
-        lastShowPlayer: null,
-        startIndex: 0,
-        totalRounds: 0
-      };
-    }
+  // 방 생성
+  if (!rooms[roomId]) {
+    rooms[roomId] = {
+      roomId,
+      players: {},
+      turnOrder: [],
+      currentTurn: 0,
+      table: [],
+      round: 1,
+      host: null,
+      lastShowPlayer: null,
+      startIndex: 0,
+      totalRounds: 0,
+    };
+  }
+
+  const room = rooms[roomId];
+  const first = Object.keys(room.players).length === 0;
+
+  // 신규 입장 OR 재접속
+  if (!room.players[userId]) {
+    room.players[userId] = {
+      uid: userId,
+      nickname,
+      socketId: socket.id,
+      isHost: first,
+      ready: false,
+      hand: [],
+      score: 0,
+      isOnline: true
+    };
+
+    if (first) room.host = userId;
+
+  } else {
+    // 재접속
+    room.players[userId].socketId = socket.id;
+    room.players[userId].isOnline = true;
+  }
+
+  // ⚠️ 여기가 핵심
+  // 플레이어 정보가 완전 적용된 후 playerListUpdate 실행
+  io.to(roomId).emit("playerListUpdate", room.players);
+
+  // 게임 중이면 상태 복구
+  if (room.turnOrder.length > 0) {
+    const p = room.players[userId];
+
+    io.to(socket.id).emit("restoreState", {
+      hand: p.hand,
+      score: p.score,
+      table: room.table,
+      round: room.round,
+      players: room.players,
+      turn: room.turnOrder[room.currentTurn],
+    });
+  }
+});
+
 
     const room = rooms[roomId];
     const first = Object.keys(room.players).length === 0;
@@ -466,3 +511,4 @@ const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
   console.log(`🚀 SERVER STARTED ON ${PORT}`);
 });
+
