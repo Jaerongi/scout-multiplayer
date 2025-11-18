@@ -6,7 +6,11 @@
 import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
-import { getComboType, isStrongerCombo } from "./shared.js";
+
+// UMD shared.js 가져오기 (default import)
+import shared from "./shared.js";
+const { getComboType, isStrongerCombo } = shared;
+
 
 const app = express();
 const httpServer = createServer(app);
@@ -328,3 +332,4 @@ function nextTurn(room) {
     return;
   }
 }
+
