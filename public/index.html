@@ -107,12 +107,36 @@ button {
     </div>
   </div>
 
-  <!-- ROOM PAGE -->
-  <div id="roomPage" class="page">
-    <h2 id="roomTitle">방번호: ----</h2>
-    <div id="playerList"></div>
-    <button id="startGameBtn">게임 시작</button>
+<!-- ROOM PAGE -->
+<div id="roomPage" class="page">
+
+  <h2 id="roomTitle">방번호: ----</h2>
+
+  <!-- 초대 링크 복사 버튼 -->
+  <button id="copyInviteBtn" 
+          style="background:#2ecc71; color:black; padding:12px 20px; border-radius:8px; margin-bottom:20px;">
+    초대 링크 복사
+  </button>
+
+  <!-- 참가자 리스트 -->
+  <div id="playerList"
+       style="margin-top:20px; font-size:20px; min-height:150px;">
   </div>
+
+  <!-- 레디 버튼 (방장 제외) -->
+  <button id="readyBtn"
+          style="background:#ffa726; padding:12px 25px; border-radius:8px; margin-top:20px;">
+    준비
+  </button>
+
+  <!-- 방장만 보이는 게임 시작 버튼 -->
+  <button id="startGameBtn"
+          style="background:white; color:black; padding:12px 25px; border-radius:8px; margin-top:20px;">
+    게임 시작
+  </button>
+
+</div>
+
 
   <!-- GAME PAGE -->
   <div id="gamePage" class="page">
@@ -151,3 +175,4 @@ adminBtn.onclick = () => {
 
 </body>
 </html>
+
