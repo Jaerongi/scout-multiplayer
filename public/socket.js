@@ -55,10 +55,10 @@ window.addEventListener("load", () => {
       window.roomId = id;
 
       socket.emit("joinRoom", {
-        console.log("joinRoom emit 보냄", id, window.userId);
         roomId: id,
         userId: window.userId
       });
+      console.log("joinRoom emit 보냄", id, window.userId);
     };
   }
 
@@ -148,6 +148,7 @@ function generateRoomId() {
   for (let i = 0; i < 6; i++) r += chars[Math.floor(Math.random()*chars.length)];
   return r;
 }
+
 
 
 
