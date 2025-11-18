@@ -1,39 +1,57 @@
 // =============================
-// SCOUT MULTIPLAYER – server.js
+// SCOUT MULTIPLAYER – server.js (RAILWAY OK VERSION)
 // =============================
 import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
+
+// 반드시 public 절대 경로 지정
+app.use(express.static(path.join(__dirname, "public")));
+
 const httpServer = createServer(app);
-const io = new Server(httpServer);
 
-app.use(express.static("public"));
+const io = new Server(httpServer, {
+  cors: {
+    origin: "*",   // Railway에서 반드시 필요
+    methods: ["GET", "POST"]
+  }
+});
 
+// =========================================
+// In-memory Data
+// =========================================
 const rooms = {};
 const players = {};
 
 // =========================================
-// 공식 SCOUT 덱 45장
+// Deck 45장 생성
 // =========================================
 function createDeck() {
   const deck = [];
   for (let top = 1; top <= 9; top++) {
     for (let bottom = 1; bottom <= 5; bottom++) {
-      deck.push({ top, bottom }); // 예시
+      deck.push({ top, bottom });
     }
   }
   return deck.sort(() => Math.random() - 0.5);
 }
 
 // =========================================
-// 소켓 연결
+// SOCKET EVENTS
 // =========================================
 io.on("connection", (socket) => {
+  console.log("User connected:", socket.id);
 
   socket.on("joinRoom", ({ roomId, nickname }) => {
     socket.join(roomId);
+
     players[socket.id] = {
       nickname,
       hand: [],
@@ -61,11 +79,12 @@ io.on("connection", (socket) => {
     });
 
     room.turn = Object.keys(players)[0];
+
     io.to(roomId).emit("gameStarted", { players, room });
   });
 
-  // 스카우트 가져오기 선택 끝 → 서버에 저장
-  socket.on("scoutTake", ({ reversed }, roomId) => {
+  // SCOUT: 뒤집기 여부 먼저 선택
+  socket.on("scoutTake", ({ reversed, roomId }) => {
     const room = rooms[roomId];
     if (!room) return;
 
@@ -84,7 +103,7 @@ io.on("connection", (socket) => {
     });
   });
 
-  // +넣기 index 지정
+  // SCOUT: +넣을 위치 선택
   socket.on("insertCardAt", ({ index, roomId }) => {
     const room = rooms[roomId];
     if (!room) return;
@@ -97,8 +116,17 @@ io.on("connection", (socket) => {
 
     io.to(roomId).emit("updateHands", players);
   });
+
+  socket.on("disconnect", () => {
+    delete players[socket.id];
+  });
 });
 
-httpServer.listen(3000, () => {
-  console.log("Server running on port 3000");
+// =========================================
+// Railway Port Listen FIX
+// =========================================
+const PORT = process.env.PORT || 3000;
+
+httpServer.listen(PORT, () => {
+  console.log("🚀 Server running on PORT:", PORT);
 });
