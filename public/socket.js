@@ -1,40 +1,69 @@
 // =====================================================
-// SOCKET.JS — 로그인 기반 멀티플레이 + 자동재접속
+// SOCKET.JS — 회원 기반 + 자동재접속 + 초대링크 입장 + 로그아웃
 // =====================================================
 
+// 현재 로그인된 userId
+window.userId = localStorage.getItem("scout_userId") || null;
+
+// 로그인되어 있지 않으면 login.html로 이동
+if (!window.userId) {
+  location.href = "/login.html";
+}
+
+// 전역 변수
 window.socket = io({
-  autoConnect:true,
-  transports:["websocket"]
+  autoConnect: true,
+  transports: ["websocket"]
 });
 
 window.roomId = null;
-window.userId = localStorage.getItem("scout_userId") || null;
 
-// 페이지 전환
-window.showPage = function(page) {
-  document.getElementById("startPage").style.display = "none";
-  document.getElementById("roomPage").style.display = "none";
-  document.getElementById("gamePage").style.display = "none";
+
+// ------------------------------------------------------
+// 페이지 전환 함수
+// ------------------------------------------------------
+window.showPage = function (page) {
+  ["startPage", "roomPage", "gamePage"].forEach(id => {
+    document.getElementById(id).style.display = "none";
+  });
   document.getElementById(page).style.display = "block";
 };
 
-// ------------------------------------------------------
-// 로그인 여부 체크 → 로그인 안되면 login.html로 이동
-// ------------------------------------------------------
-window.addEventListener("DOMContentLoaded", () => {
-  if (!window.userId) {
-    location.href = "/login.html";
+
+// ======================================================
+// SOCKET CONNECTED
+// (초대링크 처리 + 자동 재입장)
+// ======================================================
+socket.on("connect", () => {
+
+  // 초대 링크 ?room=XXXX 처리
+  const params = new URLSearchParams(location.search);
+  const rid = params.get("room");
+
+  if (rid && window.userId) {
+    window.roomId = rid;
+
+    socket.emit("joinRoom", {
+      roomId: rid,
+      userId: window.userId
+    });
+
+    // UI 갱신
+    const title = document.getElementById("roomTitle");
+    if (title) title.innerText = `방번호: ${rid}`;
+
+    showPage("roomPage");
     return;
   }
 
+  // 기본 화면
   showPage("startPage");
-
-  // 방 자동 복구는 없음(로그인 단위로만 진행)
 });
 
-// ------------------------------------------------------
+
+// ======================================================
 // 방 만들기
-// ------------------------------------------------------
+// ======================================================
 makeRoomBtn.onclick = () => {
   roomId = generateRoomId();
 
@@ -47,9 +76,10 @@ makeRoomBtn.onclick = () => {
   showPage("roomPage");
 };
 
-// ------------------------------------------------------
-// 초대 링크로 입장
-// ------------------------------------------------------
+
+// ======================================================
+// 초대 링크 직접 입력하여 입장
+// ======================================================
 enterRoomBtn.onclick = () => {
   const link = prompt("초대 링크를 입력하세요:");
 
@@ -59,14 +89,14 @@ enterRoomBtn.onclick = () => {
 
     if (!rid) return alert("잘못된 링크입니다.");
 
-    roomId = rid;
+    window.roomId = rid;
 
     socket.emit("joinRoom", {
-      roomId,
+      roomId: rid,
       userId: window.userId
     });
 
-    roomTitle.innerText = `방번호: ${roomId}`;
+    roomTitle.innerText = `방번호: ${rid}`;
     showPage("roomPage");
 
   } catch {
@@ -74,50 +104,36 @@ enterRoomBtn.onclick = () => {
   }
 };
 
-// ------------------------------------------------------
-// 초대 링크 자동 입장 (?room=xxxx)
-// ------------------------------------------------------
-(function(){
-  const params = new URLSearchParams(location.search);
-  const rid = params.get("room");
 
-  if (rid && window.userId) {
-    roomId = rid;
+// ======================================================
+// 서버에서 게임 화면으로 이동 신호
+// ======================================================
+socket.on("goGamePage", () => {
+  showPage("gamePage");
+});
 
-    socket.emit("joinRoom", {
-      roomId,
-      userId: window.userId
-    });
 
-    roomTitle.innerText = `방번호: ${roomId}`;
-    showPage("roomPage");
-  }
-})();
-
-// ------------------------------------------------------
-// 게임 화면 이동
-// ------------------------------------------------------
-socket.on("goGamePage", () => showPage("gamePage"));
-
-// ------------------------------------------------------
+// ======================================================
 // 강퇴 처리
-// ------------------------------------------------------
+// ======================================================
 socket.on("kicked", () => {
   alert("방장에서 강퇴되었습니다.");
   showPage("startPage");
 });
 
-// ------------------------------------------------------
-// 방 폭파 처리
-// ------------------------------------------------------
+
+// ======================================================
+// 방 폭파
+// ======================================================
 socket.on("roomClosed", () => {
-  alert("방장이 나가 게임방이 종료되었습니다.");
+  alert("방장이 나가서 게임방이 종료되었습니다.");
   showPage("startPage");
 });
 
-// ------------------------------------------------------
-// 복구
-// ------------------------------------------------------
+
+// ======================================================
+// 상태 복구 (재접속)
+// ======================================================
 socket.on("restoreState", (state) => {
   showPage("gamePage");
 
@@ -136,18 +152,10 @@ socket.on("restoreState", (state) => {
   updateActionButtons();
 });
 
-// ------------------------------------------------------
-// ID 생성
-// ------------------------------------------------------
-function generateRoomId() {
-  const s = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let r = "";
-  for (let i=0; i<6; i++) r += s[Math.floor(Math.random()*s.length)];
-  return r;
-}
-// ===============================
-// 로그아웃
-// ===============================
+
+// ======================================================
+// 로그아웃 기능
+// ======================================================
 const logoutBtn = document.getElementById("logoutBtn");
 
 if (logoutBtn) {
@@ -159,3 +167,15 @@ if (logoutBtn) {
   };
 }
 
+
+// ======================================================
+// 방 번호 자동 생성
+// ======================================================
+function generateRoomId() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let r = "";
+  for (let i = 0; i < 6; i++) {
+    r += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return r;
+}
