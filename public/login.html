@@ -1,72 +1,104 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<title>로그인 | SCOUT</title>
+<meta charset="UTF-8">
+<title>SCOUT LOGIN</title>
+
 <style>
 body {
-  background:#222;
-  color:#fff;
-  font-family: Arial;
+  background:#141414;
+  margin:0;
+  padding:0;
+  font-family: 'Segoe UI', sans-serif;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  color:white;
+}
+
+#loginBox {
+  background:#1f1f1f;
+  padding:40px 45px;
+  border-radius:14px;
+  width:350px;
   text-align:center;
-  padding-top:120px;
+  box-shadow:0 0 18px rgba(0,0,0,0.45);
 }
+
+#loginBox h2 {
+  margin-bottom:20px;
+  font-size:26px;
+  font-weight:600;
+  color:#ffcc58;
+}
+
 input {
-  padding:10px;
-  font-size:18px;
-  border-radius:6px;
+  width:100%;
+  padding:14px;
   border:none;
-  width:220px;
+  border-radius:8px;
+  margin-top:10px;
+  background:#2d2d2d;
+  color:white;
+  font-size:16px;
 }
+
 button {
-  margin-top:15px;
-  padding:10px 20px;
-  background:#4caf50;
-  color:#fff;
+  width:100%;
+  padding:14px;
+  background:#ff9800;
   border:none;
-  border-radius:6px;
-  cursor:pointer;
+  border-radius:8px;
+  color:#000;
   font-size:18px;
+  margin-top:20px;
+  cursor:pointer;
+  font-weight:bold;
 }
+button:hover {
+  background:#f57c00;
+}
+
 </style>
 </head>
+
 <body>
 
-<h2>닉네임 로그인</h2>
-<p>닉네임을 입력하면 자동 회원가입/로그인 됩니다.</p>
+<div id="loginBox">
+  <h2>SCOUT LOGIN</h2>
 
-<input type="text" id="nicknameInput" maxlength="12" placeholder="닉네임 입력" />
-<br>
-<button onclick="login()">시작하기</button>
+  <input id="nicknameInput" placeholder="닉네임 입력" maxlength="12">
+
+  <button id="loginBtn">로그인</button>
+</div>
 
 <script>
-async function login() {
-  const nickname = document.getElementById("nicknameInput").value.trim();
-
-  if (!nickname) {
-    alert("닉네임을 입력하세요.");
-    return;
-  }
+document.getElementById("loginBtn").onclick = async () => {
+  const nickname = nicknameInput.value.trim();
+  if (!nickname) return alert("닉네임을 입력하세요!");
 
   const res = await fetch("/api/login", {
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({ nickname })
+    body: JSON.stringify({nickname})
   });
 
   const data = await res.json();
-
-  if (!data.ok) {
-    alert("로그인 실패");
-    return;
-  }
+  if (!data.ok) return alert("로그인 실패!");
 
   // userId 저장
   localStorage.setItem("scout_userId", data.userId);
 
-  // index.html 로 돌아가기
-  location.href = "/index.html";
-}
+  // 초대방 있는지 확인
+  const invited = localStorage.getItem("inviteRoom");
+  if (invited) {
+    localStorage.removeItem("inviteRoom");
+    location.href = "/index.html?room=" + invited;
+  } else {
+    location.href = "/index.html";
+  }
+};
 </script>
 
 </body>
