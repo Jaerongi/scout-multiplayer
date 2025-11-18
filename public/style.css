@@ -11,11 +11,9 @@ body {
   overflow-x: hidden;
 }
 
-/* page control */
 .page { display: none; }
 .page.visible { display: block; }
 
-/* common panels */
 .board-panel,
 .sideBoard,
 .mainBoard,
@@ -29,7 +27,6 @@ body {
   margin: 20px auto;
 }
 
-/* titles */
 .game-title,
 .title-board {
   text-align: center;
@@ -44,7 +41,6 @@ body {
   color: #f5e3b8;
 }
 
-/* buttons */
 button {
   background: linear-gradient(#3b301a, #221c11);
   border: 1px solid rgba(255, 215, 130, 0.5);
@@ -66,7 +62,6 @@ button:hover {
 .btn-purple   { background: linear-gradient(#4f2a6a, #2e1740); }
 .btn-sub      { background: linear-gradient(#2e2e2e, #1a1a1a); }
 
-/* players */
 .playerBox {
   background: rgba(50, 50, 50, 0.75);
   border: 1px solid rgba(255, 215, 130, 0.3);
@@ -86,21 +81,6 @@ button:hover {
   border-color: #ffd76e !important;
 }
 
-/* READY Indicator */
-.ready-led {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  margin-left: 6px;
-  border-radius: 50%;
-  background: #444;
-  border: 1px solid #999;
-}
-
-.ready-led.on  { background: #33ff66; }
-.ready-led.off { background: #444; }
-
-/* HAND */
 .handBoard {
   display: flex;
   flex-wrap: nowrap;
@@ -125,7 +105,6 @@ button:hover {
   height: 160px;
 }
 
-/* TABLE */
 .tableBoard {
   display: flex;
   gap: 14px;
@@ -140,7 +119,7 @@ button:hover {
   gap: 6px;
 }
 
-/* SCOUT glow */
+/* SCOUT 가능 glow */
 .scout-glow {
   border: 2px solid #ffd76e !important;
   box-shadow: 0 0 15px #ffea8a;
@@ -148,13 +127,13 @@ button:hover {
   padding: 4px;
 }
 
-/* TAKE BUTTON */
+/* SCOUT 가져오기 버튼 */
 .take-btn {
   background: linear-gradient(#6a571e, #4a3b14);
   border: 1px solid #e7c46a;
   color: #fff6d1;
   padding: 4px 10px;
-  font-size: 14px;
+  font-size: 15px;
   border-radius: 6px;
   margin-top: 2px;
 }
@@ -164,7 +143,28 @@ button:hover {
   border-color: #ffe48b;
 }
 
-/* MODAL */
+/* insert 버튼 */
+.insert-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.insert-btn {
+  background: linear-gradient(#5a4e2a, #3b331d);
+  border: 1px solid #e5c87a;
+  color: #ffedc7;
+  padding: 6px 12px;
+  font-size: 16px;
+  border-radius: 6px;
+}
+
+.insert-btn:hover {
+  background: linear-gradient(#6b5e33, #4a4123);
+  border-color: #ffe9a0;
+}
+
+/* modal */
 .modal {
   position: fixed;
   top: 0; left: 0;
@@ -189,7 +189,7 @@ button:hover {
   text-align: center;
 }
 
-/* Flip Select Area */
+/* flip */
 .flip-area {
   background: rgba(40,40,40,0.75);
   padding: 16px;
@@ -203,7 +203,6 @@ button:hover {
   display: none !important;
 }
 
-/* BUTTON ROW */
 .action-row {
   display: flex;
   justify-content: center;
@@ -220,7 +219,6 @@ button:hover {
   padding: 14px 26px;
 }
 
-/* mobile UI */
 @media (max-width:600px) {
   .game-title { font-size: 28px; }
   .section-title { font-size: 20px; }
