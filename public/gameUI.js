@@ -1,5 +1,5 @@
 // ======================================================
-// GAME UI — SCOUT 전체 기능 완성본
+// GAME UI — SCOUT 전체 기능 완성본 (모달 1개만 사용)
 // ======================================================
 
 import { drawScoutCard } from "./cardEngine.js";
@@ -15,14 +15,13 @@ const roundInfo = document.getElementById("roundInfo");
 // Buttons
 const showBtn = document.getElementById("showBtn");
 const scoutBtn = document.getElementById("scoutBtn");
-const showScoutBtn = document.getElementById("showScoutBtn");
 
 // Flip select
 const flipSelectArea = document.getElementById("flipSelectArea");
 const flipToggleBtn = document.getElementById("flipToggleBtn");
 const flipConfirmBtn = document.getElementById("flipConfirmBtn");
 
-// SCOUT modal
+// SCOUT modal (1개만 사용)
 const scoutModal = document.getElementById("scoutModal");
 const modalKeep = document.getElementById("modalKeep");
 const modalReverse = document.getElementById("modalReverse");
@@ -40,9 +39,9 @@ let myTurn = false;
 let flipSelect = true;
 let flipReversed = false;
 
-let scoutMode = false;         // SCOUT 가능 상태
-let scoutTargetSide = null;    // left or right
-let scoutFlip = false;         // 그대로 / 반대로 가져오기
+let scoutMode = false; 
+let scoutTargetSide = null;
+let scoutFlip = false;
 
 // ======================================================
 // 플레이어 리스트
@@ -67,7 +66,7 @@ function renderPlayers() {
 }
 
 // ======================================================
-// 핸드 렌더링 (+넣기 버튼 포함)
+// 핸드 렌더링 (+넣기 기능)
 // ======================================================
 function getDisplayedHand() {
   if (!flipReversed) return myHand;
@@ -106,7 +105,7 @@ function renderHand() {
 
   const disp = getDisplayedHand();
 
-  // 첫 번째 앞에 insert 버튼
+  // 0번째 앞에 insert
   if (scoutMode && !flipSelect) {
     handArea.appendChild(createInsertButton(0));
   }
@@ -115,10 +114,9 @@ function renderHand() {
     const wrap = document.createElement("div");
     wrap.className = "card-wrapper";
 
-    // SHOW 모드일 때만 카드 눌러 선택 가능
+    // SHOW 모드일 때만 선택 가능
     if (!scoutMode) {
       if (selected.has(i)) wrap.classList.add("selected");
-
       wrap.onclick = () => {
         if (flipSelect) return alert("패 방향을 먼저 확정하세요!");
         if (selected.has(i)) selected.delete(i);
@@ -130,7 +128,7 @@ function renderHand() {
     wrap.appendChild(drawScoutCard(c.top, c.bottom));
     handArea.appendChild(wrap);
 
-    // 카드 뒤에 insert 버튼
+    // insert 버튼 생성
     if (scoutMode && !flipSelect) {
       handArea.appendChild(createInsertButton(i + 1));
     }
@@ -138,7 +136,7 @@ function renderHand() {
 }
 
 // ======================================================
-// 테이블 렌더링 (3장 이상일 때 양 끝만 SCOUT 가능)
+// 테이블 렌더링 (끝만 가져오기 가능)
 // ======================================================
 function renderTable() {
   tableArea.innerHTML = "";
@@ -172,13 +170,9 @@ function renderTable() {
       btn.innerText = "가져오기";
 
       btn.onclick = () => {
-        if (tableCards.length === 1) {
-          scoutTargetSide = "left";
-        } else if (idx === 0) {
-          scoutTargetSide = "left";
-        } else {
-          scoutTargetSide = "right";
-        }
+        scoutTargetSide = 
+          (tableCards.length === 1 || idx === 0) ? "left" : "right";
+
         scoutModal.classList.remove("hidden");
       };
 
@@ -190,29 +184,25 @@ function renderTable() {
 }
 
 // ======================================================
-// 턴 하이라이트
+// 모달 동작 (insertModal 없음)
 // ======================================================
-function highlightTurn(uid) {
-  const arr = Object.values(players);
-  const boxes = gamePlayerList.children;
+modalClose.onclick = () => scoutModal.classList.add("hidden");
 
-  arr.forEach((p, i) => {
-    if (p.uid === uid) boxes[i].classList.add("turnGlow");
-    else boxes[i].classList.remove("turnGlow");
-  });
-}
+modalKeep.onclick = () => {
+  scoutFlip = false;
+  scoutModal.classList.add("hidden");
 
-// ======================================================
-// 버튼 활성화
-// ======================================================
-function updateActionButtons() {
-  const active = myTurn && !flipSelect;
+  // 💥 삽입 모달 대신 손패에 +넣기 버튼 즉시 생성
+  renderHand();
+};
 
-  [showBtn, scoutBtn, showScoutBtn].forEach((btn) => {
-    btn.disabled = !active;
-    btn.style.opacity = active ? "1" : "0.4";
-  });
-}
+modalReverse.onclick = () => {
+  scoutFlip = true;
+  scoutModal.classList.add("hidden");
+
+  // 💥 삽입 모달 대신 손패에 +넣기 버튼 즉시 생성
+  renderHand();
+};
 
 // ======================================================
 // SHOW
@@ -232,7 +222,7 @@ showBtn.onclick = () => {
 };
 
 // ======================================================
-// SCOUT
+// SCOUT 버튼
 // ======================================================
 scoutBtn.onclick = () => {
   if (!myTurn || flipSelect) return;
@@ -242,37 +232,19 @@ scoutBtn.onclick = () => {
   renderTable();
 };
 
-// SCOUT 모달
-modalClose.onclick = () => scoutModal.classList.add("hidden");
+// ======================================================
+// 턴 변경
+// ======================================================
+socket.on("turnChange", (uid) => {
+  myTurn = uid === window.permUid;
+  scoutMode = false;
 
-modalKeep.onclick = () => {
-  scoutFlip = false;
-  scoutModal.classList.add("hidden");
+  renderTable();
   renderHand();
-};
-
-modalReverse.onclick = () => {
-  scoutFlip = true;
-  scoutModal.classList.add("hidden");
-  renderHand();
-};
+});
 
 // ======================================================
-// 패 방향 선택 UI
-// ======================================================
-flipToggleBtn.onclick = () => {
-  flipReversed = !flipReversed;
-  renderHand();
-};
-
-flipConfirmBtn.onclick = () => {
-  flipSelect = false;
-  flipSelectArea.classList.add("hidden");
-  updateActionButtons();
-};
-
-// ======================================================
-// SOCKET EVENTS
+// 소켓 이벤트 (기본 유지)
 // ======================================================
 socket.on("playerListUpdate", (p) => {
   players = p;
@@ -295,28 +267,15 @@ socket.on("roundStart", ({ round, players: p }) => {
   renderHand();
 
   roundInfo.innerText = `라운드 ${round}`;
-  updateActionButtons();
 });
 
 socket.on("yourHand", (hand) => {
   myHand = hand;
   selected.clear();
   renderHand();
-  updateActionButtons();
 });
 
 socket.on("tableUpdate", (cards) => {
   tableCards = cards;
   renderTable();
-  updateActionButtons();
-});
-
-socket.on("turnChange", (uid) => {
-  myTurn = uid === window.permUid;
-
-  scoutMode = false;
-  highlightTurn(uid);
-  renderTable();
-  renderHand();
-  updateActionButtons();
 });
