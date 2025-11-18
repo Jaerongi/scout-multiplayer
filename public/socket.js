@@ -47,7 +47,7 @@ socket.on("connect", () => {
 // 방 만들기 버튼
 window.addEventListener("load", () => {
   const makeBtn = document.getElementById("makeRoomBtn");
-
+  console.log("gameUI.js LOADED");
   if (makeBtn) {
     makeBtn.onclick = () => {
       const id = generateRoomId();
@@ -97,6 +97,7 @@ window.addEventListener("load", () => {
 let firstJoinCompleted = false;
 
 socket.on("playerListUpdate", (players) => {
+  console.log("gameUI.js LOADED");
   window.players = players;
 
   // roomUI.js 함수명과 정확히 매칭됨
@@ -145,4 +146,5 @@ function generateRoomId() {
   for (let i = 0; i < 6; i++) r += chars[Math.floor(Math.random()*chars.length)];
   return r;
 }
+
 
