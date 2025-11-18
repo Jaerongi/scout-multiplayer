@@ -1,11 +1,11 @@
 // ======================================================
-// GAME UI — SCOUT 전체 기능 완성본 (모달 1개만 사용)
+// GAME UI — FINAL STABLE VERSION (READY LED + FLIP FIXED)
 // ======================================================
 
 import { drawScoutCard } from "./cardEngine.js";
 import { getComboType, isStrongerCombo } from "/shared.js";
 
-// DOM Elements
+// DOM
 const gamePlayerList = document.getElementById("gamePlayerList");
 const tableArea = document.getElementById("tableArea");
 const handArea = document.getElementById("handArea");
@@ -16,21 +16,21 @@ const roundInfo = document.getElementById("roundInfo");
 const showBtn = document.getElementById("showBtn");
 const scoutBtn = document.getElementById("scoutBtn");
 
-// Flip select
+// Flip UI
 const flipSelectArea = document.getElementById("flipSelectArea");
 const flipToggleBtn = document.getElementById("flipToggleBtn");
 const flipConfirmBtn = document.getElementById("flipConfirmBtn");
 
-// SCOUT modal (1개만 사용)
+// SCOUT modal
 const scoutModal = document.getElementById("scoutModal");
 const modalKeep = document.getElementById("modalKeep");
 const modalReverse = document.getElementById("modalReverse");
 const modalClose = document.getElementById("modalClose");
 
 // ======================================================
-// STATE
+// STATE (중요! players → gamePlayers 로 변경)
 // ======================================================
-let players = {};
+let gamePlayers = {};
 let tableCards = [];
 let myHand = [];
 let selected = new Set();
@@ -39,17 +39,17 @@ let myTurn = false;
 let flipSelect = true;
 let flipReversed = false;
 
-let scoutMode = false; 
+let scoutMode = false;
 let scoutTargetSide = null;
 let scoutFlip = false;
 
 // ======================================================
-// 플레이어 리스트
+// PLAYER LIST
 // ======================================================
 function renderPlayers() {
   gamePlayerList.innerHTML = "";
 
-  Object.values(players).forEach((p) => {
+  Object.values(gamePlayers).forEach((p) => {
     const div = document.createElement("div");
     div.className = "playerBox";
     if (!p.isOnline) div.classList.add("offlinePlayer");
@@ -66,7 +66,7 @@ function renderPlayers() {
 }
 
 // ======================================================
-// 핸드 렌더링 (+넣기 기능)
+// HAND RENDER (+ INSERT BUTTON)
 // ======================================================
 function getDisplayedHand() {
   if (!flipReversed) return myHand;
@@ -105,8 +105,10 @@ function renderHand() {
 
   const disp = getDisplayedHand();
 
-  // 0번째 앞에 insert
-  if (scoutMode && !flipSelect) {
+  // ❗ flipSelect=true → insert 버튼 절대 생성하면 안 됨
+  const allowInsert = scoutMode && !flipSelect;
+
+  if (allowInsert) {
     handArea.appendChild(createInsertButton(0));
   }
 
@@ -114,9 +116,10 @@ function renderHand() {
     const wrap = document.createElement("div");
     wrap.className = "card-wrapper";
 
-    // SHOW 모드일 때만 선택 가능
+    // SHOW 모드일 때만 카드 선택 가능
     if (!scoutMode) {
       if (selected.has(i)) wrap.classList.add("selected");
+
       wrap.onclick = () => {
         if (flipSelect) return alert("패 방향을 먼저 확정하세요!");
         if (selected.has(i)) selected.delete(i);
@@ -128,15 +131,14 @@ function renderHand() {
     wrap.appendChild(drawScoutCard(c.top, c.bottom));
     handArea.appendChild(wrap);
 
-    // insert 버튼 생성
-    if (scoutMode && !flipSelect) {
+    if (allowInsert) {
       handArea.appendChild(createInsertButton(i + 1));
     }
   });
 }
 
 // ======================================================
-// 테이블 렌더링 (끝만 가져오기 가능)
+// TABLE RENDER (양 끝만 SCOUT 가능)
 // ======================================================
 function renderTable() {
   tableArea.innerHTML = "";
@@ -158,7 +160,7 @@ function renderTable() {
       scoutMode &&
       (
         tableCards.length === 1 ||
-        (tableCards.length === 2 && (idx === 0 || idx === 1)) ||
+        (tableCards.length === 2 && idx <= 1) ||
         (tableCards.length >= 3 && (idx === 0 || idx === tableCards.length - 1))
       );
 
@@ -170,9 +172,7 @@ function renderTable() {
       btn.innerText = "가져오기";
 
       btn.onclick = () => {
-        scoutTargetSide = 
-          (tableCards.length === 1 || idx === 0) ? "left" : "right";
-
+        scoutTargetSide = (idx === 0 ? "left" : "right");
         scoutModal.classList.remove("hidden");
       };
 
@@ -182,27 +182,6 @@ function renderTable() {
     tableArea.appendChild(wrap);
   });
 }
-
-// ======================================================
-// 모달 동작 (insertModal 없음)
-// ======================================================
-modalClose.onclick = () => scoutModal.classList.add("hidden");
-
-modalKeep.onclick = () => {
-  scoutFlip = false;
-  scoutModal.classList.add("hidden");
-
-  // 💥 삽입 모달 대신 손패에 +넣기 버튼 즉시 생성
-  renderHand();
-};
-
-modalReverse.onclick = () => {
-  scoutFlip = true;
-  scoutModal.classList.add("hidden");
-
-  // 💥 삽입 모달 대신 손패에 +넣기 버튼 즉시 생성
-  renderHand();
-};
 
 // ======================================================
 // SHOW
@@ -233,26 +212,43 @@ scoutBtn.onclick = () => {
 };
 
 // ======================================================
-// 턴 변경
+// SCOUT MODAL
+// ======================================================
+modalClose.onclick = () => scoutModal.classList.add("hidden");
+
+modalKeep.onclick = () => {
+  scoutFlip = false;
+  scoutModal.classList.add("hidden");
+  renderHand();
+};
+
+modalReverse.onclick = () => {
+  scoutFlip = true;
+  scoutModal.classList.add("hidden");
+  renderHand();
+};
+
+// ======================================================
+// TURN CHANGE
 // ======================================================
 socket.on("turnChange", (uid) => {
   myTurn = uid === window.permUid;
-  scoutMode = false;
 
+  scoutMode = false;
   renderTable();
   renderHand();
 });
 
 // ======================================================
-// 소켓 이벤트 (기본 유지)
+// SOCKET HANDLERS
 // ======================================================
 socket.on("playerListUpdate", (p) => {
-  players = p;
+  gamePlayers = p;          // ✔ READY LED 정상작동
   renderPlayers();
 });
 
 socket.on("roundStart", ({ round, players: p }) => {
-  players = p;
+  gamePlayers = p;
   tableCards = [];
   selected.clear();
 
