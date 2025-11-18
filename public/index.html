@@ -6,60 +6,63 @@
 
 <style>
 body {
-  background:#1b1b1b;
-  color:#fff;
-  font-family:Arial, sans-serif;
-  text-align:center;
   margin:0;
-  padding:0;
+  background:#121212;
+  font-family:'Segoe UI', sans-serif;
+  color:white;
 }
 
 #topBar {
-  width:100%;
-  background:#2d2d2d;
-  padding:15px 10px;
+  background:#1f1f1f;
+  padding:15px 25px;
   display:flex;
-  justify-content:center;
-  gap:20px;
+  justify-content:space-between;
   align-items:center;
+  box-shadow:0 2px 4px rgba(0,0,0,0.3);
+}
+
+#userInfo {
   font-size:18px;
+  font-weight:bold;
+  color:#ffc85b;
 }
 
 button {
   padding:10px 18px;
-  background:#4caf50;
   border:none;
   border-radius:6px;
-  color:white;
   font-size:16px;
   cursor:pointer;
 }
-button:hover {
-  background:#45a048;
-}
 
 #logoutBtn {
-  background:#d9534f;
+  background:#e74c3c;
+  color:white;
 }
 #logoutBtn:hover {
-  background:#c9302c;
+  background:#c0392b;
 }
 
 #adminBtn {
-  background:#0275d8;
+  background:#3498db;
+  color:white;
 }
 #adminBtn:hover {
-  background:#025aa5;
+  background:#217dbb;
 }
 
-#contentArea {
-  margin-top:80px;
+#makeRoomArea {
+  margin-top:150px;
+  text-align:center;
 }
 
 #makeRoomBtn {
-  font-size:22px;
-  padding:12px 30px;
   background:#ff9800;
+  padding:18px 45px;
+  font-size:26px;
+  color:black;
+  border-radius:10px;
+  font-weight:bold;
 }
 #makeRoomBtn:hover {
   background:#f57c00;
@@ -67,21 +70,24 @@ button:hover {
 </style>
 
 </head>
+
 <body>
 
-<!-- 상단바 (로그인한 유저 정보 + 로그아웃 + 관리자 페이지) -->
+<!-- 상단바 -->
 <div id="topBar">
-  <span id="loginName" style="font-weight:bold;"></span>
-  <button id="logoutBtn">로그아웃</button>
-  <button id="adminBtn">관리자 권한</button>
+  <div id="userInfo"></div>
+  <div>
+    <button id="adminBtn">관리자</button>
+    <button id="logoutBtn">로그아웃</button>
+  </div>
 </div>
 
 <!-- 메인 콘텐츠 -->
-<div id="contentArea">
+<div id="makeRoomArea">
   <button id="makeRoomBtn">방 만들기</button>
 </div>
 
-<!-- START / ROOM / GAME 페이지 (기존 화면) -->
+<!-- 숨겨진 게임 페이지들 -->
 <div id="startPage" style="display:none;"></div>
 <div id="roomPage" style="display:none;">
   <h2 id="roomTitle"></h2>
@@ -95,37 +101,32 @@ button:hover {
   <div id="handArea"></div>
 </div>
 
-<!-- 소켓 JS -->
 <script src="/socket.io/socket.io.js"></script>
 <script src="/socket.js"></script>
 
 <script>
-// 로그인된 닉네임 표시
+// 로그인 체크
 const userId = localStorage.getItem("scout_userId");
-if (userId) {
-  const nickname = userId.split("-")[0];
-  document.getElementById("loginName").innerText = `닉네임: ${nickname}`;
-} else {
-  // 로그인 안 되어 있으면 login.html 이동
-  location.href = "/login.html";
-}
+if (!userId) location.href = "/login.html";
+
+// 닉네임 표시
+const nickname = userId.split("-")[0];
+document.getElementById("userInfo").innerText = `안녕하세요, ${nickname}님`;
 
 // 로그아웃
 document.getElementById("logoutBtn").onclick = () => {
-  if (confirm("로그아웃 하시겠습니까?")) {
-    localStorage.removeItem("scout_userId");
-    location.href = "/login.html";
-  }
+  localStorage.removeItem("scout_userId");
+  location.href = "/login.html";
 };
 
-// 관리자 페이지로 이동
+// 관리자 페이지
 document.getElementById("adminBtn").onclick = () => {
   location.href = "/admin";
 };
 
-// 방 만들기 버튼 → socket.js에서 joinRoom 처리
+// 방 만들기 (socket.js 내부 makeRoomBtn 이벤트 발생)
 document.getElementById("makeRoomBtn").onclick = () => {
-  makeRoomBtn.click();   // socket.js 내부의 이벤트 트리거
+  makeRoomBtn.click();
 };
 </script>
 
