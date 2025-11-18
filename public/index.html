@@ -12,6 +12,7 @@ body {
   color:white;
 }
 
+/* 상단바 */
 #topBar {
   background:#1f1f1f;
   padding:15px 25px;
@@ -20,12 +21,7 @@ body {
   align-items:center;
   box-shadow:0 2px 4px rgba(0,0,0,0.3);
 }
-
-#userInfo {
-  font-size:18px;
-  font-weight:bold;
-  color:#ffc85b;
-}
+#userInfo { font-size:18px; font-weight:bold; color:#ffc85b; }
 
 button {
   padding:10px 18px;
@@ -41,6 +37,7 @@ button {
 #adminBtn { background:#3498db; color:white; }
 #adminBtn:hover { background:#217dbb; }
 
+/* 페이지 컨테이너 */
 #pageContainer {
   width:100%;
   height:calc(100vh - 70px);
@@ -62,25 +59,39 @@ button {
   margin-top:150px;
   text-align:center;
 }
+#makeRoomBtn {
+  background:#ff9800;
+  padding:18px 45px;
+  font-size:26px;
+  color:black;
+  border-radius:10px;
+  font-weight:bold;
+}
+#makeRoomBtn:hover { background:#f57c00; }
 
 /* ROOM PAGE */
-#roomTitle {
-  font-size:32px;
-  margin-bottom:20px;
+#roomTitle { font-size:32px; margin-bottom:20px; }
+#playerList { margin-top:20px; font-size:20px; min-height:150px; }
+#copyInviteBtn {
+  background:#2ecc71; color:black;
+  padding:12px 20px; border-radius:8px;
 }
-
-#playerList {
+#readyBtn {
+  background:#ffa726;
+  padding:12px 25px; 
+  border-radius:8px;
   margin-top:20px;
-  font-size:20px;
+}
+#startGameBtn {
+  background:white; color:black;
+  padding:12px 25px;
+  border-radius:8px;
+  margin-top:20px;
 }
 
 /* GAME PAGE */
-#roundInfo {
-  font-size:26px;
-  margin-bottom:20px;
-}
+#roundInfo { font-size:26px; margin-bottom:20px; }
 </style>
-
 </head>
 
 <body>
@@ -94,49 +105,27 @@ button {
   </div>
 </div>
 
-
-<!-- 🌟 페이지 컨테이너 (여기 안에서만 화면이 전환됨!) -->
+<!-- 페이지 컨테이너 (여기 내부에서만 화면 전환) -->
 <div id="pageContainer">
 
   <!-- START PAGE -->
   <div id="startPage" class="page">
     <div id="startPageContent">
-      <button id="makeRoomBtn" style="background:#ff9800; padding:18px 45px; font-size:26px; color:black; border-radius:10px; font-weight:bold;">
-        방 만들기
-      </button>
+      <button id="makeRoomBtn">방 만들기</button>
     </div>
   </div>
 
-<!-- ROOM PAGE -->
-<div id="roomPage" class="page">
+  <!-- ROOM PAGE -->
+  <div id="roomPage" class="page">
+    <h2 id="roomTitle">방번호: ----</h2>
 
-  <h2 id="roomTitle">방번호: ----</h2>
+    <button id="copyInviteBtn">초대 링크 복사</button>
 
-  <!-- 초대 링크 복사 버튼 -->
-  <button id="copyInviteBtn" 
-          style="background:#2ecc71; color:black; padding:12px 20px; border-radius:8px; margin-bottom:20px;">
-    초대 링크 복사
-  </button>
+    <div id="playerList"></div>
 
-  <!-- 참가자 리스트 -->
-  <div id="playerList"
-       style="margin-top:20px; font-size:20px; min-height:150px;">
+    <button id="readyBtn">준비</button>
+    <button id="startGameBtn">게임 시작</button>
   </div>
-
-  <!-- 레디 버튼 (방장 제외) -->
-  <button id="readyBtn"
-          style="background:#ffa726; padding:12px 25px; border-radius:8px; margin-top:20px;">
-    준비
-  </button>
-
-  <!-- 방장만 보이는 게임 시작 버튼 -->
-  <button id="startGameBtn"
-          style="background:white; color:black; padding:12px 25px; border-radius:8px; margin-top:20px;">
-    게임 시작
-  </button>
-
-</div>
-
 
   <!-- GAME PAGE -->
   <div id="gamePage" class="page">
@@ -148,13 +137,12 @@ button {
 
 </div>
 
-
 <!-- SOCKET -->
 <script src="/socket.io/socket.io.js"></script>
 <script src="/socket.js"></script>
 
 <script>
-// 닉네임 표시
+// 사용자 표시
 const userId = localStorage.getItem("scout_userId");
 if (!userId) location.href = "/login.html";
 
@@ -167,12 +155,9 @@ logoutBtn.onclick = () => {
   location.href = "/login.html";
 };
 
-// 관리자
-adminBtn.onclick = () => {
-  location.href = "/admin";
-};
+// 관리자 페이지
+adminBtn.onclick = () => location.href = "/admin";
 </script>
 
 </body>
 </html>
-
