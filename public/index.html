@@ -62,25 +62,22 @@
       <!-- 패 방향 선택 -->
       <div id="flipSelectArea" class="flip-area hidden">
         <h3 class="section-title">패 방향 선택</h3>
-
         <button id="flipToggleBtn" class="btn-main">↺ 방향 바꾸기</button>
         <br><br>
-
         <button id="flipConfirmBtn" class="btn-green" style="margin-top:10px;">
           ✔ 방향 확정
         </button>
       </div>
 
-      <!-- 내 손패 -->
+      <!-- 손패 -->
       <div id="handArea" class="handBoard"></div>
 
-      <!-- SHOW / SCOUT -->
+      <!-- 버튼 -->
       <div class="action-row">
         <button id="showBtn" class="btn-main same">SHOW</button>
         <button id="scoutBtn" class="btn-orange same">SCOUT</button>
         <button id="showScoutBtn" class="btn-purple same">SHOW & SCOUT</button>
       </div>
-
     </div>
   </div>
 
@@ -110,30 +107,29 @@
 <script type="module" src="./roomUI.js"></script>
 <script type="module" src="./gameUI.js"></script>
 
-<!-- 자동 초대 링크 입장 -->
+<!-- ========================================================= -->
+<!-- 초대 링크 자동 입장 (닉네임 2번 입력되는 문제 해결)       -->
+<!-- ========================================================= -->
 <script>
 window.addEventListener("DOMContentLoaded", () => {
   const params = new URLSearchParams(location.search);
   const invitedRoom = params.get("room");
 
   if (invitedRoom) {
-    const nickname = prompt("닉네임을 입력하세요:");
-    if (!nickname) return alert("닉네임이 필요합니다!");
-
+    // 여기서는 닉네임을 묻지 않음!! (중복입력 방지)
     window.roomId = invitedRoom;
-    window.myName = nickname;
 
-    // 초대 링크 = 항상 NEW permUid
+    // 초대 손님은 항상 새로운 permUid 생성
     window.permUid = crypto.randomUUID();
 
-    window.socket.emit("joinRoom", {
-      roomId,
-      nickname: myName,
-      permUid: window.permUid
-    });
+    // 닉네임은 socket.js에서 단 한 번만 입력받음
+    window.showPage("startPage");
 
-    roomTitle.innerText = `방번호: ${roomId}`;
-    window.showPage("roomPage");
+    // 자동으로 닉네임 입력창에 포커스
+    document.getElementById("nicknameInput").focus();
+
+    // 방 번호 표시
+    roomTitle.innerText = `방번호: ${invitedRoom}`;
   }
 });
 </script>
