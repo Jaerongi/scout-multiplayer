@@ -47,13 +47,15 @@ socket.on("connect", () => {
 // 방 만들기 버튼
 window.addEventListener("load", () => {
   const makeBtn = document.getElementById("makeRoomBtn");
-  console.log("gameUI.js LOADED");
+  console.log("방 만들기 클릭됨");
+
   if (makeBtn) {
     makeBtn.onclick = () => {
       const id = generateRoomId();
       window.roomId = id;
 
       socket.emit("joinRoom", {
+        console.log("joinRoom emit 보냄", id, window.userId);
         roomId: id,
         userId: window.userId
       });
@@ -146,5 +148,6 @@ function generateRoomId() {
   for (let i = 0; i < 6; i++) r += chars[Math.floor(Math.random()*chars.length)];
   return r;
 }
+
 
 
