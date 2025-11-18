@@ -87,38 +87,37 @@ enterRoomBtn.onclick = () => {
 // playerListUpdate — 방 UI 핵심
 // =====================================================
 socket.on("playerListUpdate", (data) => {
-  const { roomId, players } = data;
+  if (!data || !data.players) {
+    console.warn("⚠ playerListUpdate: players 없음");
+    return;
+  }
 
-  console.log("📡 playerListUpdate:", data);
+  const { roomId, players } = data;
 
   window.roomId = roomId;
   window.players = players;
 
-  // 🔥 내가 아직 players에 없다면 = joinRoom 미완료 → 무시
+  // 내 정보가 없으면 서버가 아직 등록하지 않은 상태 → 무시 OK
   if (!players[window.permUid]) {
-    console.warn("⛔ joinRoom 미완료 → playerListUpdate 무시");
+    console.warn("⚠ 내 permUid가 아직 players에 없음. 재대기");
     return;
   }
 
-  // 내 정보 세팅
   window.myName = players[window.permUid].nickname;
 
-  // 처음 진입 시 roomPage로 이동
-  const roomPageVisible =
-    document.getElementById("roomPage").style.display === "block";
-  const gamePageVisible =
-    document.getElementById("gamePage").style.display === "block";
+  const roomPageVisible = document.getElementById("roomPage").style.display === "block";
+  const gamePageVisible = document.getElementById("gamePage").style.display === "block";
 
   if (!roomPageVisible && !gamePageVisible) {
     document.getElementById("roomTitle").innerText = `방번호: ${roomId}`;
     showPage("roomPage");
   }
 
-  // 방 UI 렌더링
   if (typeof window.renderRoomPlayers === "function") {
     window.renderRoomPlayers(players);
   }
 });
+
 
 
 // =====================================================
@@ -219,3 +218,4 @@ function generateRoomId() {
 }
 
 console.log("socket.js loaded (GLOBAL VERSION)");
+
