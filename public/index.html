@@ -1,24 +1,13 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>SCOUT MULTIPLAYER</title>
-  <link rel="stylesheet" href="/style.css" />
-
-  <!-- ❗ shared.js 삭제됨 (404 해결) -->
-  <!-- <script src="/shared.js"></script> -->
+  <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
-
-  <!-- ========================================================= -->
-  <!-- 로그인 페이지는 login.html에서 처리 (여기엔 없음)       -->
-  <!-- ========================================================= -->
-
-
-  <!-- ========================================================= -->
-  <!-- START PAGE (방 만들기 페이지)                             -->
-  <!-- ========================================================= -->
+  <!-- START PAGE -->
   <div id="startPage" class="page" style="display:none;">
     <h2>SCOUT MULTIPLAYER</h2>
 
@@ -27,23 +16,16 @@
     </div>
 
     <div style="margin-top:20px;">
-      <button id="gotoAdminBtn" onclick="location.href='/admin.html'" class="btn-small">
-        관리자 권한
-      </button>
+      <button onclick="location.href='/admin.html'" class="btn-small">관리자 권한</button>
     </div>
 
     <div style="margin-top:20px;">
-      <button id="logoutBtn" onclick="logout()" class="btn-small">로그아웃</button>
+      <button onclick="logout()" class="btn-small">로그아웃</button>
     </div>
   </div>
 
-
-
-  <!-- ========================================================= -->
-  <!-- ROOM PAGE (대기실)                                        -->
-  <!-- ========================================================= -->
+  <!-- ROOM PAGE -->
   <div id="roomPage" class="page" style="display:none;">
-
     <h2 id="roomTitle">방번호:</h2>
 
     <div style="margin-top:15px;">
@@ -60,44 +42,25 @@
     <div style="margin-top:20px;">
       <button id="startGameBtn" class="btn-big">게임 시작</button>
     </div>
-
   </div>
 
-
-
-  <!-- ========================================================= -->
-  <!-- GAME PAGE (기존 gameUI.js 화면 그대로)                    -->
-  <!-- ========================================================= -->
+  <!-- GAME PAGE -->
   <div id="gamePage" class="page" style="display:none;">
-
     <div id="roundInfo" class="round-info"></div>
-
     <div id="turnInfo" class="turn-info"></div>
 
-    <!-- 테이블 카드 -->
     <div id="tableArea" class="table-area"></div>
-
-    <!-- 내 패 -->
     <div id="handArea" class="hand-area"></div>
-
-    <!-- 게임 상태 표시 (라운드 승자, 최종 승자 등) -->
     <div id="popupArea"></div>
-
   </div>
 
-
-
-  <!-- ========================================================= -->
-  <!-- SCRIPT LOAD                                               -->
-  <!-- ========================================================= -->
+  <!-- LOAD SOCKET FIRST -->
   <script src="/socket.io/socket.io.js"></script>
+  <script src="/socket.js"></script>
 
-  <!-- 선한피클님 원본 UI -->
+  <!-- UI FILES (소켓 뒤에 와야 함) -->
   <script src="/roomUI.js"></script>
   <script src="/gameUI.js"></script>
-
-  <!-- 동작 제어 -->
-  <script src="/socket.js"></script>
 
   <script>
     function logout() {
@@ -105,6 +68,5 @@
       location.href = "/login.html";
     }
   </script>
-
 </body>
 </html>
