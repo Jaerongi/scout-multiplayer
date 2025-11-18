@@ -1,5 +1,5 @@
 /* ====================================================== */
-/* GLOBAL */
+/* PREMIUM BOARDGAME THEME                                */
 /* ====================================================== */
 
 body {
@@ -11,17 +11,11 @@ body {
   overflow-x: hidden;
 }
 
-.page { display:none; }
-.page.visible { display:block; }
+/* page control */
+.page { display: none; }
+.page.visible { display: block; }
 
-input, button {
-  font-family: inherit;
-}
-
-/* ====================================================== */
-/* PANEL / BOARD */
-/* ====================================================== */
-
+/* center layout */
 .board-panel,
 .sideBoard,
 .mainBoard,
@@ -35,73 +29,36 @@ input, button {
   margin: 20px auto;
 }
 
-/* Title */
-.game-title,
-.title-board {
+/* titles */
+.game-title, .title-board {
   text-align: center;
   color: #ffecc5;
   font-size: 36px;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .section-title {
-  font-size: 24px;
-  margin: 14px 0 8px;
+  font-size: 26px;
+  margin-top: 12px;
   color: #f5e3b8;
 }
 
-/* Input */
-.input-box {
-  width: 80%;
-  padding: 12px;
-  font-size: 18px;
-  border-radius: 8px;
-  border: 1px solid rgba(255,215,130,0.4);
-  background: rgba(50,50,50,0.8);
-  color: #ffecc5;
-  outline: none;
-  margin-bottom: 14px;
-}
-
-/* ====================================================== */
-/* BUTTONS */
-/* ====================================================== */
-
+/* buttons */
 button {
   background: linear-gradient(#3b301a, #221c11);
   border: 1px solid rgba(255,215,130,0.5);
   color: #ffeec7;
-  padding: 12px 20px;
+  padding: 12px 22px;
   border-radius: 8px;
-  cursor: pointer;
   font-size: 18px;
-  transition: 0.15s;
+  cursor: pointer;
 }
 button:hover {
   background: linear-gradient(#4a3d23, #2c2415);
   border-color: #ffd76e;
 }
 
-.btn-main { }
-.btn-green { background: #2e7d32 !important; }
-.btn-orange { background: #b85a00 !important; }
-.btn-purple { background: #5c2f91 !important; }
-.btn-sub { background: #505050 !important; }
-
-.large {
-  font-size: 22px;
-  padding: 14px 30px;
-}
-
-.small {
-  font-size: 15px;
-  padding: 8px 14px;
-}
-
-/* ====================================================== */
-/* PLAYER LIST */
-/* ====================================================== */
-
+/* players */
 .playerBox {
   background: rgba(50,50,50,0.75);
   border: 1px solid rgba(255,215,130,0.3);
@@ -112,7 +69,7 @@ button:hover {
 }
 
 .offlinePlayer {
-  opacity: 0.35;
+  opacity: 0.3;
   filter: grayscale(1);
 }
 
@@ -121,56 +78,18 @@ button:hover {
   border-color: #ffd76e !important;
 }
 
-/* ====================================================== */
-/* TABLE */
-/* ====================================================== */
-
-.tableBoard {
-  display: flex;
-  gap: 18px;
-  justify-content: center;
-  padding: 15px 10px;
-}
-
-.tableCardWrap {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* 왼/오른쪽 테두리 강조 */
-.highlightScout {
-  border: 2px solid #ffd76e;
-  box-shadow: 0 0 12px #ffdf8e;
-  border-radius: 10px;
-  padding: 4px;
-}
-
-/* 테이블 하단 가져오기 버튼 */
-.scoutBtnZone {
-  margin-top: 8px;
-  display: flex;
-  gap: 6px;
-}
-
-/* ====================================================== */
-/* HAND (slide 1-line) */
-/* ====================================================== */
-
+/* HAND - 1 LINE */
 .handBoard {
   display: flex;
   flex-wrap: nowrap;
   overflow-x: auto;
-  gap: 12px;
+  gap: 10px;
   padding: 10px;
 }
-
 .card-wrapper {
   border: 2px solid transparent;
   border-radius: 10px;
   cursor: pointer;
-  padding: 3px;
 }
 .card-wrapper.selected {
   border-color: #ffd76e;
@@ -181,117 +100,103 @@ button:hover {
   height: 160px;
 }
 
-/* ====================================================== */
-/* FLIP SELECT AREA */
-/* ====================================================== */
-
-.flip-area {
-  background: rgba(40,40,40,0.75);
-  border-radius: 12px;
-  border: 1px solid rgba(255,215,130,0.35);
-  padding: 16px;
-  text-align: center;
-  margin-bottom: 15px;
-}
-.flip-area.hidden {
-  display: none !important;
-}
-
-/* ====================================================== */
-/* ACTION BUTTON ROW (BOTTOM FIXED) */
-/* ====================================================== */
-
-.action-row {
+/* TABLE */
+.tableBoard {
   display: flex;
+  gap: 14px;
   justify-content: center;
-  gap: 20px;
-  padding: 18px;
-  position: sticky;
-  bottom: 0;
-  background: rgba(20,20,20,0.9);
-  border-top: 1px solid rgba(255,215,130,0.25);
+  padding: 12px;
 }
 
-/* ====================================================== */
-/* INSERT OVERLAY (B STYLE) */
-/* ====================================================== */
-
-.insert-overlay {
+/* MODAL */
+.modal {
   position: fixed;
-  top:0; left:0;
-  width:100%; height:100%;
-  background: rgba(0,0,0,0.75);
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.65);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 9999;
 }
-.insert-overlay.hidden {
+
+/* 🔥 critical fix */
+.modal.hidden {
   display: none !important;
 }
 
-.insert-box {
-  background: rgba(30,30,30,0.95);
-  padding: 30px;
-  border: 2px solid rgba(255,215,130,0.5);
+.modal-box {
+  background: rgba(45,45,45,0.95);
+  border: 2px solid rgba(255,215,130,0.55);
   border-radius: 14px;
-  width: 420px;
-  max-height: 80vh;
-  overflow-y: auto;
+  padding: 30px;
+  width: 320px;
   text-align: center;
 }
 
-.insertSlots {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  gap: 12px;
-  padding: 12px 0;
-}
-
-/* + 버튼 */
-.insertSlot {
-  width: 50px;
-  height: 50px;
-  border-radius: 12px;
-  background: rgba(255,215,130,0.15);
-  border: 2px solid rgba(255,215,130,0.4);
-  color: #ffecc5;
-  font-size: 30px;
-  line-height: 46px;
-  text-align: center;
-  cursor: pointer;
-}
-.insertSlot:hover {
-  background: rgba(255,215,130,0.3);
-}
-
-.insertPreviewCard {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* ====================================================== */
-/* MOBILE */
-/* ====================================================== */
-
-@media (max-width: 600px) {
+/* mobile */
+@media (max-width:600px) {
   .game-title { font-size: 28px; }
   .section-title { font-size: 20px; }
-
   button {
     font-size: 16px;
     padding: 10px 16px;
   }
-
   .card-wrapper canvas {
-    width: 90px;
-    height: 135px;
-  }
-
-  .insert-box {
-    width: 90%;
+    width: 85px;
+    height: 120px;
   }
 }
+/* ========================= */
+/* 패 방향 선택 UI */
+/* ========================= */
+.flip-area {
+  background: rgba(40,40,40,0.75);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,215,130,0.4);
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.flip-btn-row {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+}
+
+.flip-area.hidden {
+  display: none !important;
+}
+
+/* ========================= */
+/* 하단 버튼 3개 고정 */
+/* ========================= */
+.action-row {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
+  position: sticky;  /* 화면 하단 고정 */
+  bottom: 0;
+  background: rgba(15,15,15,0.9);
+  border-top: 1px solid rgba(255,215,130,0.2);
+}
+
+.action-row button {
+  font-size: 22px;
+  padding: 14px 26px;
+}
+
+.flip-area {
+  background: rgba(40,40,40,0.75);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,215,130,0.4);
+  margin-bottom: 12px;
+  text-align: center;
+}
+.flip-area.hidden {
+  display: none !important;
+}
+
