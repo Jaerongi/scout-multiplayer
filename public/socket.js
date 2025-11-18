@@ -118,13 +118,14 @@ socket.on("goGamePage", () => {
 });
 
 // GAME UI INTERFACE
-socket.on("yourHand", renderHand);
-socket.on("tableUpdate", renderTable);
-socket.on("turnChange", updateTurnHighlight);
-socket.on("roundStart", startRoundUI);
-socket.on("roundEnd", showRoundWinner);
-socket.on("gameOver", showFinalWinner);
-socket.on("restoreState", restoreGameUI);
+socket.on("yourHand", (hand) => window.renderHand(hand));
+socket.on("tableUpdate", (cards) => window.renderTable(cards));
+socket.on("turnChange", (uid) => window.updateTurnHighlight(uid));
+socket.on("roundStart", (d) => window.startRoundUI(d));
+socket.on("roundEnd", (d) => window.showRoundWinner(d));
+socket.on("gameOver", (d) => window.showFinalWinner(d));
+socket.on("restoreState", (d) => window.restoreGameUI(d));
+
 
 // 방 폭파 / 강퇴
 socket.on("kicked", () => {
@@ -144,3 +145,4 @@ function generateRoomId() {
   for (let i = 0; i < 6; i++) r += chars[Math.floor(Math.random()*chars.length)];
   return r;
 }
+
