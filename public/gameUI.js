@@ -122,12 +122,22 @@ function renderTable() {
     const wrap = document.createElement("div");
     wrap.className = "table-card-wrapper";
 
-    // 카드 표시
+    // 카드 이미지
     const cardCanvas = drawScoutCard(c.top, c.bottom);
     wrap.appendChild(cardCanvas);
 
-    // SCOUT 가능한 경우 → 테두리 형광 + 가져오기 버튼 생성
-    if (myTurn && !flipSelect && scoutMode) {
+    // SCOUT 가능한지 체크
+    const canScout =
+      myTurn &&
+      !flipSelect &&
+      scoutMode &&
+      (
+        tableCards.length === 1 ||
+        (tableCards.length === 2 && (idx === 0 || idx === 1)) ||
+        (tableCards.length >= 3 && (idx === 0 || idx === tableCards.length - 1))
+      );
+
+    if (canScout) {
       wrap.classList.add("scout-glow");
 
       const btn = document.createElement("button");
@@ -135,11 +145,13 @@ function renderTable() {
       btn.innerText = "가져오기";
 
       btn.onclick = () => {
-        // 사이드 계산
+        // 어떤 쪽인지 결정
         if (tableCards.length === 1) {
           scoutTargetSide = "left";
-        } else {
-          scoutTargetSide = idx === 0 ? "left" : "right";
+        } else if (idx === 0) {
+          scoutTargetSide = "left";
+        } else if (idx === tableCards.length - 1) {
+          scoutTargetSide = "right";
         }
 
         scoutModal.classList.remove("hidden");
@@ -326,3 +338,4 @@ socket.on("turnChange", (uid) => {
   renderTable();
   updateActionButtons();
 });
+
