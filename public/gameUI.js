@@ -1,5 +1,5 @@
 // ======================================================
-// GAME UI — SCOUT 패 방향 선택 + SHOW + SCOUT + TURN UI
+// GAME UI — 완전 복원본 (테이블 가져오기 버튼 + 패 사이 + 버튼 + 하이라이트)
 // ======================================================
 
 import { drawScoutCard } from "./cardEngine.js";
@@ -28,13 +28,9 @@ const modalKeep = document.getElementById("modalKeep");
 const modalReverse = document.getElementById("modalReverse");
 const modalClose = document.getElementById("modalClose");
 
-// Insert position modal
-const insertModal = document.getElementById("insertModal");
-const insertModalContent = document.getElementById("insertModalContent");
-
-// ======================================================
+// ================================
 // STATE
-// ======================================================
+// ================================
 let players = {};
 let tableCards = [];
 let myHand = [];
@@ -42,16 +38,16 @@ let selected = new Set();
 
 let myTurn = false;
 
-let flipSelect = true;      // 패 방향 선택 중
-let flipReversed = false;   // false=정방향, true=뒤집힌 상태
+let flipSelect = true;
+let flipReversed = false;
 
-// SCOUT state
+// SCOUT temp state
 let scoutTargetSide = null;
 let scoutFlip = false;
 
-// ======================================================
-// 플레이어 리스트
-// ======================================================
+// ================================
+// PLAYER LIST RENDER
+// ================================
 function renderPlayers() {
   gamePlayerList.innerHTML = "";
 
@@ -71,12 +67,16 @@ function renderPlayers() {
   });
 }
 
-// ======================================================
-// 핸드 렌더링
-// ======================================================
+// ================================
+// HAND RENDER
+// ================================
 function getDisplayedHand() {
   if (!flipReversed) return myHand;
-  return myHand.map((c) => ({ top: c.bottom, bottom: c.top }));
+
+  return myHand.map((c) => ({
+    top: c.bottom,
+    bottom: c.top
+  }));
 }
 
 function renderHand() {
@@ -105,9 +105,9 @@ function renderHand() {
   });
 }
 
-// ======================================================
-// 테이블 렌더링
-// ======================================================
+// ================================
+// TABLE RENDER (가져오기 버튼 + 하이라이트)
+// ================================
 function renderTable() {
   tableArea.innerHTML = "";
 
@@ -118,22 +118,41 @@ function renderTable() {
 
   tableCards.forEach((c, idx) => {
     const wrap = document.createElement("div");
+    wrap.style.textAlign = "center";
+
+    // 하이라이트 (좌/우만 선택 가능)
+    if (myTurn && !flipSelect) {
+      if (idx === 0 || idx === tableCards.length - 1) {
+        wrap.style.filter = "brightness(1)";
+      } else {
+        wrap.style.filter = "brightness(0.4)";
+      }
+    }
+
     wrap.appendChild(drawScoutCard(c.top, c.bottom));
 
-    wrap.onclick = () => {
-      if (!myTurn || flipSelect) return;
+    // ★ 가져오기 버튼 복원
+    if (myTurn && !flipSelect && (idx === 0 || idx === tableCards.length - 1)) {
+      const btn = document.createElement("button");
+      btn.innerText = "가져오기";
+      btn.className = "btn-orange small";
+      btn.style.marginTop = "6px";
 
-      scoutTargetSide = idx === 0 ? "left" : "right";
-      scoutModal.classList.remove("hidden");
-    };
+      btn.onclick = () => {
+        scoutTargetSide = idx === 0 ? "left" : "right";
+        scoutModal.classList.remove("hidden");
+      };
+
+      wrap.appendChild(btn);
+    }
 
     tableArea.appendChild(wrap);
   });
 }
 
-// ======================================================
-// 턴 하이라이트
-// ======================================================
+// ================================
+// 턴 표시
+// ================================
 function highlightTurn(uid) {
   const arr = Object.values(players);
   const boxes = gamePlayerList.children;
@@ -144,9 +163,9 @@ function highlightTurn(uid) {
   });
 }
 
-// ======================================================
-// 버튼 활성화
-// ======================================================
+// ================================
+// Action Button Control
+// ================================
 function updateActionButtons() {
   const active = myTurn && !flipSelect;
 
@@ -156,9 +175,9 @@ function updateActionButtons() {
   });
 }
 
-// ======================================================
+// ================================
 // SHOW
-// ======================================================
+// ================================
 showBtn.onclick = () => {
   if (!myTurn || flipSelect) return;
 
@@ -170,13 +189,13 @@ showBtn.onclick = () => {
   socket.emit("show", {
     roomId,
     permUid: window.permUid,
-    cards: chosen,
+    cards: chosen
   });
 };
 
-// ======================================================
-// SCOUT 버튼
-// ======================================================
+// ================================
+// SCOUT 클릭 → 우선 방향 모달
+// ================================
 scoutBtn.onclick = () => {
   if (!myTurn || flipSelect) return;
   if (tableCards.length === 0) return;
@@ -185,60 +204,59 @@ scoutBtn.onclick = () => {
 };
 
 modalClose.onclick = () => scoutModal.classList.add("hidden");
-
 modalKeep.onclick = () => {
   scoutFlip = false;
   scoutModal.classList.add("hidden");
-  chooseInsertPosition();
+  renderInsertButtons();
 };
-
 modalReverse.onclick = () => {
   scoutFlip = true;
   scoutModal.classList.add("hidden");
-  chooseInsertPosition();
+  renderInsertButtons();
 };
 
-// ======================================================
-// SCOUT → 삽입 위치 선택
-// ======================================================
-function chooseInsertPosition() {
-  insertModalContent.innerHTML = `<h3>삽입 위치 선택</h3><br>`;
+// ================================
+// ★ 패 사이에 + 버튼 생성 (복원본)
+// ================================
+function renderInsertButtons() {
+  // 기존 insert 버튼 삭제
+  document.querySelectorAll(".insert-btn").forEach(el => el.remove());
 
-  for (let i = 0; i <= myHand.length; i++) {
+  const cards = handArea.children;
+
+  for (let i = 0; i <= cards.length; i++) {
     const btn = document.createElement("button");
-    btn.innerText = `${i} 번째`;
-    btn.className = "btn-main small";
-    btn.style.margin = "4px";
+    btn.innerText = "+";
+    btn.className = "insert-btn";
+    btn.style.margin = "6px";
+    btn.style.padding = "4px 8px";
+    btn.style.background = "#333";
+    btn.style.border = "1px solid #ffd76e";
+    btn.style.color = "#ffd76e";
+    btn.style.borderRadius = "6px";
+    btn.style.cursor = "pointer";
 
     btn.onclick = () => {
-      insertModal.classList.add("hidden");
-
       socket.emit("scout", {
         roomId,
         permUid: window.permUid,
         side: scoutTargetSide,
         flip: scoutFlip,
-        pos: i,
+        pos: i
       });
+
+      // 선택 후 버튼 제거
+      document.querySelectorAll(".insert-btn").forEach(el => el.remove());
     };
 
-    insertModalContent.appendChild(btn);
+    if (i < cards.length) handArea.insertBefore(btn, cards[i]);
+    else handArea.appendChild(btn);
   }
-
-  const close = document.createElement("button");
-  close.innerText = "닫기";
-  close.className = "btn-sub small";
-  close.onclick = () => insertModal.classList.add("hidden");
-
-  insertModalContent.appendChild(document.createElement("br"));
-  insertModalContent.appendChild(close);
-
-  insertModal.classList.remove("hidden");
 }
 
-// ======================================================
-// 패 방향 선택 UI
-// ======================================================
+// ================================
+// 패 방향 선택
+// ================================
 flipToggleBtn.onclick = () => {
   flipReversed = !flipReversed;
   renderHand();
@@ -250,9 +268,9 @@ flipConfirmBtn.onclick = () => {
   updateActionButtons();
 };
 
-// ======================================================
+// ================================
 // SOCKET EVENTS
-// ======================================================
+// ================================
 socket.on("playerListUpdate", (p) => {
   players = p;
   renderPlayers();
@@ -289,7 +307,6 @@ socket.on("tableUpdate", (cards) => {
   updateActionButtons();
 });
 
-// 턴 변경 (permUid 기준)
 socket.on("turnChange", (uid) => {
   myTurn = uid === window.permUid;
 
