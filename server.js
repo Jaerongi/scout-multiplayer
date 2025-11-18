@@ -1,6 +1,6 @@
 // =====================================================
-// SCOUT MULTIPLAYER — SERVER FULL VERSION (FINAL 2025)
-// 회원가입 / 로그인 / 관리자 / 게임 / 라운드 / 초대링크
+// SCOUT MULTIPLAYER — SERVER FINAL (CLIENT UI 완전 호환)
+// 회원가입 + 로그인 + 초대링크 + 대기실 + 게임로직 완전정상
 // =====================================================
 
 import express from "express";
@@ -15,21 +15,19 @@ const io = new Server(httpServer);
 
 const __dirname = path.resolve();
 
-/* -----------------------------------------------------
- * JSON DB
- * --------------------------------------------------- */
+// -----------------------------------------------------
+// JSON DB (회원 저장)
+// -----------------------------------------------------
 function loadUserDB() {
-  try { return JSON.parse(fs.readFileSync("./userDB.json", "utf8")); }
-  catch { return { users: {} }; }
+  try {
+    return JSON.parse(fs.readFileSync("./userDB.json", "utf8"));
+  } catch {
+    return { users: {} };
+  }
 }
 
 function saveUserDB(db) {
   fs.writeFileSync("./userDB.json", JSON.stringify(db, null, 2));
-}
-
-function loadAdminDB() {
-  try { return JSON.parse(fs.readFileSync("./adminDB.json", "utf8")); }
-  catch { return { admin: { id: "관리자", pw: "1021" } }; }
 }
 
 function shortUUID() {
@@ -40,21 +38,25 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 
-/* -----------------------------------------------------
- * 회원 로그인 API
- * --------------------------------------------------- */
+// =====================================================
+// 회원 로그인 API  (닉네임 입력 → userId 생성)
+// =====================================================
 app.post("/api/login", (req, res) => {
   const nickname = req.body.nickname.trim();
   if (!nickname) return res.json({ ok: false });
 
   const db = loadUserDB();
 
+  // 이미 있으면 로그인 성공
   const exist = Object.keys(db.users).find(
     uid => db.users[uid].nickname === nickname
   );
 
-  if (exist) return res.json({ ok: true, userId: exist });
+  if (exist) {
+    return res.json({ ok: true, userId: exist });
+  }
 
+  // 신규 회원
   const tag = shortUUID();
   const userId = `${nickname}-${tag}`;
 
@@ -65,25 +67,26 @@ app.post("/api/login", (req, res) => {
 });
 
 
-/* -----------------------------------------------------
- * 관리자 API
- * --------------------------------------------------- */
+// =====================================================
+// 관리자 API
+// =====================================================
 app.post("/api/admin/login", (req, res) => {
   const { id, pw } = req.body;
-  const admin = loadAdminDB().admin;
-
-  res.json({ ok: admin.id === id && admin.pw === pw });
+  if (id === "관리자" && pw === "1021") {
+    return res.json({ ok: true });
+  }
+  res.json({ ok: false });
 });
 
 app.get("/api/admin/users", (req, res) => {
   const db = loadUserDB();
-  res.json(Object.keys(db.users).map(uid => db.users[uid].nickname));
+  res.json(Object.values(db.users).map(u => u.nickname));
 });
 
 app.post("/api/admin/deleteUser", (req, res) => {
   const { nickname } = req.body;
-
   const db = loadUserDB();
+
   const key = Object.keys(db.users).find(
     uid => db.users[uid].nickname === nickname
   );
@@ -95,14 +98,10 @@ app.post("/api/admin/deleteUser", (req, res) => {
   res.json({ ok: true });
 });
 
-app.get("/admin", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/admin.html"));
-});
 
-
-/* -----------------------------------------------------
- * 게임 자료구조 + 덱 생성
- * --------------------------------------------------- */
+// =====================================================
+// 게임 자료구조 + 덱 생성
+// =====================================================
 const rooms = {};
 
 function createDeck() {
@@ -126,7 +125,9 @@ function shuffle(a) {
 function deal(playerCount) {
   let deck = shuffle(createDeck());
 
-  if (playerCount === 3) deck = deck.filter(c => c.top !== 10 && c.bottom !== 10);
+  if (playerCount === 3)
+    deck = deck.filter(c => c.top !== 10 && c.bottom !== 10);
+
   if (playerCount === 2 || playerCount === 4)
     while (deck.length > 44) deck.pop();
 
@@ -148,23 +149,24 @@ function deal(playerCount) {
 }
 
 
-/* -----------------------------------------------------
- * SOCKET.IO
- * --------------------------------------------------- */
+// =====================================================
+// SOCKET.IO (client UI 구조 100% 호환)
+// =====================================================
 io.on("connection", (socket) => {
 
-  /* -----------------------------
-   * JOIN ROOM  (★중요: playerListUpdate 위치 수정 완료)
-   * --------------------------- */
+  // ---------------------------------------------------
+  // JOIN ROOM  (userId 기반)
+  // ---------------------------------------------------
   socket.on("joinRoom", ({ roomId, userId }) => {
     if (!roomId || !userId) return;
 
     const db = loadUserDB();
-    if (!db.users[userId]) return;
+    if (!db.users[userId]) return; // 잘못된 회원
 
     const nickname = db.users[userId].nickname;
     socket.join(roomId);
 
+    // 방 생성
     if (!rooms[roomId]) {
       rooms[roomId] = {
         roomId,
@@ -183,6 +185,7 @@ io.on("connection", (socket) => {
     const room = rooms[roomId];
     const first = Object.keys(room.players).length === 0;
 
+    // 신규 입장 또는 재접속
     if (!room.players[userId]) {
       room.players[userId] = {
         uid: userId,
@@ -194,17 +197,17 @@ io.on("connection", (socket) => {
         score: 0,
         isOnline: true
       };
-      if (first) room.host = userId;
 
+      if (first) room.host = userId;
     } else {
       room.players[userId].socketId = socket.id;
       room.players[userId].isOnline = true;
     }
 
-    // ★ 플레이어 목록 업데이트 (정확한 위치)
+    // 대기실 업데이트
     io.to(roomId).emit("playerListUpdate", room.players);
 
-    // ★ 게임 중 재접속 복구
+    // 게임 중이면 복구
     if (room.turnOrder.length > 0) {
       const p = room.players[userId];
       io.to(socket.id).emit("restoreState", {
@@ -219,9 +222,7 @@ io.on("connection", (socket) => {
   });
 
 
-  /* -----------------------------
-   * READY
-   * --------------------------- */
+  // READY
   socket.on("playerReady", ({ roomId, userId }) => {
     const room = rooms[roomId];
     if (!room) return;
@@ -233,39 +234,37 @@ io.on("connection", (socket) => {
   });
 
 
-  /* -----------------------------
-   * GAME START
-   * --------------------------- */
+  // START GAME
   socket.on("startGame", ({ roomId, userId }) => {
     const room = rooms[roomId];
     if (!room) return;
     if (room.host !== userId) return;
 
-    const ready = Object.values(room.players)
+    const readyOK = Object.values(room.players)
       .filter(p => !p.isHost)
       .every(p => p.ready);
 
-    if (!ready) return;
+    if (!readyOK) return;
 
     room.totalRounds = Object.keys(room.players).length;
     room.round = 1;
     room.startIndex = 0;
 
+    // 점수 초기화
     for (const uid of Object.keys(room.players))
       room.players[uid].score = 0;
 
-    startRound(room);  // ★ gamePage 이동 포함
+    startRound(room);
   });
 
 
-  /* -----------------------------
-   * SHOW
-   * --------------------------- */
+  // SHOW
   socket.on("show", ({ roomId, userId, cards }) => {
     const room = rooms[roomId];
     if (!room) return;
 
     const p = room.players[userId];
+
     p.score += room.table.length;
 
     p.hand = p.hand.filter(
@@ -283,16 +282,14 @@ io.on("connection", (socket) => {
   });
 
 
-  /* -----------------------------
-   * SCOUT
-   * --------------------------- */
+  // SCOUT
   socket.on("scout", ({ roomId, userId, side, flip, pos }) => {
     const room = rooms[roomId];
     if (!room || room.table.length === 0) return;
 
     let card;
     if (room.table.length === 1) card = room.table.pop();
-    else card = side === "left" ? room.table.shift() : room.table.pop();
+    else card = (side === "left") ? room.table.shift() : room.table.pop();
 
     if (flip) card = { top: card.bottom, bottom: card.top };
 
@@ -301,8 +298,9 @@ io.on("connection", (socket) => {
     pos = Math.max(0, Math.min(p.hand.length, pos));
     p.hand.splice(pos, 0, card);
 
-    if (room.lastShowPlayer && room.lastShowPlayer !== userId)
+    if (room.lastShowPlayer && room.lastShowPlayer !== userId) {
       room.players[room.lastShowPlayer].score += 1;
+    }
 
     io.to(p.socketId).emit("yourHand", p.hand);
     io.to(roomId).emit("tableUpdate", room.table);
@@ -312,9 +310,7 @@ io.on("connection", (socket) => {
   });
 
 
-  /* -----------------------------
-   * 강퇴
-   * --------------------------- */
+  // 강퇴
   socket.on("kickPlayer", ({ roomId, targetUid, userId }) => {
     const room = rooms[roomId];
     if (!room) return;
@@ -331,9 +327,7 @@ io.on("connection", (socket) => {
   });
 
 
-  /* -----------------------------
-   * DISCONNECT (방장 나가면 방 폭파)
-   * --------------------------- */
+  // DISCONNECT
   socket.on("disconnect", () => {
     for (const rid in rooms) {
       const room = rooms[rid];
@@ -344,7 +338,7 @@ io.on("connection", (socket) => {
         if (p.socketId === socket.id) {
           p.isOnline = false;
 
-          if (room.host === uid) {
+          if (uid === room.host) {
             io.to(rid).emit("roomClosed");
             delete rooms[rid];
             return;
@@ -355,16 +349,15 @@ io.on("connection", (socket) => {
       io.to(rid).emit("playerListUpdate", room.players);
     }
   });
-
 });
 
 
-/* -----------------------------------------------------
- * ROUND START  (★ gamePage 이동 포함)
- * --------------------------------------------------- */
+// =====================================================
+// ROUND START  (UI 그대로 유지하는 버전)
+// =====================================================
 function startRound(room) {
 
-  // ★ 이 타이밍이 가장 안정적 — UI 세팅 완료 후 gamePage로 전환됨
+  // 기존 UI 흐름 그대로 gamePage로 이동
   io.to(room.roomId).emit("goGamePage");
 
   const uids = Object.keys(room.players);
@@ -385,7 +378,7 @@ function startRound(room) {
     startingPlayer: room.turnOrder[room.currentTurn]
   });
 
-  uids.forEach((uid) => {
+  uids.forEach(uid => {
     const p = room.players[uid];
     if (p.isOnline) io.to(p.socketId).emit("yourHand", p.hand);
   });
@@ -394,9 +387,9 @@ function startRound(room) {
 }
 
 
-/* -----------------------------------------------------
- * NEXT TURN
- * --------------------------------------------------- */
+// =====================================================
+// NEXT TURN
+// =====================================================
 function nextTurn(room) {
   const total = room.turnOrder.length;
 
@@ -408,27 +401,29 @@ function nextTurn(room) {
 
     if (!p.isOnline) continue;
 
+    // 라운드 종료
     if (room.lastShowPlayer && room.lastShowPlayer === uid) {
       const winner = room.lastShowPlayer;
 
-      for (const u of Object.keys(room.players)) {
+      // 패널티
+      for (const u of Object.keys(room.players))
         if (u !== winner)
           room.players[u].score -= room.players[u].hand.length;
-      }
 
       io.to(room.roomId).emit("roundEnd", {
         winner,
         players: room.players
       });
 
+      // 전체 게임 종료?
       if (room.round >= room.totalRounds) {
         let finalWinner = null;
-        let max = -99999;
+        let max = -999999;
 
-        for (const uid of Object.keys(room.players)) {
-          if (room.players[uid].score > max) {
-            max = room.players[uid].score;
-            finalWinner = uid;
+        for (const u of Object.keys(room.players)) {
+          if (room.players[u].score > max) {
+            max = room.players[u].score;
+            finalWinner = u;
           }
         }
 
@@ -440,6 +435,7 @@ function nextTurn(room) {
         return;
       }
 
+      // 다음 라운드
       room.round++;
       room.startIndex = (room.startIndex + 1) % total;
 
@@ -447,17 +443,17 @@ function nextTurn(room) {
       return;
     }
 
+    // 일반 턴
     io.to(room.roomId).emit("turnChange", uid);
     return;
   }
 }
 
 
-/* -----------------------------------------------------
- * SERVER START
- * --------------------------------------------------- */
+// =====================================================
+// SERVER START
+// =====================================================
 const PORT = process.env.PORT || 3000;
-
 httpServer.listen(PORT, () => {
   console.log(`🚀 SERVER STARTED ON PORT ${PORT}`);
 });
