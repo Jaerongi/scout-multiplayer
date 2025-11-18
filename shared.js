@@ -1,66 +1,88 @@
-// ===================================
-// SCOUT SHARED ENGINE v3.6
-// ===================================
+// =====================================================
+// shared.js — GLOBAL UTILITIES (전역 함수 버전)
+// =====================================================
 
-// 공식 45장 덱 (A안)
-export function createOfficialDeck() {
-  const deck = [];
-  for (let t = 1; t <= 9; t++) {
-    for (let b = t + 1; b <= 10; b++) {
-      deck.push({ top: t, bottom: b });
+// 전역 등록을 위해 window가 존재하는지 확인
+const G = (typeof window !== "undefined") ? window : global;
+
+// =====================================================
+// 숫자 비교용 헬퍼
+// =====================================================
+G.compareNumbers = function (a, b) {
+  return a - b;
+};
+
+// =====================================================
+// 조합 타입 판정
+// =====================================================
+// 반환값
+// "single"  : 1장
+// "straight": 연속 숫자 (최소 2장)
+// "set"     : 같은 숫자 (최소 2장)
+// "invalid" : 불가능한 조합
+// =====================================================
+G.getComboType = function (cards) {
+  if (!cards || cards.length === 0) return "invalid";
+  if (cards.length === 1) return "single";
+
+  const tops = cards.map(c => c.top);
+  const bottoms = cards.map(c => c.bottom);
+
+  // SET: top 숫자가 모두 동일
+  const allSame = tops.every(t => t === tops[0]);
+  if (allSame) return "set";
+
+  // STRAIGHT: top 기준으로 1씩 증가
+  const sorted = [...tops].sort((a, b) => a - b);
+  let straight = true;
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i] !== sorted[i - 1] + 1) {
+      straight = false;
+      break;
     }
   }
-  return deck; // 45장
-}
+  if (straight) return "straight";
 
-// 숫자 리스트
-export function getValues(cards) {
-  return cards.map(c => c.top);
-}
-
-// RUN 판정
-export function isRun(cards) {
-  const v = getValues(cards).sort((a, b) => a - b);
-  for (let i = 1; i < v.length; i++) {
-    if (v[i] !== v[i - 1] + 1) return false;
-  }
-  return true;
-}
-
-// SET 판정
-export function isSet(cards) {
-  const v = getValues(cards);
-  return v.every(n => n === v[0]);
-}
-
-// 조합 타입
-export function getComboType(cards) {
-  if (cards.length === 0) return "invalid";
-  if (isSet(cards)) return "set";
-  if (isRun(cards)) return "run";
   return "invalid";
-}
+};
 
-// 조합 비교 규칙
-export function isStrongerCombo(newC, oldC) {
-  if (oldC.length === 0) return true;
 
-  // 1) 장수가 많으면 강함
-  if (newC.length !== oldC.length) {
-    return newC.length > oldC.length;
+// =====================================================
+// 조합 비교 (a가 b보다 강한가?)
+// =====================================================
+// cardsA vs cardsB
+// 조건:
+// - 같은 타입이어야 비교 가능
+// - 같은 개수여야 비교 가능
+// - set → 높은 숫자 비교
+// - straight → 마지막 숫자 비교
+// - single → 숫자 비교
+// =====================================================
+G.isStrongerCombo = function (myCards, tableCards) {
+  if (!tableCards || tableCards.length === 0) return true; // 첫 제출
+
+  const myType = G.getComboType(myCards);
+  const tableType = G.getComboType(tableCards);
+
+  if (myType === "invalid") return false;
+  if (myType !== tableType) return false;
+  if (myCards.length !== tableCards.length) return false;
+
+  if (myType === "single") {
+    return myCards[0].top > tableCards[0].top;
   }
 
-  const newType = getComboType(newC);
-  const oldType = getComboType(oldC);
-
-  // 2) 동일 숫자 SET > RUN
-  if (newType !== oldType) {
-    return newType === "set";
+  if (myType === "set") {
+    return myCards[0].top > tableCards[0].top;
   }
 
-  // 3) 숫자가 클수록 강함
-  const newMax = Math.max(...newC.map(c => c.top));
-  const oldMax = Math.max(...oldC.map(c => c.top));
+  if (myType === "straight") {
+    const mySorted = [...myCards.map(c => c.top)].sort(G.compareNumbers);
+    const tableSorted = [...tableCards.map(c => c.top)].sort(G.compareNumbers);
+    return mySorted[mySorted.length - 1] > tableSorted[tableSorted.length - 1];
+  }
 
-  return newMax > oldMax;
-}
+  return false;
+};
+
+console.log("shared.js loaded (GLOBAL VERSION)");

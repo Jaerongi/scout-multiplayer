@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>SCOUT Multiplayer</title>
+
+  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    body { background:#111; color:white; font-family: pretendard, sans-serif; }
+  </style>
+</head>
+
+<body>
+
+<!-- =====================================================
+     START PAGE
+===================================================== -->
+<div id="startPage" class="page visible">
+  <div class="board-panel">
+    <div class="game-title">SCOUT 멀티플레이</div>
+
+    <div class="section-title">닉네임</div>
+    <input id="nicknameInput" class="input-box" placeholder="닉네임 입력" />
+
+    <div style="margin-top:25px;">
+      <button id="makeRoomBtn" class="btn-main large">방 만들기</button>
+    </div>
+
+    <div style="margin-top:15px;">
+      <button id="enterRoomBtn" class="btn-sub large">초대 링크 입장</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- =====================================================
+     ROOM PAGE
+===================================================== -->
+<div id="roomPage" class="page">
+  <div class="board-panel">
+
+    <div id="roomTitle" class="game-title">방번호: -</div>
+
+    <div class="section-title">플레이어 목록</div>
+    <div id="playerListBox" class="playerListBox"></div>
+
+    <div style="margin-top:25px;">
+      <button id="readyBtn" class="btn-main large">게임 준비</button>
+      <button id="copyLinkBtn" class="btn-sub large" style="margin-left:8px;">초대 링크 복사</button>
+    </div>
+
+    <div style="margin-top:35px;">
+      <button id="startGameBtn" class="btn-orange large">게임 시작</button>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- =====================================================
+     GAME PAGE
+===================================================== -->
+<div id="gamePage" class="page">
+
+  <div class="board-panel">
+
+    <div id="roundInfo" class="game-title">라운드 1</div>
+
+    <div class="section-title">테이블</div>
+    <div id="tableBoard" class="tableBoard"></div>
+
+    <div class="section-title" style="margin-top:20px;">내 패</div>
+    <div id="handBoard" class="handBoard"></div>
+
+    <div id="actionRow" class="action-row">
+      <button id="btnShow" class="btn-green actionBtn">SHOW</button>
+      <button id="btnScout" class="btn-purple actionBtn">SCOUT</button>
+      <button id="btnPass" class="btn-sub actionBtn">PASS</button>
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       패 전체 방향 선택 (flip UI)
+  ====================================================== -->
+  <div id="flipArea" class="flip-area hidden">
+    <div class="section-title">패 방향 선택</div>
+
+    <button id="flipLeftBtn" class="btn-sub small">그대로 가져오기</button>
+    <button id="flipRightBtn" class="btn-sub small">뒤집어서 가져오기</button>
+
+    <button id="confirmFlipBtn" class="btn-main small" style="margin-top:12px;">
+      선택 완료
+    </button>
+  </div>
+
+
+  <!-- =====================================================
+       스카웃 삽입 UI (insert slots)
+  ====================================================== -->
+  <div id="insertOverlay" class="insert-overlay hidden">
+    <div class="insert-box">
+      <div class="section-title">어디에 넣을까요?</div>
+
+      <div id="insertSlots" class="insertSlots"></div>
+
+      <div style="margin-top:20px;">
+        <button id="insertCancelBtn" class="btn-sub small">취소</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- =====================================================
+     SCRIPT LOAD ORDER (절대 순서 유지)
+===================================================== -->
+<script src="/socket.io/socket.io.js"></script>
+
+<script src="shared.js"></script>
+<script src="cardEngine.js"></script>
+
+<script src="roomUI.js"></script>
+<script src="gameUI.js"></script>
+
+<script src="socket.js"></script>
+
+</body>
+</html>
