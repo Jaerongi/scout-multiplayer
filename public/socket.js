@@ -1,156 +1,195 @@
 // =====================================================
-// GLOBAL SOCKET + PERMANENT UID (초대 링크 입장 시 NEW UID 발급)
+// SOCKET.JS — FINAL (2025) 
+// login.html 로그인 → index.html 방만들기 → 대기실 UI → 게임 UI (원본 구조 유지)
 // =====================================================
 
-// 기본 permUid (방 만들기 / 일반 입장 시 유지)
-if (!localStorage.getItem("scout_uid")) {
-  localStorage.setItem("scout_uid", crypto.randomUUID());
-}
-
-window.permUid = localStorage.getItem("scout_uid");
-
-// SOCKET
-window.socket = io({
-  autoConnect: true,
-  transports: ["websocket"]
-});
-
-window.myUid = null;      
-window.myName = null;
+window.userId = localStorage.getItem("scout_userId");
 window.roomId = null;
 
-// 연결
-socket.on("connect", () => {
-  window.myUid = socket.id;
-  console.log("SOCKET CONNECTED:", myUid);
+// 소켓 연결
+window.socket = io({
+  transports: ["websocket"],
+  autoConnect: true
 });
 
-// 페이지 전환 도우미
-window.showPage = function(page) {
-  document.getElementById("startPage").style.display = "none";
-  document.getElementById("roomPage").style.display = "none";
-  document.getElementById("gamePage").style.display = "none";
-
-  document.getElementById(page).style.display = "block";
+// ------------------------------------------------------
+// 페이지 전환 공용 함수
+// ------------------------------------------------------
+window.showPage = function(pageId) {
+  ["startPage", "roomPage", "gamePage"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = "none";
+  });
+  document.getElementById(pageId).style.display = "block";
 };
 
-// 게임 화면으로 이동
+
+// ======================================================
+// 1) 소켓 connect 후 초대 링크 처리
+// ======================================================
+socket.on("connect", () => {
+  const params = new URLSearchParams(location.search);
+  const inviteRoom = params.get("room");
+
+  // 로그인 확인
+  if (!window.userId) {
+    location.href = "/login.html";
+    return;
+  }
+
+  // 초대링크로 접근했을 경우
+  if (inviteRoom) {
+    window.roomId = inviteRoom;
+
+    socket.emit("joinRoom", {
+      roomId: inviteRoom,
+      userId: window.userId
+    });
+
+    // playerListUpdate가 올 때 방 화면 전환
+    return;
+  }
+
+  // 일반 접속이면 startPage
+  showPage("startPage");
+});
+
+
+// ======================================================
+// 2) 방 만들기 버튼
+// ======================================================
+window.addEventListener("load", () => {
+  const makeBtn = document.getElementById("makeRoomBtn");
+
+  if (makeBtn) {
+    makeBtn.onclick = () => {
+      const id = generateRoomId();
+      window.roomId = id;
+
+      socket.emit("joinRoom", {
+        roomId: id,
+        userId: window.userId
+      });
+
+      // playerListUpdate가 올 때 자동으로 roomPage로 전환됨
+    };
+  }
+
+  // 초대링크 복사
+  const copyBtn = document.getElementById("copyInviteBtn");
+  if (copyBtn) {
+    copyBtn.onclick = () => {
+      const url = `${location.origin}/index.html?room=${window.roomId}`;
+      navigator.clipboard.writeText(url);
+      alert("초대 링크가 복사되었습니다.");
+    };
+  }
+
+  // READY 버튼
+  const readyBtn = document.getElementById("readyBtn");
+  if (readyBtn) {
+    readyBtn.onclick = () => {
+      socket.emit("playerReady", {
+        roomId: window.roomId,
+        userId: window.userId
+      });
+    };
+  }
+
+  // START GAME
+  const startBtn = document.getElementById("startGameBtn");
+  if (startBtn) {
+    startBtn.onclick = () => {
+      socket.emit("startGame", {
+        roomId: window.roomId,
+        userId: window.userId
+      });
+    };
+  }
+});
+
+
+// ======================================================
+// 3) playerListUpdate — 대기실 UI 업데이트 + 최초 입장 처리
+// ======================================================
+let firstJoinCompleted = false;
+
+socket.on("playerListUpdate", (players) => {
+  window.players = players;
+  renderPlayers(); // roomUI.js에서 구현됨
+
+  // 최초 입장 시 방 화면 전환
+  if (!firstJoinCompleted && window.roomId) {
+    firstJoinCompleted = true;
+
+    const title = document.getElementById("roomTitle");
+    if (title) title.innerText = `방번호: ${window.roomId}`;
+
+    showPage("roomPage");
+  }
+});
+
+
+// ======================================================
+// 4) 게임 시작 화면 이동
+// ======================================================
 socket.on("goGamePage", () => {
   showPage("gamePage");
 });
 
-// =====================================================
-// 방 만들기
-// =====================================================
-makeRoomBtn.onclick = () => {
-  const name = nicknameInput.value.trim();
-  if (!name) return alert("닉네임을 입력하세요.");
 
-  myName = name;
-  roomId = generateRoomId();
-
-  // 방장은 기존 permUid를 그대로 사용 (복구 가능)
-  socket.emit("joinRoom", {
-    roomId,
-    nickname: myName,
-    permUid: window.permUid
-  });
-
-  roomTitle.innerText = `방번호: ${roomId}`;
-  showPage("roomPage");
-};
-
-// =====================================================
-// 초대 링크 입장 (여기서 permUid를 새로 만들어야 함!!)
-// =====================================================
-enterRoomBtn.onclick = () => {
-  const link = prompt("초대 링크를 입력하세요:");
-
-  try {
-    const url = new URL(link);
-    const rid = url.searchParams.get("room");
-    const nickname = prompt("닉네임 입력");
-
-    if (!rid || !nickname) return alert("잘못된 링크입니다.");
-
-    // 🔥 초대 링크 입장 시는 '새로운 사용자' → NEW permUid 생성
-    window.permUid = crypto.randomUUID();
-
-    roomId = rid;
-    myName = nickname;
-
-    socket.emit("joinRoom", {
-      roomId,
-      nickname: myName,
-      permUid: window.permUid
-    });
-
-    roomTitle.innerText = `방번호: ${roomId}`;
-    showPage("roomPage");
-  } catch {
-    alert("유효하지 않은 링크입니다.");
-  }
-};
-
-// =====================================================
-// 자동 초대 링크 입장 (index.html의 URL 뒤 ?room=XXXX)
-// =====================================================
-window.addEventListener("DOMContentLoaded", () => {
-  const params = new URLSearchParams(location.search);
-  const invitedRoom = params.get("room");
-
-  if (invitedRoom) {
-    const nickname = prompt("닉네임을 입력하세요:");
-    if (!nickname) return alert("닉네임이 필요합니다!");
-
-    roomId = invitedRoom;
-    myName = nickname;
-
-    // 🔥 자동 초대 링크 입장도 새로운 permUid 생성
-    window.permUid = crypto.randomUUID();
-
-    socket.emit("joinRoom", {
-      roomId,
-      nickname: myName,
-      permUid: window.permUid
-    });
-
-    roomTitle.innerText = `방번호: ${roomId}`;
-    showPage("roomPage");
-  }
+// ======================================================
+// 5) 게임 UI 업데이트 (기존 gameUI.js 그대로 사용)
+// ======================================================
+socket.on("yourHand", (hand) => {
+  renderHand(hand);  // gameUI.js의 함수
 });
 
-// =====================================================
-// 서버에서 보내주는 복구 상태
-// =====================================================
-socket.on("restoreState", (state) => {
-  if (!state) return;
-
-  console.log("🔄 복구 시작", state);
-
-  showPage("gamePage");
-
-  window.players = state.players;
-  window.tableCards = state.table;
-  window.myHand = state.hand;
-  window.roundInfo.innerText = `라운드 ${state.round}`;
-
-  renderPlayers();
-  renderHand();
-  renderTable();
-
-  // 턴 복구
-  window.myTurn = (state.turn === window.permUid);
-  highlightTurn(state.turn);
-  updateActionButtons();
+socket.on("tableUpdate", (cards) => {
+  renderTable(cards);  // gameUI.js의 함수
 });
 
-// =====================================================
-// 방 ID 생성기
-// =====================================================
+socket.on("turnChange", (uid) => {
+  updateTurnHighlight(uid); // gameUI.js의 함수
+});
+
+socket.on("roundStart", (data) => {
+  startRoundUI(data); // gameUI.js의 함수
+});
+
+socket.on("roundEnd", (data) => {
+  showRoundWinner(data); // gameUI.js 함수
+});
+
+socket.on("gameOver", (data) => {
+  showFinalWinner(data); // gameUI.js 함수
+});
+
+socket.on("restoreState", (data) => {
+  restoreGameUI(data); // gameUI.js 함수
+});
+
+
+// ======================================================
+// 6) 강퇴 / 방폭파
+// ======================================================
+socket.on("kicked", () => {
+  alert("강퇴되었습니다.");
+  showPage("startPage");
+});
+
+socket.on("roomClosed", () => {
+  alert("방장이 나가 방이 종료되었습니다.");
+  showPage("startPage");
+});
+
+
+// ======================================================
+// 7) 방번호 생성기
+// ======================================================
 function generateRoomId() {
-  const s = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let r = "";
-  for (let i = 0; i < 6; i++) r += s[Math.floor(Math.random() * s.length)];
+  for (let i = 0; i < 6; i++) r += chars[Math.floor(Math.random() * chars.length)];
   return r;
 }
