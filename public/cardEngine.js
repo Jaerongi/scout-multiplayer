@@ -1,6 +1,7 @@
 // ================================
-// SCOUT COLOR MAP
+// SCOUT CARD DRAW ENGINE
 // ================================
+
 export const COLOR_MAP = {
   1: "#5c6ae6",
   2: "#3b4df5",
@@ -15,7 +16,7 @@ export const COLOR_MAP = {
 };
 
 // ================================
-// drawScoutCard (canvas 기반 버전)
+// drawScoutCard (canvas 기반 카드 렌더링)
 // ================================
 export function drawScoutCard(top, bottom, w = 90, h = 130) {
   const canvas = document.createElement("canvas");
@@ -23,7 +24,6 @@ export function drawScoutCard(top, bottom, w = 90, h = 130) {
   canvas.height = h;
   const ctx = canvas.getContext("2d");
 
-  // 반 카드 높이
   const mid = h / 2;
 
   // 상단 영역
@@ -34,8 +34,8 @@ export function drawScoutCard(top, bottom, w = 90, h = 130) {
   ctx.fillStyle = COLOR_MAP[bottom];
   ctx.fillRect(0, mid, w, mid);
 
-  // 숫자 표시 (흰색)
-  ctx.fillStyle = "#ffffff";
+  // 숫자 (흰색)
+  ctx.fillStyle = "#fff";
   ctx.font = "bold 28px Pretendard, sans-serif";
   ctx.textAlign = "center";
 
@@ -44,4 +44,3 @@ export function drawScoutCard(top, bottom, w = 90, h = 130) {
 
   return canvas;
 }
-
