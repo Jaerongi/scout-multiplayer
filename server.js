@@ -1,15 +1,13 @@
 // =====================================================
-// SCOUT MULTIPLAYER — ULTIMATE SERVER FINAL
-// (재접속 복구 + 오프라인 스킵 + SCOUT 규칙 + 안정성 패치)
+// SCOUT MULTIPLAYER — FINAL SERVER (2025.11 완전 안정판)
 // =====================================================
 
 import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 
-// UMD shared.js 가져오기 (default import)
-import shared from "./shared.js";
-const { getComboType, isStrongerCombo } = shared;
+// 🔥 shared.js 는 default export 없음 → named import만 가능
+import { getComboType, isStrongerCombo } from "./shared.js";
 
 
 const app = express();
@@ -20,18 +18,20 @@ app.use(express.static("public"));
 app.get("/shared.js", (req, res) => res.sendFile(process.cwd() + "/shared.js"));
 
 const PORT = process.env.PORT || 3000;
-httpServer.listen(PORT, () => console.log("SERVER START", PORT));
+httpServer.listen(PORT, () => console.log("SERVER START:", PORT));
 
 const rooms = {};
 
 
 // =====================================================
-// 덱 생성
+// 45장 덱 생성
 // =====================================================
 function createDeck() {
   const deck = [];
   for (let t = 1; t <= 9; t++) {
-    for (let b = t + 1; b <= 10; b++) deck.push({ top: t, bottom: b });
+    for (let b = t + 1; b <= 10; b++) {
+      deck.push({ top: t, bottom: b });
+    }
   }
   return deck;
 }
@@ -46,7 +46,7 @@ function shuffle(arr) {
 
 
 // =====================================================
-// 핸드 분배
+// 패 분배
 // =====================================================
 function deal(playerCount) {
   let deck = shuffle(createDeck());
@@ -61,17 +61,21 @@ function deal(playerCount) {
   for (let i = 0; i < drop; i++) deck.pop();
 
   const size = deck.length / playerCount;
-  const res = [];
+  const result = [];
 
   for (let i = 0; i < playerCount; i++) {
     let hand = deck.splice(0, size);
+
     hand = hand.map(c =>
       Math.random() < 0.5 ? c : { top: c.bottom, bottom: c.top }
     );
-    res.push(hand);
+
+    result.push(hand);
   }
-  return res;
+
+  return result;
 }
+
 
 
 // =====================================================
@@ -103,7 +107,7 @@ io.on("connection", (socket) => {
     const room = rooms[roomId];
     const isFirst = Object.keys(room.players).length === 0;
 
-    // 신규
+    // 신규 유저
     if (!room.players[permUid]) {
       room.players[permUid] = {
         uid: permUid,
@@ -117,7 +121,7 @@ io.on("connection", (socket) => {
       };
       if (isFirst) room.host = permUid;
     }
-    // 복구
+    // 재접속
     else {
       room.players[permUid].socketId = socket.id;
       room.players[permUid].isOnline = true;
@@ -125,13 +129,10 @@ io.on("connection", (socket) => {
 
     io.to(roomId).emit("playerListUpdate", room.players);
 
-    // ---------------------------------------------------
-    // 🔥 복구 조건: 게임이 실제 시작되었을 때만 restoreState 전달
-    // ---------------------------------------------------
+    // 🔥 복구
     const gameStarted = room.turnOrder.length > 0;
-    const p = room.players[permUid];
-
     if (gameStarted) {
+      const p = room.players[permUid];
       io.to(socket.id).emit("restoreState", {
         hand: p.hand,
         score: p.score,
@@ -142,6 +143,7 @@ io.on("connection", (socket) => {
       });
     }
   });
+
 
 
   // ---------------------------------------------------
@@ -158,6 +160,7 @@ io.on("connection", (socket) => {
   });
 
 
+
   // ---------------------------------------------------
   // START GAME
   // ---------------------------------------------------
@@ -166,24 +169,26 @@ io.on("connection", (socket) => {
     if (!room) return;
     if (room.host !== permUid) return;
 
-    const readyOK = Object.values(room.players)
+    const ok = Object.values(room.players)
       .filter(p => !p.isHost)
       .every(p => p.ready);
 
-    if (!readyOK) return;
+    if (!ok) return;
 
     startRound(room);
     io.to(roomId).emit("goGamePage");
   });
 
 
+
   // ---------------------------------------------------
-  // FLIP CONFIRM
+  // 방향 확정
   // ---------------------------------------------------
   socket.on("confirmFlip", ({ roomId, permUid, flipped }) => {
     const room = rooms[roomId];
     if (room) room.players[permUid].hand = flipped;
   });
+
 
 
   // ---------------------------------------------------
@@ -195,10 +200,8 @@ io.on("connection", (socket) => {
 
     const player = room.players[permUid];
 
-    // 점수 = 기존 테이블 카드 수
     player.score += room.table.length;
 
-    // 패에서 제거
     player.hand = player.hand.filter(
       h => !cards.some(c => c.top === h.top && c.bottom === h.bottom)
     );
@@ -212,6 +215,7 @@ io.on("connection", (socket) => {
 
     nextTurn(room);
   });
+
 
 
   // ---------------------------------------------------
@@ -232,7 +236,7 @@ io.on("connection", (socket) => {
     pos = Math.max(0, Math.min(player.hand.length, pos));
     player.hand.splice(pos, 0, card);
 
-    // SCOUT 점수 = lastShowPlayer +1
+    // SCOUT 점수 처리
     if (room.lastShowPlayer && room.lastShowPlayer !== permUid)
       room.players[room.lastShowPlayer].score += 1;
 
@@ -244,19 +248,23 @@ io.on("connection", (socket) => {
   });
 
 
+
   // ---------------------------------------------------
-  // DISCONNECT – 유저 삭제 X, offline 처리
+  // DISCONNECT
   // ---------------------------------------------------
   socket.on("disconnect", () => {
     for (const rid in rooms) {
       const room = rooms[rid];
+
       for (const p of Object.values(room.players)) {
         if (p.socketId === socket.id) p.isOnline = false;
       }
+
       io.to(rid).emit("playerListUpdate", room.players);
     }
   });
 });
+
 
 
 // =====================================================
@@ -290,8 +298,9 @@ function startRound(room) {
 }
 
 
+
 // =====================================================
-// 턴 진행 + 오프라인 스킵 + 종료 판정
+// 턴 로직 (오프라인 스킵 + 종료 판정)
 // =====================================================
 function nextTurn(room) {
 
@@ -306,13 +315,11 @@ function nextTurn(room) {
     // 오프라인 → 스킵
     if (!p.isOnline) continue;
 
-    // 라운드 종료 조건:
-    // 마지막 SHOW한 사람에게 턴이 다시 돌아오면 종료
+    // 라운드 종료 조건
     if (room.lastShowPlayer && uid === room.lastShowPlayer) {
 
       const winner = room.lastShowPlayer;
 
-      // 점수 계산
       for (const u of Object.keys(room.players)) {
         if (u !== winner)
           room.players[u].score -= room.players[u].hand.length;
