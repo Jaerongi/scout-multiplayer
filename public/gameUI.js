@@ -1,7 +1,7 @@
 // =====================================================
 // GAME UI (import 제거 + 전역 등록)
 // =====================================================
-
+console.log("gameUI.js LOADED");
 function renderHand(hand) {
   const area = document.getElementById("handArea");
   if (!area) return;
@@ -65,3 +65,4 @@ window.startRoundUI = startRoundUI;
 window.showRoundWinner = showRoundWinner;
 window.showFinalWinner = showFinalWinner;
 window.restoreGameUI = restoreGameUI;
+
