@@ -1,7 +1,6 @@
 // ======================================================
 // GAME UI — SCOUT 방향 선택 / SHOW / SCOUT / TURN UI
-// (삽입 모달 제거 + +넣기 버튼 + 라운드 승자 + 최종 우승)
-// 21 57
+// (삽입 모달 제거 + +넣기 버튼 + 라운드 승자 + 최종 우승 + SET/RUN 검증)
 // ======================================================
 
 import { drawScoutCard } from "./cardEngine.js";
@@ -135,7 +134,6 @@ function renderHand() {
     wrap.appendChild(drawScoutCard(c.top, c.bottom));
     handArea.appendChild(wrap);
 
-    // 카드 뒤에 +넣기 버튼
     if (insertMode) handArea.appendChild(createInsertButton(i + 1));
   });
 }
@@ -214,7 +212,7 @@ function updateActionButtons() {
 }
 
 // ======================================================
-// SHOW
+// SHOW (SET/RUN 검증 + 테이블 비교 검증)
 // ======================================================
 showBtn.onclick = () => {
   if (!myTurn || flipSelect) return;
@@ -224,6 +222,20 @@ showBtn.onclick = () => {
 
   if (chosen.length === 0) return alert("카드를 선택하세요!");
 
+  // 🔥 내가 낼 수 있는 조합인지(SET 또는 RUN)
+  const combo = getComboType(chosen);
+  if (combo === "invalid") {
+    return alert("연속된 숫자(RUN) 또는 같은 숫자(SET)만 낼 수 있습니다!");
+  }
+
+  // 🔥 테이블에 이미 카드가 있을 때 → 반드시 stronger 이어야 함
+  if (tableCards.length > 0) {
+    if (!isStrongerCombo(chosen, tableCards)) {
+      return alert("테이블에 있는 패보다 강해야 낼 수 있습니다!");
+    }
+  }
+
+  // 정상 SHOW
   socket.emit("show", {
     roomId,
     permUid: window.permUid,
@@ -243,7 +255,7 @@ scoutBtn.onclick = () => {
 };
 
 // ======================================================
-// SCOUT 모달 (삽입 모달 없이 insertMode만)
+// SCOUT 모달
 // ======================================================
 modalClose.onclick = () => scoutModal.classList.add("hidden");
 
@@ -252,12 +264,15 @@ modalKeep.onclick = () => {
   scoutModal.classList.add("hidden");
 
   insertMode = true;
+  scoutMode = false;
+
   insertCardInfo = {
     side: scoutTargetSide,
     flip: false,
   };
 
   renderHand();
+  renderTable();
 };
 
 modalReverse.onclick = () => {
@@ -265,12 +280,15 @@ modalReverse.onclick = () => {
   scoutModal.classList.add("hidden");
 
   insertMode = true;
+  scoutMode = false;
+
   insertCardInfo = {
     side: scoutTargetSide,
     flip: true,
   };
 
   renderHand();
+  renderTable();
 };
 
 // ======================================================
