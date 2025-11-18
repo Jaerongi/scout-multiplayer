@@ -204,3 +204,12 @@ button:hover {
     height: 120px;
   }
 }
+.glow-blink {
+  animation: glowBlink 0.8s infinite alternate;
+}
+
+@keyframes glowBlink {
+  0% { outline: 3px solid #ffd76e; outline-offset: 3px; }
+  100% { outline: 3px solid #fff087; outline-offset: 6px; }
+}
+
