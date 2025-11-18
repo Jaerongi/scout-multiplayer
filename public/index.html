@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<title>SCOUT 멀티</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+<!-- =================================================== -->
+<!-- START PAGE -->
+<!-- =================================================== -->
+<div id="startPage" class="page visible">
+  <div class="board-panel panel-center">
+    <h1 class="game-title">🎴 SCOUT 🎴</h1>
+    <input id="nicknameInput" class="input-box" placeholder="닉네임 입력" />
+
+    <button id="makeRoomBtn" class="btn-main">방 만들기</button>
+    <button id="enterRoomBtn" class="btn-sub">초대 링크로 입장</button>
+  </div>
+</div>
+
+<!-- =================================================== -->
+<!-- ROOM PAGE -->
+<!-- =================================================== -->
+<div id="roomPage" class="page">
+  <div class="board-panel wide">
+    <h2 id="roomTitle" class="title-board"></h2>
+
+    <div id="playerList" class="player-list-board"></div>
+
+    <div class="room-bottom-row">
+      <button id="readyBtn" class="btn-main">게임 준비</button>
+      <button id="startGameBtn" class="btn-green" style="display:none;">게임 시작</button>
+      <button id="copyInviteBtn" class="btn-sub">초대 링크 복사</button>
+    </div>
+  </div>
+</div>
+
+<!-- =================================================== -->
+<!-- GAME PAGE -->
+<!-- =================================================== -->
+<div id="gamePage" class="page">
+
+  <h2 id="roundInfo" class="title-board"></h2>
+
+  <div class="game-layout">
+
+    <!-- 좌측 플레이어 리스트 -->
+    <div id="gamePlayerList" class="sideBoard"></div>
+
+    <!-- 메인 게임 보드 -->
+    <div class="mainBoard">
+
+      <!-- 테이블 -->
+      <h3 class="section-title">테이블</h3>
+      <div id="tableArea" class="tableBoard"></div>
+
+      <!-- 패 방향 선택 UI -->
+      <div id="flipSelectArea" class="flip-area hidden">
+        <h3 class="section-title">패 방향 선택</h3>
+
+        <button id="flipToggleBtn" class="btn-main">↺ 방향 바꾸기</button>
+        <br /><br />
+
+        <button id="flipConfirmBtn" class="btn-green">
+          ✔ 방향 확정
+        </button>
+      </div>
+
+      <!-- 내 패 -->
+      <h3 class="section-title">
+        내 패 (<span id="myCount">0</span>)
+      </h3>
+      <div id="handArea" class="handBoard"></div>
+
+      <!-- 하단 행동 버튼 -->
+      <div class="action-row">
+        <button id="showBtn" class="btn-main large">SHOW</button>
+        <button id="scoutBtn" class="btn-orange large">SCOUT</button>
+        <button id="showScoutBtn" class="btn-purple large">SHOW & SCOUT</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- =================================================== -->
+<!-- INSERT OVERLAY (B 방식) -->
+<!-- =================================================== -->
+<div id="insertOverlay" class="insert-overlay hidden">
+  <div class="insert-box">
+    <h2 style="margin-top:0;">삽입 위치 선택</h2>
+    <div id="insertSlots" class="insertSlots"></div>
+
+    <button class="btn-sub" onclick="document.getElementById('insertOverlay').classList.add('hidden')">
+      닫기
+    </button>
+  </div>
+</div>
+
+<!-- =================================================== -->
+<!-- SCRIPTS -->
+<!-- =================================================== -->
+<script src="/socket.io/socket.io.js"></script>
+<script type="module" src="./socket.js"></script>
+<script type="module" src="./roomUI.js"></script>
+<script type="module" src="./gameUI.js"></script>
+
+<!-- 초대 자동입장 -->
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+  const params = new URLSearchParams(location.search);
+  const invitedRoom = params.get("room");
+
+  if (invitedRoom) {
+    const nickname = prompt("닉네임을 입력하세요:");
+    if (!nickname) return;
+
+    window.roomId = invitedRoom;
+    window.myName = nickname;
+
+    window.socket.emit("joinRoom", {
+      roomId,
+      nickname: myName,
+      permUid: localStorage.getItem("scout_uid")
+    });
+
+    roomTitle.innerText = `방번호: ${roomId}`;
+    window.showPage("roomPage");
+  }
+});
+</script>
+
+</body>
+</html>
