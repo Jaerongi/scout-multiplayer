@@ -204,12 +204,20 @@ button:hover {
     height: 120px;
   }
 }
-.glow-blink {
-  animation: glowBlink 0.8s infinite alternate;
+.can-scout {
+  border: 2px solid #00eaff;
+  box-shadow: 0 0 10px #00eaff, 0 0 20px #00eaff;
+  animation: neonPulse 1.5s infinite alternate;
 }
 
-@keyframes glowBlink {
-  0% { outline: 3px solid #ffd76e; outline-offset: 3px; }
-  100% { outline: 3px solid #fff087; outline-offset: 6px; }
+@keyframes neonPulse {
+  from {
+    box-shadow: 0 0 8px #00eaff;
+  }
+  to {
+    box-shadow: 0 0 18px #00eaff;
+  }
 }
+
+
 
