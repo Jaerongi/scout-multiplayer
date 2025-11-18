@@ -1,5 +1,5 @@
 // =======================================================
-// ROOM UI — FINAL VERSION (강퇴 기능 포함)
+// ROOM UI — FINAL VERSION (회원 기반 + 강퇴 포함)
 // =======================================================
 
 const playerListDiv = document.getElementById("playerList");
@@ -9,14 +9,14 @@ const copyInviteBtn = document.getElementById("copyInviteBtn");
 
 window.currentPlayers = {};
 
-// ===============================
-// 플레이어 리스트 렌더링
-// ===============================
+// ------------------------------------------
+// 플레이어 목록 렌더링
+// ------------------------------------------
 function renderRoomPlayers(players) {
   playerListDiv.innerHTML = "";
   const arr = Object.values(players);
 
-  const isMeHost = players[window.permUid]?.isHost;
+  const isMeHost = players[window.userId]?.isHost;
 
   arr.forEach((p) => {
     const div = document.createElement("div");
@@ -25,10 +25,6 @@ function renderRoomPlayers(players) {
     if (!p.isOnline) div.classList.add("offlinePlayer");
 
     const crown = p.isHost ? "👑 " : "";
-
-    const led = !p.isHost
-      ? `<span class="ready-led ${p.ready ? "on" : "off"}"></span>`
-      : "";
 
     let kickBtn = "";
     if (isMeHost && !p.isHost) {
@@ -39,7 +35,6 @@ function renderRoomPlayers(players) {
       <div class="nick">${crown}${p.nickname}</div>
       <div class="status">
         ${p.isOnline ? (p.isHost ? "(방장)" : p.ready ? "준비완료" : "대기중") : "(오프라인)"}
-        ${led}
         ${kickBtn}
       </div>
     `;
@@ -48,11 +43,28 @@ function renderRoomPlayers(players) {
   });
 }
 
-// ===============================
+// ------------------------------------------
+// 강퇴 버튼
+// ------------------------------------------
+playerListDiv.onclick = (e) => {
+  if (e.target.classList.contains("kick-btn")) {
+    const targetUid = e.target.getAttribute("data-uid");
+
+    if (confirm("정말 강퇴하시겠습니까?")) {
+      socket.emit("kickPlayer", {
+        roomId,
+        targetUid,
+        userId: window.userId
+      });
+    }
+  }
+};
+
+// ------------------------------------------
 // START 버튼 활성화
-// ===============================
+// ------------------------------------------
 function updateStartButtonState(players) {
-  const me = players[window.permUid];
+  const me = players[window.userId];
 
   if (!me || !me.isHost) {
     startGameBtn.style.display = "none";
@@ -68,56 +80,30 @@ function updateStartButtonState(players) {
   startGameBtn.disabled = !everyoneReady;
 }
 
-// ===============================
-// 클릭 이벤트 - 강퇴
-// ===============================
-playerListDiv.onclick = (e) => {
-  if (e.target.classList.contains("kick-btn")) {
-    const targetUid = e.target.getAttribute("data-uid");
-
-    if (confirm("정말 강퇴하시겠습니까?")) {
-      socket.emit("kickPlayer", {
-        roomId,
-        targetUid,
-        permUid: window.permUid,
-      });
-    }
-  }
-};
-
-// ===============================
-// 서버 → 플레이어 목록 업데이트
-// ===============================
+// ------------------------------------------
 socket.on("playerListUpdate", (players) => {
   window.currentPlayers = players;
-
   renderRoomPlayers(players);
   updateStartButtonState(players);
 });
 
-// ===============================
-// READY 버튼
-// ===============================
+// ------------------------------------------
 readyBtn.onclick = () => {
   socket.emit("playerReady", {
     roomId,
-    permUid: window.permUid,
+    userId: window.userId
   });
 };
 
-// ===============================
-// START GAME 버튼
-// ===============================
+// ------------------------------------------
 startGameBtn.onclick = () => {
   socket.emit("startGame", {
     roomId,
-    permUid: window.permUid,
+    userId: window.userId
   });
 };
 
-// ===============================
-// 초대 링크 복사
-// ===============================
+// ------------------------------------------
 copyInviteBtn.onclick = () => {
   const url = `${location.origin}/index.html?room=${roomId}`;
   navigator.clipboard.writeText(url);
