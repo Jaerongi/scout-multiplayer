@@ -67,13 +67,35 @@ button {
 #makeRoomBtn:hover {
   background:#f57c00;
 }
+
+/* 방 화면 UI */
+#roomPage {
+  padding:40px;
+  text-align:center;
+}
+
+#roomTitle {
+  font-size:32px;
+  margin-bottom:20px;
+}
+
+#playerList {
+  margin-top:20px;
+  font-size:20px;
+}
+
+/* 게임 화면 */
+#gamePage {
+  padding:30px;
+}
+
 </style>
 
 </head>
 
 <body>
 
-<!-- 상단바 -->
+<!-- 🔶 상단바 (로그인된 유저 표시) -->
 <div id="topBar">
   <div id="userInfo"></div>
   <div>
@@ -82,18 +104,26 @@ button {
   </div>
 </div>
 
-<!-- 메인 콘텐츠 -->
+<!-- 🔶 메인 : 방 만들기 버튼 -->
 <div id="makeRoomArea">
   <button id="makeRoomBtn">방 만들기</button>
 </div>
 
-<!-- 숨겨진 게임 페이지들 -->
+<hr style="margin-top:60px; opacity:0">
+
+<!-- 🔶 숨겨진 페이지들 -->
+
+<!-- START PAGE -->
 <div id="startPage" style="display:none;"></div>
+
+<!-- ROOM PAGE (방 생성 후 전환되는 화면) -->
 <div id="roomPage" style="display:none;">
-  <h2 id="roomTitle"></h2>
+  <h2 id="roomTitle">방번호: ----</h2>
   <div id="playerList"></div>
   <button id="startGameBtn">게임 시작</button>
 </div>
+
+<!-- GAME PAGE (게임 화면) -->
 <div id="gamePage" style="display:none;">
   <h2 id="roundInfo"></h2>
   <div id="gamePlayerList"></div>
@@ -101,6 +131,8 @@ button {
   <div id="handArea"></div>
 </div>
 
+
+<!-- SOCKET -->
 <script src="/socket.io/socket.io.js"></script>
 <script src="/socket.js"></script>
 
@@ -109,7 +141,6 @@ button {
 const userId = localStorage.getItem("scout_userId");
 if (!userId) location.href = "/login.html";
 
-// 닉네임 표시
 const nickname = userId.split("-")[0];
 document.getElementById("userInfo").innerText = `안녕하세요, ${nickname}님`;
 
@@ -122,11 +153,6 @@ document.getElementById("logoutBtn").onclick = () => {
 // 관리자 페이지
 document.getElementById("adminBtn").onclick = () => {
   location.href = "/admin";
-};
-
-// 방 만들기 (socket.js 내부 makeRoomBtn 이벤트 발생)
-document.getElementById("makeRoomBtn").onclick = () => {
-  makeRoomBtn.click();
 };
 </script>
 
