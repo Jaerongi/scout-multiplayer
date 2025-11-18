@@ -133,6 +133,37 @@ button:hover {
   padding: 12px;
 }
 
+.table-card-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+/* SCOUT glow */
+.scout-glow {
+  border: 2px solid #ffd76e !important;
+  box-shadow: 0 0 15px #ffea8a;
+  border-radius: 12px;
+  padding: 4px;
+}
+
+/* TAKE BUTTON */
+.take-btn {
+  background: linear-gradient(#6a571e, #4a3b14);
+  border: 1px solid #e7c46a;
+  color: #fff6d1;
+  padding: 4px 10px;
+  font-size: 14px;
+  border-radius: 6px;
+  margin-top: 2px;
+}
+
+.take-btn:hover {
+  background: linear-gradient(#7a6522, #5a4a18);
+  border-color: #ffe48b;
+}
+
 /* MODAL */
 .modal {
   position: fixed;
@@ -172,7 +203,7 @@ button:hover {
   display: none !important;
 }
 
-/* 하단 SHOW/SCOUT 버튼 줄 */
+/* BUTTON ROW */
 .action-row {
   display: flex;
   justify-content: center;
