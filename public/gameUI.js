@@ -1,5 +1,5 @@
 // ======================================================
-// GAME UI — SCOUT 패 방향 정식 룰 + TURN FIX + Modal 안정판
+// GAME UI — SCOUT 패 방향 선택 + SHOW + SCOUT + TURN UI
 // ======================================================
 
 import { drawScoutCard } from "./cardEngine.js";
@@ -12,12 +12,12 @@ const handArea = document.getElementById("handArea");
 const myCountSpan = document.getElementById("myCount");
 const roundInfo = document.getElementById("roundInfo");
 
-// Action buttons
+// Buttons
 const showBtn = document.getElementById("showBtn");
 const scoutBtn = document.getElementById("scoutBtn");
 const showScoutBtn = document.getElementById("showScoutBtn");
 
-// Flip selection UI
+// Flip select UI
 const flipSelectArea = document.getElementById("flipSelectArea");
 const flipToggleBtn = document.getElementById("flipToggleBtn");
 const flipConfirmBtn = document.getElementById("flipConfirmBtn");
@@ -28,15 +28,13 @@ const modalKeep = document.getElementById("modalKeep");
 const modalReverse = document.getElementById("modalReverse");
 const modalClose = document.getElementById("modalClose");
 
-// Insert modal
+// Insert position modal
 const insertModal = document.getElementById("insertModal");
 const insertModalContent = document.getElementById("insertModalContent");
-
 
 // ======================================================
 // STATE
 // ======================================================
-
 let players = {};
 let tableCards = [];
 let myHand = [];
@@ -44,16 +42,15 @@ let selected = new Set();
 
 let myTurn = false;
 
-let flipSelect = true;      // 패 방향 확정 전이면 true
-let flipReversed = false;   // false=기본, true=뒤집힘
+let flipSelect = true;      // 패 방향 선택 중
+let flipReversed = false;   // false=정방향, true=뒤집힌 상태
 
-// Scout state
+// SCOUT state
 let scoutTargetSide = null;
 let scoutFlip = false;
 
-
 // ======================================================
-// PLAYER LIST
+// 플레이어 리스트
 // ======================================================
 function renderPlayers() {
   gamePlayerList.innerHTML = "";
@@ -69,18 +66,17 @@ function renderPlayers() {
       점수: ${p.score}<br>
       ${p.isOnline ? "" : "<span style='color:#aaa;'>오프라인</span>"}
     `;
+
     gamePlayerList.appendChild(div);
   });
 }
 
-
 // ======================================================
-// HAND (with flip-aware view)
+// 핸드 렌더링
 // ======================================================
 function getDisplayedHand() {
   if (!flipReversed) return myHand;
-
-  return myHand.map(c => ({ top: c.bottom, bottom: c.top }));
+  return myHand.map((c) => ({ top: c.bottom, bottom: c.top }));
 }
 
 function renderHand() {
@@ -97,6 +93,7 @@ function renderHand() {
 
     wrap.onclick = () => {
       if (flipSelect) return alert("패 방향을 먼저 확정하세요!");
+
       if (selected.has(i)) selected.delete(i);
       else selected.add(i);
 
@@ -108,9 +105,8 @@ function renderHand() {
   });
 }
 
-
 // ======================================================
-// TABLE
+// 테이블 렌더링
 // ======================================================
 function renderTable() {
   tableArea.innerHTML = "";
@@ -126,6 +122,7 @@ function renderTable() {
 
     wrap.onclick = () => {
       if (!myTurn || flipSelect) return;
+
       scoutTargetSide = idx === 0 ? "left" : "right";
       scoutModal.classList.remove("hidden");
     };
@@ -134,9 +131,8 @@ function renderTable() {
   });
 }
 
-
 // ======================================================
-// TURN HIGHLIGHT
+// 턴 하이라이트
 // ======================================================
 function highlightTurn(uid) {
   const arr = Object.values(players);
@@ -148,19 +144,17 @@ function highlightTurn(uid) {
   });
 }
 
-
 // ======================================================
-// BUTTON ENABLE CONTROL
+// 버튼 활성화
 // ======================================================
 function updateActionButtons() {
   const active = myTurn && !flipSelect;
 
-  [showBtn, scoutBtn, showScoutBtn].forEach(btn => {
+  [showBtn, scoutBtn, showScoutBtn].forEach((btn) => {
     btn.disabled = !active;
     btn.style.opacity = active ? "1" : "0.4";
   });
 }
-
 
 // ======================================================
 // SHOW
@@ -169,20 +163,19 @@ showBtn.onclick = () => {
   if (!myTurn || flipSelect) return;
 
   const disp = getDisplayedHand();
-  const chosen = Array.from(selected).map(i => disp[i]);
+  const chosen = Array.from(selected).map((i) => disp[i]);
 
   if (chosen.length === 0) return alert("카드를 선택하세요.");
 
   socket.emit("show", {
     roomId,
     permUid: window.permUid,
-    cards: chosen
+    cards: chosen,
   });
 };
 
-
 // ======================================================
-// SCOUT
+// SCOUT 버튼
 // ======================================================
 scoutBtn.onclick = () => {
   if (!myTurn || flipSelect) return;
@@ -205,9 +198,8 @@ modalReverse.onclick = () => {
   chooseInsertPosition();
 };
 
-
 // ======================================================
-// INSERT POSITION
+// SCOUT → 삽입 위치 선택
 // ======================================================
 function chooseInsertPosition() {
   insertModalContent.innerHTML = `<h3>삽입 위치 선택</h3><br>`;
@@ -226,7 +218,7 @@ function chooseInsertPosition() {
         permUid: window.permUid,
         side: scoutTargetSide,
         flip: scoutFlip,
-        pos: i
+        pos: i,
       });
     };
 
@@ -244,9 +236,8 @@ function chooseInsertPosition() {
   insertModal.classList.remove("hidden");
 }
 
-
 // ======================================================
-// 패 방향 선택 (정식 SCOUT 룰)
+// 패 방향 선택 UI
 // ======================================================
 flipToggleBtn.onclick = () => {
   flipReversed = !flipReversed;
@@ -258,7 +249,6 @@ flipConfirmBtn.onclick = () => {
   flipSelectArea.classList.add("hidden");
   updateActionButtons();
 };
-
 
 // ======================================================
 // SOCKET EVENTS
@@ -299,9 +289,10 @@ socket.on("tableUpdate", (cards) => {
   updateActionButtons();
 });
 
-// 🔥 아주 중요: TURN FIX (socket.id → permUid)
+// 턴 변경 (permUid 기준)
 socket.on("turnChange", (uid) => {
-  myTurn = (uid === window.permUid);
+  myTurn = uid === window.permUid;
+
   highlightTurn(uid);
   updateActionButtons();
 });
