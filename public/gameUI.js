@@ -107,39 +107,64 @@ function renderTable() {
     return;
   }
 
-  tableCards.forEach((c, idx) => {
+  tableCards.forEach((card, idx) => {
     const wrap = document.createElement("div");
     wrap.style.textAlign = "center";
 
-    wrap.appendChild(drawScoutCard(c.top, c.bottom));
+    // 카드 표시
+    wrap.appendChild(drawScoutCard(card.top, card.bottom));
 
-    const isLeft = idx === 0;
-    const isRight = idx === count - 1;
+    // 기본값: 흐리지 않음
+    wrap.style.filter = "brightness(1)";
 
-    // 턴이 아니면 dim 처리 후 버튼 없음
+    // 턴이 아니거나 패가 확정되지 않았으면 가져오기 불가
     if (!myTurn || flipSelect) {
-      wrap.style.filter = "brightness(1)";
       tableArea.appendChild(wrap);
       return;
     }
 
-    // 가져올 수 있는지 판단
+    // ------------------------------
+    // 가져올 수 있는 카드 판정
+    // ------------------------------
     let canTake = false;
     let side = null;
 
     if (count === 1) {
       canTake = true;
       side = "left";
-    } else if (count === 2) {
-      canTake = true;
-      side = idx === 0 ? "left" : "right";
-    } else if (count >= 3) {
-      if (isLeft) { canTake = true; side = "left"; }
-      else if (isRight) { canTake = true; side = "right"; }
     }
 
-    wrap.style.filter = canTake ? "brightness(1)" : "brightness(0.35)";
+    else if (count === 2) {
+      canTake = true;
+      side = idx === 0 ? "left" : "right";
+    }
 
+    else if (count >= 3) {
+      if (idx === 0) {
+        canTake = true;
+        side = "left";
+      } else if (idx === count - 1) {
+        canTake = true;
+        side = "right";
+      } else {
+        canTake = false;
+      }
+    }
+
+    // ------------------------------
+    // 하이라이트 처리
+    // ------------------------------
+    if (canTake) {
+      wrap.style.filter = "brightness(1.0)";
+      wrap.style.outline = "3px solid #ffd76e";
+      wrap.style.outlineOffset = "4px";
+    } else {
+      wrap.style.filter = "brightness(0.3)";
+    }
+
+    // ------------------------------
+    // 가져오기 버튼
+    // ------------------------------
     if (canTake) {
       const btn = document.createElement("button");
       btn.innerText = "가져오기";
@@ -157,6 +182,7 @@ function renderTable() {
     tableArea.appendChild(wrap);
   });
 }
+
 // ======================================================
 // 삽입 위치 + 버튼 (SCOUT)
 // ======================================================
@@ -322,3 +348,4 @@ socket.on("turnChange", uid => {
   updateActionButtons();
   renderTable();        // ★ 턴 바뀌면 이전 버튼 즉시 제거됨
 });
+
