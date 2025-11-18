@@ -1,12 +1,11 @@
 // =====================================================
-// GLOBAL SOCKET + PERMANENT UID (초대 링크 입장 시 NEW UID 발급)
+// GLOBAL SOCKET + PERMANENT UID + 자동 재접속 기능
 // =====================================================
 
-// 기본 permUid (방 만들기 / 일반 입장 시 유지)
+// 🔥 1) 고정 permUid 생성 (재접속해도 동일)
 if (!localStorage.getItem("scout_uid")) {
   localStorage.setItem("scout_uid", crypto.randomUUID());
 }
-
 window.permUid = localStorage.getItem("scout_uid");
 
 // SOCKET
@@ -15,7 +14,7 @@ window.socket = io({
   transports: ["websocket"]
 });
 
-window.myUid = null;      
+window.myUid = null;
 window.myName = null;
 window.roomId = null;
 
@@ -25,7 +24,7 @@ socket.on("connect", () => {
   console.log("SOCKET CONNECTED:", myUid);
 });
 
-// 페이지 전환 도우미
+// 페이지 전환
 window.showPage = function(page) {
   document.getElementById("startPage").style.display = "none";
   document.getElementById("roomPage").style.display = "none";
@@ -34,7 +33,32 @@ window.showPage = function(page) {
   document.getElementById(page).style.display = "block";
 };
 
-// 게임 화면으로 이동
+// ===============================
+// 🔥 2) 새로고침 후 자동 재입장 기능
+// ===============================
+window.addEventListener("DOMContentLoaded", () => {
+  const savedRoom = localStorage.getItem("scout_room");
+  const savedName = localStorage.getItem("scout_name");
+
+  if (savedRoom && savedName) {
+    console.log("🔄 자동 재접속 중…");
+
+    window.roomId = savedRoom;
+    window.myName = savedName;
+
+    // 방 재입장
+    socket.emit("joinRoom", {
+      roomId: savedRoom,
+      nickname: savedName,
+      permUid: window.permUid
+    });
+
+    roomTitle.innerText = `방번호: ${savedRoom}`;
+    showPage("roomPage");
+  }
+});
+
+// 게임 화면 이동
 socket.on("goGamePage", () => {
   showPage("gamePage");
 });
@@ -49,7 +73,10 @@ makeRoomBtn.onclick = () => {
   myName = name;
   roomId = generateRoomId();
 
-  // 방장은 기존 permUid를 그대로 사용 (복구 가능)
+  // 🔥 저장 (재접속 가능)
+  localStorage.setItem("scout_room", roomId);
+  localStorage.setItem("scout_name", myName);
+
   socket.emit("joinRoom", {
     roomId,
     nickname: myName,
@@ -61,7 +88,7 @@ makeRoomBtn.onclick = () => {
 };
 
 // =====================================================
-// 초대 링크 입장 (여기서 permUid를 새로 만들어야 함!!)
+// 초대 링크 입장
 // =====================================================
 enterRoomBtn.onclick = () => {
   const link = prompt("초대 링크를 입력하세요:");
@@ -73,19 +100,24 @@ enterRoomBtn.onclick = () => {
 
     if (!rid || !nickname) return alert("잘못된 링크입니다.");
 
-    // 🔥 초대 링크 입장 시는 '새로운 사용자' → NEW permUid 생성
-    window.permUid = crypto.randomUUID();
+    // 🔥 저장해서 재입장 가능
+    window.roomId = rid;
+    window.myName = nickname;
 
-    roomId = rid;
-    myName = nickname;
+    localStorage.setItem("scout_room", rid);
+    localStorage.setItem("scout_name", nickname);
+
+    // 초대 입장은 새로운 permUid (원래 룰 유지)
+    window.permUid = crypto.randomUUID();
+    localStorage.setItem("scout_uid", window.permUid);
 
     socket.emit("joinRoom", {
-      roomId,
-      nickname: myName,
+      roomId: rid,
+      nickname: nickname,
       permUid: window.permUid
     });
 
-    roomTitle.innerText = `방번호: ${roomId}`;
+    roomTitle.innerText = `방번호: ${rid}`;
     showPage("roomPage");
   } catch {
     alert("유효하지 않은 링크입니다.");
@@ -93,7 +125,7 @@ enterRoomBtn.onclick = () => {
 };
 
 // =====================================================
-// 자동 초대 링크 입장 (index.html의 URL 뒤 ?room=XXXX)
+// 자동 초대 링크 (?room=XXXX) 입장
 // =====================================================
 window.addEventListener("DOMContentLoaded", () => {
   const params = new URLSearchParams(location.search);
@@ -103,25 +135,30 @@ window.addEventListener("DOMContentLoaded", () => {
     const nickname = prompt("닉네임을 입력하세요:");
     if (!nickname) return alert("닉네임이 필요합니다!");
 
-    roomId = invitedRoom;
-    myName = nickname;
+    window.roomId = invitedRoom;
+    window.myName = nickname;
 
-    // 🔥 자동 초대 링크 입장도 새로운 permUid 생성
+    // 🔥 저장 (자동 재접속 가능)
+    localStorage.setItem("scout_room", invitedRoom);
+    localStorage.setItem("scout_name", nickname);
+
+    // 초대 링크는 새 permUid
     window.permUid = crypto.randomUUID();
+    localStorage.setItem("scout_uid", window.permUid);
 
     socket.emit("joinRoom", {
-      roomId,
-      nickname: myName,
+      roomId: invitedRoom,
+      nickname: nickname,
       permUid: window.permUid
     });
 
-    roomTitle.innerText = `방번호: ${roomId}`;
+    roomTitle.innerText = `방번호: ${invitedRoom}`;
     showPage("roomPage");
   }
 });
 
 // =====================================================
-// 서버에서 보내주는 복구 상태
+// 복구 기능
 // =====================================================
 socket.on("restoreState", (state) => {
   if (!state) return;
@@ -135,11 +172,11 @@ socket.on("restoreState", (state) => {
   window.myHand = state.hand;
   window.roundInfo.innerText = `라운드 ${state.round}`;
 
+  // 렌더링 함수는 gameUI.js에 있음
   renderPlayers();
   renderHand();
   renderTable();
 
-  // 턴 복구
   window.myTurn = (state.turn === window.permUid);
   highlightTurn(state.turn);
   updateActionButtons();
