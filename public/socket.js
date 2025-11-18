@@ -1,21 +1,22 @@
 // =====================================================
-// SOCKET.JS — 회원 기반 + 자동재접속 + 초대링크 입장 + 로그아웃
+// SOCKET.JS — 회원 로그인 기반 / 초대 링크 자동 입장 / 방 생성 / 재접속
 // =====================================================
 
-// 현재 로그인된 userId
-window.userId = localStorage.getItem("scout_userId") || null;
+// 로그인한 사용자 ID
+window.userId = localStorage.getItem("scout_userId");
 
-// 로그인되어 있지 않으면 login.html로 이동
+// 로그인 안 되어 있으면 login.html로 이동
 if (!window.userId) {
   location.href = "/login.html";
 }
 
-// 전역 변수
+// Socket 연결
 window.socket = io({
-  autoConnect: true,
-  transports: ["websocket"]
+  transports: ["websocket"],
+  autoConnect: true
 });
 
+// 전역 변수
 window.roomId = null;
 
 
@@ -24,23 +25,25 @@ window.roomId = null;
 // ------------------------------------------------------
 window.showPage = function (page) {
   ["startPage", "roomPage", "gamePage"].forEach(id => {
-    document.getElementById(id).style.display = "none";
+    const el = document.getElementById(id);
+    if (el) el.style.display = "none";
   });
-  document.getElementById(page).style.display = "block";
+  const pageEl = document.getElementById(page);
+  if (pageEl) pageEl.style.display = "block";
 };
 
 
 // ======================================================
 // SOCKET CONNECTED
-// (초대링크 처리 + 자동 재입장)
+// (초대 링크 → 로그인 후 자동 입장)
 // ======================================================
 socket.on("connect", () => {
 
-  // 초대 링크 ?room=XXXX 처리
   const params = new URLSearchParams(location.search);
   const rid = params.get("room");
 
-  if (rid && window.userId) {
+  // 초대 링크로 들어온 경우
+  if (rid) {
     window.roomId = rid;
 
     socket.emit("joinRoom", {
@@ -48,7 +51,6 @@ socket.on("connect", () => {
       userId: window.userId
     });
 
-    // UI 갱신
     const title = document.getElementById("roomTitle");
     if (title) title.innerText = `방번호: ${rid}`;
 
@@ -63,50 +65,26 @@ socket.on("connect", () => {
 
 // ======================================================
 // 방 만들기
+// (index.html에서 makeRoomBtn이 클릭됨 → 여기서 처리됨)
 // ======================================================
-makeRoomBtn.onclick = () => {
-  roomId = generateRoomId();
-
-  socket.emit("joinRoom", {
-    roomId,
-    userId: window.userId
-  });
-
-  roomTitle.innerText = `방번호: ${roomId}`;
-  showPage("roomPage");
-};
-
-
-// ======================================================
-// 초대 링크 직접 입력하여 입장
-// ======================================================
-enterRoomBtn.onclick = () => {
-  const link = prompt("초대 링크를 입력하세요:");
-
-  try {
-    const url = new URL(link);
-    const rid = url.searchParams.get("room");
-
-    if (!rid) return alert("잘못된 링크입니다.");
-
-    window.roomId = rid;
+if (typeof makeRoomBtn !== "undefined") {
+  makeRoomBtn.onclick = () => {
+    const id = generateRoomId();
+    window.roomId = id;
 
     socket.emit("joinRoom", {
-      roomId: rid,
+      roomId: id,
       userId: window.userId
     });
 
-    roomTitle.innerText = `방번호: ${rid}`;
+    roomTitle.innerText = `방번호: ${id}`;
     showPage("roomPage");
-
-  } catch {
-    alert("유효하지 않은 링크입니다.");
-  }
-};
+  };
+}
 
 
 // ======================================================
-// 서버에서 게임 화면으로 이동 신호
+// 서버에서 게임 화면으로 이동시킴
 // ======================================================
 socket.on("goGamePage", () => {
   showPage("gamePage");
@@ -114,16 +92,7 @@ socket.on("goGamePage", () => {
 
 
 // ======================================================
-// 강퇴 처리
-// ======================================================
-socket.on("kicked", () => {
-  alert("방장에서 강퇴되었습니다.");
-  showPage("startPage");
-});
-
-
-// ======================================================
-// 방 폭파
+// 방 폭파 처리
 // ======================================================
 socket.on("roomClosed", () => {
   alert("방장이 나가서 게임방이 종료되었습니다.");
@@ -132,7 +101,16 @@ socket.on("roomClosed", () => {
 
 
 // ======================================================
-// 상태 복구 (재접속)
+// 강퇴 처리
+// ======================================================
+socket.on("kicked", () => {
+  alert("방에서 강퇴되었습니다.");
+  showPage("startPage");
+});
+
+
+// ======================================================
+// 재접속 복구
 // ======================================================
 socket.on("restoreState", (state) => {
   showPage("gamePage");
@@ -154,22 +132,55 @@ socket.on("restoreState", (state) => {
 
 
 // ======================================================
-// 로그아웃 기능
+// 플레이어 목록 갱신
 // ======================================================
-const logoutBtn = document.getElementById("logoutBtn");
-
-if (logoutBtn) {
-  logoutBtn.onclick = () => {
-    if (confirm("로그아웃하시겠습니까?")) {
-      localStorage.removeItem("scout_userId");
-      location.href = "/login.html";
-    }
-  };
-}
+socket.on("playerListUpdate", (players) => {
+  window.players = players;
+  renderPlayers();
+});
 
 
 // ======================================================
-// 방 번호 자동 생성
+// 테이블 업데이트
+// ======================================================
+socket.on("tableUpdate", (cards) => {
+  window.tableCards = cards;
+  renderTable();
+});
+
+
+// ======================================================
+// 턴 변경
+// ======================================================
+socket.on("turnChange", (uid) => {
+  window.myTurn = (uid === window.userId);
+  highlightTurn(uid);
+  updateActionButtons();
+});
+
+
+// ======================================================
+// ROUND / GAME 이벤트
+// ======================================================
+socket.on("roundStart", (data) => {
+  showPage("gamePage");
+  roundInfo.innerText = `라운드 ${data.round}`;
+  renderPlayers();
+  renderHand();
+  renderTable();
+});
+
+socket.on("roundEnd", (data) => {
+  alert(`라운드 종료! 승자: ${window.players[data.winner].nickname}`);
+});
+
+socket.on("gameOver", (data) => {
+  alert(`🎉 게임 종료! 최종 우승자: ${window.players[data.winner].nickname}`);
+});
+
+
+// ======================================================
+// 방 번호 생성
 // ======================================================
 function generateRoomId() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
