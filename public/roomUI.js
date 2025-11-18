@@ -1,6 +1,6 @@
-// ===============================
-// ROOM UI FINAL (Offline 표시 + Start 버튼 제어 + Ready 시스템)
-// ===============================
+// =======================================================
+// ROOM UI — FINAL VERSION (강퇴 기능 포함)
+// =======================================================
 
 const playerListDiv = document.getElementById("playerList");
 const readyBtn = document.getElementById("readyBtn");
@@ -16,6 +16,8 @@ function renderRoomPlayers(players) {
   playerListDiv.innerHTML = "";
   const arr = Object.values(players);
 
+  const isMeHost = players[window.permUid]?.isHost;
+
   arr.forEach((p) => {
     const div = document.createElement("div");
     div.className = "playerBox waiting";
@@ -28,11 +30,17 @@ function renderRoomPlayers(players) {
       ? `<span class="ready-led ${p.ready ? "on" : "off"}"></span>`
       : "";
 
+    let kickBtn = "";
+    if (isMeHost && !p.isHost) {
+      kickBtn = `<button class="kick-btn" data-uid="${p.uid}">강퇴</button>`;
+    }
+
     div.innerHTML = `
       <div class="nick">${crown}${p.nickname}</div>
       <div class="status">
         ${p.isOnline ? (p.isHost ? "(방장)" : p.ready ? "준비완료" : "대기중") : "(오프라인)"}
         ${led}
+        ${kickBtn}
       </div>
     `;
 
@@ -41,7 +49,7 @@ function renderRoomPlayers(players) {
 }
 
 // ===============================
-// START 버튼 활성화 조건
+// START 버튼 활성화
 // ===============================
 function updateStartButtonState(players) {
   const me = players[window.permUid];
@@ -61,7 +69,24 @@ function updateStartButtonState(players) {
 }
 
 // ===============================
-// 서버에서 플레이어 목록 업데이트
+// 클릭 이벤트 - 강퇴
+// ===============================
+playerListDiv.onclick = (e) => {
+  if (e.target.classList.contains("kick-btn")) {
+    const targetUid = e.target.getAttribute("data-uid");
+
+    if (confirm("정말 강퇴하시겠습니까?")) {
+      socket.emit("kickPlayer", {
+        roomId,
+        targetUid,
+        permUid: window.permUid,
+      });
+    }
+  }
+};
+
+// ===============================
+// 서버 → 플레이어 목록 업데이트
 // ===============================
 socket.on("playerListUpdate", (players) => {
   window.currentPlayers = players;
@@ -81,7 +106,7 @@ readyBtn.onclick = () => {
 };
 
 // ===============================
-// 게임 시작 버튼 (방장 전용)
+// START GAME 버튼
 // ===============================
 startGameBtn.onclick = () => {
   socket.emit("startGame", {
