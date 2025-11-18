@@ -49,14 +49,12 @@ app.post("/api/login", (req, res) => {
 
   const db = loadUserDB();
 
-  // 기존 계정 찾기
   const exist = Object.keys(db.users).find(
     uid => db.users[uid].nickname === nickname
   );
 
   if (exist) return res.json({ ok: true, userId: exist });
 
-  // 신규 생성
   const tag = shortUUID();
   const userId = `${nickname}-${tag}`;
 
@@ -128,9 +126,7 @@ function shuffle(a) {
 function deal(playerCount) {
   let deck = shuffle(createDeck());
 
-  if (playerCount === 3)
-    deck = deck.filter(c => c.top !== 10 && c.bottom !== 10);
-
+  if (playerCount === 3) deck = deck.filter(c => c.top !== 10 && c.bottom !== 10);
   if (playerCount === 2 || playerCount === 4)
     while (deck.length > 44) deck.pop();
 
@@ -158,76 +154,31 @@ function deal(playerCount) {
 io.on("connection", (socket) => {
 
   /* -----------------------------
-   * JOIN ROOM
+   * JOIN ROOM  (★중요: playerListUpdate 위치 수정 완료)
    * --------------------------- */
   socket.on("joinRoom", ({ roomId, userId }) => {
-  if (!roomId || !userId) return;
+    if (!roomId || !userId) return;
 
-  const db = loadUserDB();
-  if (!db.users[userId]) return;
+    const db = loadUserDB();
+    if (!db.users[userId]) return;
 
-  const nickname = db.users[userId].nickname;
-  socket.join(roomId);
+    const nickname = db.users[userId].nickname;
+    socket.join(roomId);
 
-  // 방 생성
-  if (!rooms[roomId]) {
-    rooms[roomId] = {
-      roomId,
-      players: {},
-      turnOrder: [],
-      currentTurn: 0,
-      table: [],
-      round: 1,
-      host: null,
-      lastShowPlayer: null,
-      startIndex: 0,
-      totalRounds: 0,
-    };
-  }
-
-  const room = rooms[roomId];
-  const first = Object.keys(room.players).length === 0;
-
-  // 신규 입장 OR 재접속
-  if (!room.players[userId]) {
-    room.players[userId] = {
-      uid: userId,
-      nickname,
-      socketId: socket.id,
-      isHost: first,
-      ready: false,
-      hand: [],
-      score: 0,
-      isOnline: true
-    };
-
-    if (first) room.host = userId;
-
-  } else {
-    // 재접속
-    room.players[userId].socketId = socket.id;
-    room.players[userId].isOnline = true;
-  }
-
-  // ⚠️ 여기가 핵심
-  // 플레이어 정보가 완전 적용된 후 playerListUpdate 실행
-  io.to(roomId).emit("playerListUpdate", room.players);
-
-  // 게임 중이면 상태 복구
-  if (room.turnOrder.length > 0) {
-    const p = room.players[userId];
-
-    io.to(socket.id).emit("restoreState", {
-      hand: p.hand,
-      score: p.score,
-      table: room.table,
-      round: room.round,
-      players: room.players,
-      turn: room.turnOrder[room.currentTurn],
-    });
-  }
-});
-
+    if (!rooms[roomId]) {
+      rooms[roomId] = {
+        roomId,
+        players: {},
+        turnOrder: [],
+        currentTurn: 0,
+        table: [],
+        round: 1,
+        host: null,
+        lastShowPlayer: null,
+        startIndex: 0,
+        totalRounds: 0
+      };
+    }
 
     const room = rooms[roomId];
     const first = Object.keys(room.players).length === 0;
@@ -246,27 +197,27 @@ io.on("connection", (socket) => {
       if (first) room.host = userId;
 
     } else {
-      // 재접속
       room.players[userId].socketId = socket.id;
       room.players[userId].isOnline = true;
     }
 
+    // ★ 플레이어 목록 업데이트 (정확한 위치)
     io.to(roomId).emit("playerListUpdate", room.players);
 
-    // 게임 중이면 복구
+    // ★ 게임 중 재접속 복구
     if (room.turnOrder.length > 0) {
       const p = room.players[userId];
-
       io.to(socket.id).emit("restoreState", {
         hand: p.hand,
         score: p.score,
         table: room.table,
         round: room.round,
         players: room.players,
-        turn: room.turnOrder[room.currentTurn]
+        turn: room.turnOrder[room.currentTurn],
       });
     }
   });
+
 
   /* -----------------------------
    * READY
@@ -280,6 +231,7 @@ io.on("connection", (socket) => {
 
     io.to(roomId).emit("playerListUpdate", room.players);
   });
+
 
   /* -----------------------------
    * GAME START
@@ -299,12 +251,12 @@ io.on("connection", (socket) => {
     room.round = 1;
     room.startIndex = 0;
 
-    for (const uid of Object.keys(room.players)) {
+    for (const uid of Object.keys(room.players))
       room.players[uid].score = 0;
-    }
 
-    startRound(room);
+    startRound(room);  // ★ gamePage 이동 포함
   });
+
 
   /* -----------------------------
    * SHOW
@@ -330,6 +282,7 @@ io.on("connection", (socket) => {
     nextTurn(room);
   });
 
+
   /* -----------------------------
    * SCOUT
    * --------------------------- */
@@ -348,9 +301,8 @@ io.on("connection", (socket) => {
     pos = Math.max(0, Math.min(p.hand.length, pos));
     p.hand.splice(pos, 0, card);
 
-    if (room.lastShowPlayer && room.lastShowPlayer !== userId) {
+    if (room.lastShowPlayer && room.lastShowPlayer !== userId)
       room.players[room.lastShowPlayer].score += 1;
-    }
 
     io.to(p.socketId).emit("yourHand", p.hand);
     io.to(roomId).emit("tableUpdate", room.table);
@@ -358,6 +310,7 @@ io.on("connection", (socket) => {
 
     nextTurn(room);
   });
+
 
   /* -----------------------------
    * 강퇴
@@ -377,8 +330,9 @@ io.on("connection", (socket) => {
     io.to(roomId).emit("playerListUpdate", room.players);
   });
 
+
   /* -----------------------------
-   * DISCONNECT
+   * DISCONNECT (방장 나가면 방 폭파)
    * --------------------------- */
   socket.on("disconnect", () => {
     for (const rid in rooms) {
@@ -406,11 +360,11 @@ io.on("connection", (socket) => {
 
 
 /* -----------------------------------------------------
- * ROUND START (goGamePage 포함!)
+ * ROUND START  (★ gamePage 이동 포함)
  * --------------------------------------------------- */
 function startRound(room) {
 
-  // 🔥 UI가 준비된 뒤 화면 전환
+  // ★ 이 타이밍이 가장 안정적 — UI 세팅 완료 후 gamePage로 전환됨
   io.to(room.roomId).emit("goGamePage");
 
   const uids = Object.keys(room.players);
@@ -454,14 +408,12 @@ function nextTurn(room) {
 
     if (!p.isOnline) continue;
 
-    // 🔥 라운드 종료 조건
     if (room.lastShowPlayer && room.lastShowPlayer === uid) {
       const winner = room.lastShowPlayer;
 
       for (const u of Object.keys(room.players)) {
-        if (u !== winner) {
+        if (u !== winner)
           room.players[u].score -= room.players[u].hand.length;
-        }
       }
 
       io.to(room.roomId).emit("roundEnd", {
@@ -469,7 +421,6 @@ function nextTurn(room) {
         players: room.players
       });
 
-      // 🔥 전체 라운드 종료
       if (room.round >= room.totalRounds) {
         let finalWinner = null;
         let max = -99999;
@@ -489,7 +440,6 @@ function nextTurn(room) {
         return;
       }
 
-      // 🔥 다음 라운드
       room.round++;
       room.startIndex = (room.startIndex + 1) % total;
 
@@ -509,7 +459,5 @@ function nextTurn(room) {
 const PORT = process.env.PORT || 3000;
 
 httpServer.listen(PORT, () => {
-  console.log(`🚀 SERVER STARTED ON ${PORT}`);
+  console.log(`🚀 SERVER STARTED ON PORT ${PORT}`);
 });
-
-
