@@ -154,12 +154,12 @@ function renderTable() {
     wrap.className = "table-card-wrapper";
     wrap.appendChild(drawScoutCard(c.top, c.bottom));
 
-    // ⭐ SCOUT or SHOW&SCOUT 상태만 가져오기 버튼 표시
+    // ⭐ SHOW&SCOUT 가져오기 후 glow 차단 (핵심)
     const canScout =
       myTurn &&
       !flipSelect &&
-      (scoutMode || scoutShowMode) &&
-      !insertMode &&
+      scoutMode &&                  // ← 수정됨
+      !insertMode &&                // ← 가져오기 후 glow 제거됨
       (idx === 0 || idx === tableCards.length - 1);
 
     if (canScout) {
@@ -180,6 +180,7 @@ function renderTable() {
     tableArea.appendChild(wrap);
   });
 }
+
 
 // -----------------------------------------------------
 // BUTTON CONTROL
@@ -494,3 +495,4 @@ socket.on("gameOver", ({ winner, players }) => {
     socket.emit("startGame", { roomId, permUid: window.permUid });
   };
 });
+
