@@ -450,19 +450,17 @@ socket.on("roundStart", ({ round, players: p, turnOrder: t }) => {
   updateButtons();
 });
 
+// ======================================================
+// TURN CHANGE
+// ======================================================
 socket.on("turnChange", (uid) => {
   myTurn = uid === window.permUid;
 
+  // 턴이 바뀌면 SCOUT 관련 모드 초기화
   scoutMode = false;
   insertMode = false;
 
-  socket.on("turnChange", (uid) => {
-  myTurn = uid === window.permUid;
-
-  scoutMode = false;
-  insertMode = false;
-
-  // ⭐ 내 턴이면 SCOUT 다시 활성화
+  // ⭐ SHOW&SCOUT 중이 아닐 때만 SCOUT 버튼 복구
   if (myTurn && !scoutShowMode) {
     scoutBtn.disabled = false;
     scoutBtn.style.opacity = "1";
@@ -474,12 +472,6 @@ socket.on("turnChange", (uid) => {
   updateButtons();
 });
 
-  
-  highlightTurn(uid);
-  renderTable();
-  renderHand();
-  updateButtons();
-});
 
 // -----------------------------------------------------
 // 라운드 종료 / 게임 종료
@@ -521,6 +513,7 @@ socket.on("gameOver", ({ winner, players }) => {
     socket.emit("startGame", { roomId, permUid: window.permUid });
   };
 });
+
 
 
 
