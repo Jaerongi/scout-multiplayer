@@ -196,12 +196,13 @@ function updateButtons() {
 
   set(showBtn, active);
 
-  // ⭐ SHOW&SCOUT는 사용 여부 따라 활성화
-  set(showScoutBtn, active && !scoutShowMode && !usedShowScout);
+  // SHOW&SCOUT는 라운드당 1번
+  set(showScoutBtn, active && !usedShowScout);
 
-  // ⭐ SHOW&SCOUT 중에는 SCOUT 막힘
-  set(scoutBtn, active && !scoutShowMode);
+  // ⭐ SCOUT는 insertMode 중에만 잠김! (핵심)
+  set(scoutBtn, active && !insertMode);
 }
+
 
 // -----------------------------------------------------
 // TURN HIGHLIGHT
@@ -520,5 +521,6 @@ socket.on("gameOver", ({ winner, players }) => {
     socket.emit("startGame", { roomId, permUid: window.permUid });
   };
 });
+
 
 
