@@ -98,9 +98,9 @@ function renderHand() {
     const btn = document.createElement("button");
     btn.innerText = "+ 넣기";
     btn.className = "insert-btn";
+
     btn.onclick = () => {
       insertMode = false;
-
       socket.emit("scout", {
         roomId,
         permUid: window.permUid,
@@ -154,11 +154,11 @@ function renderTable() {
     wrap.className = "table-card-wrapper";
     wrap.appendChild(drawScoutCard(c.top, c.bottom));
 
-    // ⭐ SHOW&SCOUT 중에는 glow 표시금지
+    // ⭐ SHOW&SCOUT 중에도 SCOUT 가능해야 함
     const canScout =
       myTurn &&
       !flipSelect &&
-      scoutMode &&
+      (scoutMode || scoutShowMode) &&
       !insertMode &&
       (idx === 0 || idx === tableCards.length - 1);
 
@@ -170,8 +170,7 @@ function renderTable() {
       btn.className = "take-btn";
 
       btn.onclick = () => {
-        scoutTargetSide =
-          idx === 0 ? "left" : "right";
+        scoutTargetSide = idx === 0 ? "left" : "right";
         scoutModal.classList.remove("hidden");
       };
 
@@ -195,7 +194,9 @@ function updateButtons() {
 
   set(showBtn, active);
   set(showScoutBtn, active);
-  set(scoutBtn, active && !scoutShowMode);  // SCOUT 회색 처리
+
+  // ⭐ SHOW&SCOUT 모드에서는 SCOUT 비활성화 + 회색
+  set(scoutBtn, active && !scoutShowMode);
 }
 
 // -----------------------------------------------------
@@ -237,7 +238,7 @@ showBtn.onclick = () => {
 
   if (arr.length === 0) return alert("카드를 선택하세요.");
 
-  // 연속된 카드인지 검사
+  // ⭐ 연속된 카드인지 검사
   for (let i = 1; i < arr.length; i++) {
     if (arr[i] !== arr[i - 1] + 1) {
       return alert("연속된 카드를 선택해야 합니다.");
@@ -260,16 +261,18 @@ showScoutBtn.onclick = () => {
   if (!myTurn || flipSelect) return;
 
   scoutShowMode = true;
-  scoutMode = false;
+
+  // ⭐ SCOUT 기능 켜야 테이블에서 카드 가져오기 가능
+  scoutMode = true;
+
   insertMode = false;
 
-  // SCOUT 비활성화
+  // SCOUT 버튼 비활성화
   scoutBtn.disabled = true;
   scoutBtn.style.opacity = "0.4";
 
   // 취소버튼 즉시 활성화
   cancelShowScoutBtn.classList.remove("hidden");
-  cancelShowScoutBtn.disabled = false;
 
   renderTable();
 
@@ -318,7 +321,7 @@ modalReverse.onclick = () => {
 };
 
 // -----------------------------------------------------
-// SHOW 실패 → 되돌리기
+// SHOW 실패 → 되돌리기 모달
 // -----------------------------------------------------
 socket.on("showFailed", () => {
   if (showFailModal) showFailModal.remove();
@@ -353,7 +356,7 @@ socket.on("showFailed", () => {
 });
 
 // -----------------------------------------------------
-// 취소 버튼 (SHOW&SCOUT / SCOUT 초기화)
+// SHOW&SCOUT → 취소 버튼
 // -----------------------------------------------------
 cancelShowScoutBtn.onclick = () => {
   scoutMode = false;
@@ -363,7 +366,6 @@ cancelShowScoutBtn.onclick = () => {
 
   cancelShowScoutBtn.classList.add("hidden");
 
-  // SCOUT 다시 활성화
   scoutBtn.disabled = false;
   scoutBtn.style.opacity = "1";
 
@@ -373,13 +375,13 @@ cancelShowScoutBtn.onclick = () => {
 };
 
 // -----------------------------------------------------
-// 서버에서 취소 완료
+// 서버 취소 완료
 // -----------------------------------------------------
 socket.on("cancelShowScoutDone", () => {
   selected.clear();
   insertMode = false;
 
-  // SHOW&SCOUT 상태 유지 (다시 SHOW/SCOUT 가능)
+  // SHOW&SCOUT 유지 (즉시 다음 행동 가능)
   scoutShowMode = true;
 
   cancelShowScoutBtn.classList.remove("hidden");
@@ -391,7 +393,6 @@ socket.on("cancelShowScoutDone", () => {
 // -----------------------------------------------------
 // SOCKET EVENTS
 // -----------------------------------------------------
-
 socket.on("playerListUpdate", (p) => {
   players = p;
   renderPlayers();
