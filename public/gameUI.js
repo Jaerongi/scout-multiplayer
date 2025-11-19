@@ -388,12 +388,19 @@ socket.on("roundStart", ({ round, players: p, startingPlayer }) => {
 // ======================================================
 socket.on("yourHand", (hand) => {
   myHand = hand;
-  selected.clear();
+
+  // SCOUT 후 선택 가능 상태로 복귀
   insertMode = false;
+  scoutMode = false;
+  scoutTargetSide = null;
+  insertCardInfo = null;
+
+  selected.clear();
 
   renderHand();
   updateActionButtons();
 });
+
 
 
 // ======================================================
@@ -478,3 +485,4 @@ socket.on("gameOver", ({ winner, players }) => {
     });
   };
 });
+
