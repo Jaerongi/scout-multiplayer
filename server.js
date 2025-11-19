@@ -184,6 +184,9 @@ socket.on("startGame", ({ roomId, permUid }) => {
 // =====================================================
 // SHOW (정상 + SHOW&SCOUT 확장)
 // =====================================================
+// =====================================================
+// SHOW
+// =====================================================
 socket.on("show", ({ roomId, permUid, cards }) => {
   const room = rooms[roomId];
   if (!room) return;
@@ -191,18 +194,32 @@ socket.on("show", ({ roomId, permUid, cards }) => {
   const p = room.players[permUid];
   if (!p) return;
 
-  // ---------- SHOW 실패 ----------
+  // 비교 실패 (SHOW 불가)
   if (room.table.length > 0 && !isStrongerCombo(cards, room.table)) {
-
-    // SHOW&SCOUT 중 실패 → 되돌리기 모달만 띄움
     if (p.scoutShowMode) {
       io.to(p.socketId).emit("showFailed");
-      return;
     }
-
-    // 일반 SHOW 실패 → 무시
     return;
   }
+
+  // ⭐⭐⭐ 손패에서 제출된 카드 제거 (정상 작동 코드)
+  p.hand = p.hand.filter(
+    (h) => !cards.some(
+      (c) => c.top === h.top && c.bottom === h.bottom
+    )
+  );
+
+  // 테이블 갱신
+  room.table = cards;
+  room.lastShowPlayer = permUid;
+
+  // 클라이언트 반영
+  io.to(p.socketId).emit("yourHand", p.hand);
+  io.to(roomId).emit("tableUpdate", room.table);
+
+  nextTurn(room);
+});
+
 
   // ---------- SHOW 성공 ----------
   p.score += room.table.length;
@@ -503,5 +520,6 @@ function nextTurn(room) {
 // ※ PART 5에는 더 붙일 코드가 없다!
 //    (이 안내문은 사용자에게 전체 파일 종료 구역을 알려주기 위한 설명이며
 //     실제 server.js 파일에는 넣지 않는다.)
+
 
 
