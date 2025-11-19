@@ -241,9 +241,12 @@ socket.on("scout", ({ roomId, permUid, side, flip, pos }) => {
   if (!p) return;
   if (room.table.length === 0) return;
 
-  // ----------------------------------------------------
-  // 가져올 카드의 원래 index 저장 (정확한 복구용)
-  // ----------------------------------------------------
+  // ⭐ SHOW&SCOUT 되돌리기 위해 테이블 전체 백업
+  p.lastTableBeforeScout = room.table.map(c => ({ ...c }));
+
+  // ----------------------------------------------------------------------
+  // 원래 index 저장 (실제로는 백업 방식이 메인이고 index는 보조로 유지)
+  // ----------------------------------------------------------------------
   let originalIndex =
     room.table.length === 1
       ? 0
@@ -251,9 +254,7 @@ socket.on("scout", ({ roomId, permUid, side, flip, pos }) => {
       ? 0
       : room.table.length - 1;
 
-  // ----------------------------------------------------
   // 카드 꺼내기
-  // ----------------------------------------------------
   let card =
     room.table.length === 1
       ? room.table.pop()
@@ -265,31 +266,25 @@ socket.on("scout", ({ roomId, permUid, side, flip, pos }) => {
     card = { top: card.bottom, bottom: card.top };
   }
 
-  // ----------------------------------------------------
-  // 손패 원하는 위치에 삽입
-  // ----------------------------------------------------
+  // 손패 삽입
   pos = Math.max(0, Math.min(p.hand.length, pos));
   p.hand.splice(pos, 0, card);
 
-  // ----------------------------------------------------
-  // SHOW&SCOUT 모드일 때 → 되돌리기 정보 저장 + 턴 유지
-  // ----------------------------------------------------
+  // SHOW&SCOUT 중이면 → 턴 유지 + 되돌리기 정보 기록
   if (p.scoutShowMode) {
     p.lastScoutedCard = card;
     p.lastScoutedInfo = {
       originalIndex,
       flip,
-      pos
+      pos,
     };
 
     io.to(p.socketId).emit("yourHand", p.hand);
     io.to(roomId).emit("tableUpdate", room.table);
-    return; // ⭐ 턴 유지
+    return;
   }
 
-  // ----------------------------------------------------
-  // 일반 SCOUT — 점수 + 턴 종료
-  // ----------------------------------------------------
+  // 일반 SCOUT 점수 처리
   if (room.lastShowPlayer && room.lastShowPlayer !== permUid) {
     room.players[room.lastShowPlayer].score += 1;
   }
@@ -300,6 +295,7 @@ socket.on("scout", ({ roomId, permUid, side, flip, pos }) => {
 
   nextTurn(room);
 });
+
 // =====================================================
 // SHOW 실패 → SHOW&SCOUT 되돌리기 (정확한 위치 복구)
 // =====================================================
@@ -507,4 +503,5 @@ function nextTurn(room) {
 // ※ PART 5에는 더 붙일 코드가 없다!
 //    (이 안내문은 사용자에게 전체 파일 종료 구역을 알려주기 위한 설명이며
 //     실제 server.js 파일에는 넣지 않는다.)
+
 
