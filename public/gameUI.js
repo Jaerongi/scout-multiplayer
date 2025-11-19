@@ -1,5 +1,5 @@
 // =====================================================
-// GAME UI — 옵션B 최종 안정본 (SHOW / SCOUT / SHOW&SCOUT / CANCEL)
+// GAME UI — OPTION B (FINAL) — SHOW&SCOUT 1회 제한 버전
 // =====================================================
 
 import { drawScoutCard } from "./cardEngine.js";
@@ -46,8 +46,10 @@ let flipSelect = true;
 let flipReversed = false;
 
 let scoutMode = false;        // 일반 SCOUT
-let scoutShowMode = false;    // SHOW&SCOUT 모드
-let insertMode = false;       // 가져온 카드 넣는 중
+let scoutShowMode = false;    // SHOW&SCOUT
+let insertMode = false;       // SCOUT 후 넣기 모드
+
+let usedShowScout = false;    // ⭐ 라운드에서 SHOW&SCOUT 사용했는지 여부
 
 let scoutTargetSide = null;
 let insertCardInfo = null;
@@ -55,7 +57,7 @@ let insertCardInfo = null;
 let showFailModal = null;
 
 // -----------------------------------------------------
-// PLAYER LIST
+// RENDER : PLAYERS
 // -----------------------------------------------------
 function renderPlayers() {
   gamePlayerList.innerHTML = "";
@@ -133,14 +135,12 @@ function renderHand() {
     wrap.appendChild(drawScoutCard(c.top, c.bottom));
     handArea.appendChild(wrap);
 
-    if (insertMode) {
-      handArea.appendChild(createInsertButton(idx + 1));
-    }
+    if (insertMode) handArea.appendChild(createInsertButton(idx + 1));
   });
 }
 
 // -----------------------------------------------------
-// TABLE
+// RENDER TABLE
 // -----------------------------------------------------
 function renderTable() {
   tableArea.innerHTML = "";
@@ -155,11 +155,13 @@ function renderTable() {
     wrap.className = "table-card-wrapper";
     wrap.appendChild(drawScoutCard(c.top, c.bottom));
 
+    // ⭐ SHOW&SCOUT 가져오기 후는 canScout 완전 차단됨
     const canScout =
       myTurn &&
       !flipSelect &&
       scoutMode &&
       !insertMode &&
+      !usedShowScout &&   // ⭐ 가져온 이후 버튼 차단
       (idx === 0 || idx === tableCards.length - 1);
 
     if (canScout) {
@@ -193,7 +195,11 @@ function updateButtons() {
   };
 
   set(showBtn, active);
-  set(showScoutBtn, active && !scoutShowMode);
+
+  // ⭐ SHOW&SCOUT는 사용 여부 따라 활성화
+  set(showScoutBtn, active && !scoutShowMode && !usedShowScout);
+
+  // ⭐ SHOW&SCOUT 중에는 SCOUT 막힘
   set(scoutBtn, active && !scoutShowMode);
 }
 
@@ -253,10 +259,12 @@ showBtn.onclick = () => {
 };
 
 // -----------------------------------------------------
-// SHOW & SCOUT
+// SHOW & SCOUT (1회성)
 // -----------------------------------------------------
 showScoutBtn.onclick = () => {
-  if (!myTurn || flipSelect) return;
+  if (!myTurn || flipSelect || usedShowScout) return;
+
+  usedShowScout = true;     // ⭐ 이번 라운드에서 사용함
 
   scoutShowMode = true;
   scoutMode = true;
@@ -273,10 +281,7 @@ showScoutBtn.onclick = () => {
   renderTable();
   setTimeout(() => renderTable(), 30);
 
-  socket.emit("startShowScout", {
-    roomId,
-    permUid: window.permUid,
-  });
+  socket.emit("startShowScout", { roomId, permUid: window.permUid });
 };
 
 // -----------------------------------------------------
@@ -314,7 +319,7 @@ modalKeep.onclick = () => enterInsertMode(false);
 modalReverse.onclick = () => enterInsertMode(true);
 
 // -----------------------------------------------------
-// SHOW 실패 모달
+// SHOW 실패 → 되돌리기 모달
 // -----------------------------------------------------
 socket.on("showFailed", () => {
   if (showFailModal) showFailModal.remove();
@@ -349,13 +354,15 @@ socket.on("showFailed", () => {
 });
 
 // -----------------------------------------------------
-// 취소 버튼
+// 취소 버튼 → SHOW&SCOUT 다시 가능 (usedShowScout 취소)
 // -----------------------------------------------------
 cancelShowScoutBtn.onclick = () => {
   scoutMode = false;
   scoutShowMode = false;
   insertMode = false;
   selected.clear();
+
+  usedShowScout = false;   // ⭐ 취소했으므로 다시 사용 가능
 
   cancelShowScoutBtn.classList.add("hidden");
 
@@ -371,7 +378,7 @@ cancelShowScoutBtn.onclick = () => {
 };
 
 // -----------------------------------------------------
-// 서버 취소 완료
+// 서버에서 취소 완료
 // -----------------------------------------------------
 socket.on("cancelShowScoutDone", () => {
   selected.clear();
@@ -415,9 +422,12 @@ socket.on("enterScoutMode", () => {
   renderTable();
 });
 
+// ⭐ 라운드 시작 → usedShowScout 초기화 필요
 socket.on("roundStart", ({ round, players: p, turnOrder: t }) => {
   players = p;
   turnOrder = t;
+
+  usedShowScout = false;   // ⭐ 새 라운드 시작 → SHOW&SCOUT reset
 
   tableCards = [];
   selected.clear();
