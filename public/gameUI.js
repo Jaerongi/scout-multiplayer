@@ -1,5 +1,5 @@
 // ======================================================
-// GAME UI — SHOW & SCOUT + CANCEL FULL VERSION
+// GAME UI — SHOW & SCOUT + CANCEL + TURN FIX FULL VERSION
 // ======================================================
 
 import { drawScoutCard } from "./cardEngine.js";
@@ -47,17 +47,23 @@ let scoutTargetSide = null;
 let insertMode = false;
 let insertCardInfo = null;
 
-// SHOW 실패 모달 (동적 생성)
 let showFailModal = null;
 
 
 // ======================================================
-// 플레이어 목록 렌더링
+// 플레이어 목록 렌더링 (turnOrder 우선 적용)
 // ======================================================
 function renderPlayers() {
   gamePlayerList.innerHTML = "";
 
-  Object.values(players).forEach((p) => {
+  // 🔥 turnOrder 우선 렌더링
+  let order = players.turnOrder;
+  if (!order) order = Object.keys(players);
+
+  order.forEach((uid) => {
+    const p = players[uid];
+    if (!p) return;
+
     const div = document.createElement("div");
     div.className = "playerBox";
     if (!p.isOnline) div.classList.add("offlinePlayer");
@@ -88,7 +94,6 @@ function renderHand() {
 
   const disp = getDisplayedHand();
 
-  // +넣기 버튼 생성
   const createInsertButton = (pos) => {
     const btn = document.createElement("button");
     btn.innerText = "+ 넣기";
@@ -109,7 +114,6 @@ function renderHand() {
     return btn;
   };
 
-  // 가장 앞에 +넣기
   if (insertMode) handArea.appendChild(createInsertButton(0));
 
   disp.forEach((c, i) => {
@@ -133,7 +137,6 @@ function renderHand() {
     wrap.appendChild(drawScoutCard(c.top, c.bottom));
     handArea.appendChild(wrap);
 
-    // 뒤에 +넣기
     if (insertMode) handArea.appendChild(createInsertButton(i + 1));
   });
 }
@@ -187,14 +190,14 @@ function renderTable() {
 
 
 // ======================================================
-// TURN 표시
+// 턴 표시
 // ======================================================
 function highlightTurn(uid) {
-  const arr = Object.values(players);
+  const order = players.turnOrder || Object.keys(players);
   const boxes = gamePlayerList.children;
 
-  arr.forEach((p, i) => {
-    if (p.uid === uid) boxes[i].classList.add("turnGlow");
+  order.forEach((id, i) => {
+    if (id === uid) boxes[i].classList.add("turnGlow");
     else boxes[i].classList.remove("turnGlow");
   });
 }
@@ -220,7 +223,6 @@ showBtn.onclick = () => {
 
   const disp = getDisplayedHand();
   const chosen = Array.from(selected).map((i) => disp[i]);
-
   if (chosen.length === 0) return alert("카드를 선택하세요!");
 
   socket.emit("show", {
@@ -232,7 +234,25 @@ showBtn.onclick = () => {
 
 
 // ======================================================
-// SHOW 실패 → cancel modal
+// SHOW & SCOUT (SCOUT 보너스 자동 적용)
+// ======================================================
+showScoutBtn.onclick = () => {
+  if (!myTurn || flipSelect) return;
+
+  const disp = getDisplayedHand();
+  const chosen = Array.from(selected).map((i) => disp[i]);
+  if (chosen.length === 0) return alert("카드를 선택하세요!");
+
+  socket.emit("show", {
+    roomId,
+    permUid: window.permUid,
+    cards: chosen,
+  });
+};
+
+
+// ======================================================
+// SHOW 실패 → 취소 모달
 // ======================================================
 socket.on("showFailed", () => {
   if (showFailModal) showFailModal.remove();
@@ -258,10 +278,12 @@ socket.on("showFailed", () => {
       permUid: window.permUid,
     });
     showFailModal.remove();
+    showFailModal = null;
   };
 
   document.getElementById("closeFailBtn").onclick = () => {
     showFailModal.remove();
+    showFailModal = null;
   };
 });
 
@@ -272,7 +294,6 @@ socket.on("showFailed", () => {
 scoutBtn.onclick = () => {
   if (!myTurn || flipSelect) return;
   if (tableCards.length === 0) return;
-
   scoutMode = true;
   renderTable();
 };
@@ -287,10 +308,7 @@ modalKeep.onclick = () => {
   scoutModal.classList.add("hidden");
 
   insertMode = true;
-  insertCardInfo = {
-    side: scoutTargetSide,
-    flip: false,
-  };
+  insertCardInfo = { side: scoutTargetSide, flip: false };
 
   renderHand();
 };
@@ -299,10 +317,7 @@ modalReverse.onclick = () => {
   scoutModal.classList.add("hidden");
 
   insertMode = true;
-  insertCardInfo = {
-    side: scoutTargetSide,
-    flip: true,
-  };
+  insertCardInfo = { side: scoutTargetSide, flip: true };
 
   renderHand();
 };
@@ -324,21 +339,38 @@ flipConfirmBtn.onclick = () => {
 
 
 // ======================================================
-// SOCKET EVENTS
+// SOCKET: playerListUpdate
 // ======================================================
-socket.on("playerListUpdate", (p) => {
-  players = p;
+socket.on("playerListUpdate", (data) => {
+  // data가 players만 있는 경우 or turnOrder 있는 경우 모두 호환
+  if (data.players) {
+    players = data.players;
+    players.turnOrder = data.turnOrder || players.turnOrder;
+  } else {
+    players = data;
+  }
+
   renderPlayers();
 });
 
-socket.on("roundStart", ({ round, players: p }) => {
+
+// ======================================================
+// roundStart
+// ======================================================
+socket.on("roundStart", ({ round, players: p, startingPlayer }) => {
   players = p;
+  players.turnOrder = Object.keys(p); // fallback
+
   tableCards = [];
   selected.clear();
+
   flipSelect = true;
   flipReversed = false;
+
   scoutMode = false;
   insertMode = false;
+  scoutTargetSide = null;
+  insertCardInfo = null;
 
   flipSelectArea.classList.remove("hidden");
 
@@ -350,6 +382,10 @@ socket.on("roundStart", ({ round, players: p }) => {
   updateActionButtons();
 });
 
+
+// ======================================================
+// yourHand
+// ======================================================
 socket.on("yourHand", (hand) => {
   myHand = hand;
   selected.clear();
@@ -359,6 +395,10 @@ socket.on("yourHand", (hand) => {
   updateActionButtons();
 });
 
+
+// ======================================================
+// tableUpdate
+// ======================================================
 socket.on("tableUpdate", (cards) => {
   tableCards = cards;
   renderTable();
@@ -367,13 +407,24 @@ socket.on("tableUpdate", (cards) => {
 
 
 // ======================================================
-// 턴 변경
+// turnChange (🔥 SCOUT 상태 완전 초기화)
 // ======================================================
 socket.on("turnChange", (uid) => {
   myTurn = uid === window.permUid;
 
+  // 🔥 SCOUT 관련 UI 상태 초기화
   scoutMode = false;
   insertMode = false;
+  scoutTargetSide = null;
+  insertCardInfo = null;
+  selected.clear();
+
+  if (showFailModal) {
+    showFailModal.remove();
+    showFailModal = null;
+  }
+
+  scoutModal.classList.add("hidden");
 
   highlightTurn(uid);
   renderTable();
@@ -383,7 +434,7 @@ socket.on("turnChange", (uid) => {
 
 
 // ======================================================
-// 라운드 종료 / 우승 팝업
+// 라운드 종료 / 게임 종료
 // ======================================================
 socket.on("roundEnd", ({ winner, players }) => {
   const name = players[winner].nickname;
@@ -399,7 +450,6 @@ socket.on("roundEnd", ({ winner, players }) => {
   `;
 
   document.body.appendChild(div);
-
   setTimeout(() => div.remove(), 3000);
 });
 
@@ -422,6 +472,9 @@ socket.on("gameOver", ({ winner, players }) => {
 
   document.getElementById("restartBtn").onclick = () => {
     div.remove();
-    socket.emit("startGame", { roomId, permUid: window.permUid });
+    socket.emit("startGame", {
+      roomId,
+      permUid: window.permUid,
+    });
   };
 });
