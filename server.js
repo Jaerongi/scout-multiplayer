@@ -1,5 +1,5 @@
 // =====================================================
-// SCOUT MULTIPLAYER — SERVER (SHOW & SCOUT + CANCEL FULL VERSION)
+// SERVER — SHOW & SCOUT FULL SYSTEM
 // =====================================================
 
 import express from "express";
@@ -11,23 +11,19 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer);
 
-// 정적 파일
 app.use(express.static("public"));
 app.get("/shared.js", (req, res) => res.sendFile(process.cwd() + "/shared.js"));
 
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => console.log("SERVER START", PORT));
 
-
-// =====================================================
-// 방 정보
-// =====================================================
+// =============================================
+// ROOM DATA
+// =============================================
 const rooms = {};
 
 
-// =====================================================
-// 덱 생성 / 분배
-// =====================================================
+// 덱 생성 / 분배 --------------------------------------
 function createDeck() {
   const deck = [];
   for (let t = 1; t <= 9; t++) {
@@ -36,42 +32,38 @@ function createDeck() {
   return deck;
 }
 
-function shuffle(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+    [a[i], a[j]] = [a[j], a[i]];
   }
-  return arr;
+  return a;
 }
 
-function deal(playerCount) {
+function deal(n) {
   let deck = shuffle(createDeck());
 
-  if (playerCount === 3)
+  if (n === 3)
     deck = deck.filter((c) => c.top !== 10 && c.bottom !== 10);
 
-  if (playerCount === 2 || playerCount === 4)
+  if (n === 2 || n === 4)
     while (deck.length > 44) deck.pop();
 
-  // 맞아떨어지게 제거
-  const drop = deck.length % playerCount;
+  const drop = deck.length % n;
   for (let i = 0; i < drop; i++) deck.pop();
 
-  const size = deck.length / playerCount;
-  const res = [];
+  const size = deck.length / n;
+  const hands = [];
 
-  for (let i = 0; i < playerCount; i++) {
+  for (let i = 0; i < n; i++) {
     let hand = deck.splice(0, size);
-
-    // 반전 랜덤
     hand = hand.map((c) =>
       Math.random() < 0.5 ? c : { top: c.bottom, bottom: c.top }
     );
-
-    res.push(hand);
+    hands.push(hand);
   }
 
-  return res;
+  return hands;
 }
 
 
@@ -81,7 +73,7 @@ function deal(playerCount) {
 // =====================================================
 io.on("connection", (socket) => {
 
-  // JOIN ROOM
+  // JOIN
   socket.on("joinRoom", ({ roomId, nickname, permUid }) => {
 
     socket.join(roomId);
@@ -94,6 +86,7 @@ io.on("connection", (socket) => {
         currentTurn: 0,
         table: [],
         round: 1,
+
         host: null,
         lastShowPlayer: null,
 
@@ -103,43 +96,45 @@ io.on("connection", (socket) => {
     }
 
     const room = rooms[roomId];
-    const isFirst = Object.keys(room.players).length === 0;
+    const first = Object.keys(room.players).length === 0;
 
     if (!room.players[permUid]) {
       room.players[permUid] = {
         uid: permUid,
         nickname,
         socketId: socket.id,
-        isHost: isFirst,
+        isHost: first,
         ready: false,
         isOnline: true,
         hand: [],
         score: 0,
 
-        // 🔥 추가된 SCOUT 관련 상태
-        scoutBonus: false,         // SCOUT 하면 SHOW 1회 가능
-        lastScoutedCard: null,     // 취소 대비 임시 저장
-        lastScoutedInfo: null,     // side / flip / pos
+        // SHOW & SCOUT 모드 상태
+        scoutShowMode: false,    // true면 SCOUT 후 SHOW까지 해야 끝남
+        lastScoutedCard: null,
+        lastScoutedInfo: null,
       };
-      if (isFirst) room.host = permUid;
+      if (first) room.host = permUid;
     } else {
       room.players[permUid].socketId = socket.id;
       room.players[permUid].isOnline = true;
     }
 
-    io.to(roomId).emit("playerListUpdate", room.players);
+    io.to(roomId).emit("playerListUpdate", {
+      players: room.players,
+      turnOrder: room.turnOrder
+    });
 
     const started = room.turnOrder.length > 0;
-    const p = room.players[permUid];
 
     if (started) {
+      const p = room.players[permUid];
       io.to(socket.id).emit("restoreState", {
-        hand: p.hand,
-        score: p.score,
-        table: room.table,
-        round: room.round,
         players: room.players,
-        turn: room.turnOrder[room.currentTurn]
+        hand: p.hand,
+        table: room.table,
+        turn: room.turnOrder[room.currentTurn],
+        round: room.round,
       });
     }
   });
@@ -154,12 +149,15 @@ io.on("connection", (socket) => {
     if (!room.players[permUid].isHost)
       room.players[permUid].ready = !room.players[permUid].ready;
 
-    io.to(roomId).emit("playerListUpdate", room.players);
+    io.to(roomId).emit("playerListUpdate", {
+      players: room.players,
+      turnOrder: room.turnOrder
+    });
   });
 
 
 
-  // START GAME
+  // START
   socket.on("startGame", ({ roomId, permUid }) => {
     const room = rooms[roomId];
     if (!room || room.host !== permUid) return;
@@ -167,6 +165,7 @@ io.on("connection", (socket) => {
     const ok = Object.values(room.players)
       .filter((p) => !p.isHost)
       .every((p) => p.ready);
+
     if (!ok) return;
 
     room.totalRounds = Object.keys(room.players).length;
@@ -174,55 +173,50 @@ io.on("connection", (socket) => {
     room.startIndex = 0;
 
     startRound(room);
+
     io.to(roomId).emit("goGamePage");
   });
 
 
 
   // =====================================================
-  // SHOW
+  // SHOW ONLY
   // =====================================================
   socket.on("show", ({ roomId, permUid, cards }) => {
     const room = rooms[roomId];
-    if (!room) return;
+    const p = room.players[permUid];
+    if (!room || !p) return;
 
-    const player = room.players[permUid];
-
-    // 조합 비교
     if (!isStrongerCombo(cards, room.table)) {
-      // SHOW 실패 → 클라이언트에서 취소/확정 선택
-      io.to(player.socketId).emit("showFailed");
+      io.to(p.socketId).emit("showFailed");
       return;
     }
 
-    // SHOW 성공 =========================================
-
-    // (1) SCOUT 보너스 확정 처리
-    if (player.scoutBonus && player.lastScoutedCard) {
-      const last = room.lastShowPlayer;
-      if (last && last !== permUid) {
-        room.players[last].score += 1;  // SCOUT 점수
-      }
-
-      // 초기화
-      player.scoutBonus = false;
-      player.lastScoutedCard = null;
-      player.lastScoutedInfo = null;
-    }
-
-    // (2) 자기 패에서 제거
-    player.hand = player.hand.filter(
+    // 정상 SHOW
+    p.hand = p.hand.filter(
       (h) => !cards.some((c) => c.top === h.top && c.bottom === h.bottom)
     );
 
-    // (3) 테이블 반영
     room.table = cards;
     room.lastShowPlayer = permUid;
 
-    // 업데이트
-    io.to(player.socketId).emit("yourHand", player.hand);
+    // SCOUT 보너스 점수
+    if (p.scoutShowMode) {
+      const last = room.lastShowPlayer;
+      if (last && last !== permUid) {
+        room.players[last].score += 1;
+      }
+      p.scoutShowMode = false;
+      p.lastScoutedCard = null;
+      p.lastScoutedInfo = null;
+    }
+
+    io.to(p.socketId).emit("yourHand", p.hand);
     io.to(roomId).emit("tableUpdate", room.table);
-    io.to(roomId).emit("playerListUpdate", room.players);
+    io.to(roomId).emit("playerListUpdate", {
+      players: room.players,
+      turnOrder: room.turnOrder
+    });
 
     nextTurn(room);
   });
@@ -230,89 +224,113 @@ io.on("connection", (socket) => {
 
 
   // =====================================================
-  // SCOUT (임시 처리 + SCOUT 보너스)
+  // SHOW & SCOUT 버튼 → SCOUT 모드 시작
+  // =====================================================
+  socket.on("startShowScout", ({ roomId, permUid }) => {
+    const room = rooms[roomId];
+    const p = room.players[permUid];
+    if (!room || !p) return;
+
+    // SHOW & SCOUT 모드 진입
+    p.scoutShowMode = true;
+
+    io.to(roomId).emit("enterScoutMode", permUid);
+  });
+
+
+
+  // =====================================================
+  // SCOUT 수행 (SHOW&SCOUT or 일반 SCOUT 모두 여기로 처리)
   // =====================================================
   socket.on("scout", ({ roomId, permUid, side, flip, pos }) => {
     const room = rooms[roomId];
-    const player = room.players[permUid];
+    const p = room.players[permUid];
+    if (!room || !p) return;
 
-    if (!room || room.table.length === 0) return;
-
-    // 카드 가져오기
     let card =
-      (side === "left")
-        ? room.table.shift()
-        : room.table.pop();
+      side === "left" ? room.table.shift() : room.table.pop();
 
     if (flip) card = { top: card.bottom, bottom: card.top };
 
-    // SCOUT 보너스 부여
-    player.scoutBonus = true;
+    pos = Math.max(0, Math.min(p.hand.length, pos));
+    p.hand.splice(pos, 0, card);
 
-    // 취소 대비 임시저장
-    player.lastScoutedCard = card;
-    player.lastScoutedInfo = { side, flip, pos };
+    // SHOW & SCOUT 모드라면 → 턴 유지
+    if (p.scoutShowMode) {
+      p.lastScoutedCard = card;
+      p.lastScoutedInfo = { side, flip, pos };
 
-    // 손패에 임시 추가 (UI용)
-    pos = Math.max(0, Math.min(player.hand.length, pos));
-    player.hand.splice(pos, 0, card);
+      io.to(p.socketId).emit("yourHand", p.hand);
+      io.to(roomId).emit("tableUpdate", room.table);
+      return;
+    }
 
-    io.to(player.socketId).emit("yourHand", player.hand);
+    // 일반 SCOUT → SCOUT 점수 반영 & 턴 종료
+    const last = room.lastShowPlayer;
+    if (last && last !== permUid) {
+      room.players[last].score += 1;
+    }
+
+    io.to(p.socketId).emit("yourHand", p.hand);
     io.to(roomId).emit("tableUpdate", room.table);
-    io.to(roomId).emit("playerListUpdate", room.players);
+    io.to(roomId).emit("playerListUpdate", {
+      players: room.players,
+      turnOrder: room.turnOrder
+    });
+
+    nextTurn(room);
   });
 
 
 
   // =====================================================
-  // SHOW 실패 → SCOUT 취소
+  // SHOW 실패 → SHOW & SCOUT 취소
   // =====================================================
   socket.on("cancelShowScout", ({ roomId, permUid }) => {
     const room = rooms[roomId];
-    const player = room.players[permUid];
-    if (!room || !player) return;
+    const p = room.players[permUid];
+    if (!room || !p) return;
 
-    const card = player.lastScoutedCard;
-    const info = player.lastScoutedInfo;
+    const card = p.lastScoutedCard;
+    const info = p.lastScoutedInfo;
     if (!card || !info) return;
 
-    // 손패에서 제거
-    player.hand = player.hand.filter(
-      (c) => !(c.top === card.top && c.bottom === card.bottom)
+    // 1) 손패에서 제거
+    p.hand = p.hand.filter(
+      (h) => !(h.top === card.top && h.bottom === card.bottom)
     );
 
-    // 테이블로 복구
+    // 2) 테이블에 복원
     if (info.side === "left") room.table.unshift(card);
     else room.table.push(card);
 
-    // 보너스는 유지함
-    player.lastScoutedCard = null;
-    player.lastScoutedInfo = null;
+    // 3) SHOW & SCOUT 모드 유지
+    p.lastScoutedCard = null;
+    p.lastScoutedInfo = null;
 
-    io.to(player.socketId).emit("yourHand", player.hand);
+    io.to(p.socketId).emit("yourHand", p.hand);
     io.to(roomId).emit("tableUpdate", room.table);
-    io.to(roomId).emit("playerListUpdate", room.players);
+
+    // 다시 SHOW&SCOUT 모드 계속
+    io.to(p.socketId).emit("cancelShowScoutDone");
   });
 
 
 
-  // =====================================================
   // DISCONNECT
-  // =====================================================
   socket.on("disconnect", () => {
     for (const rid in rooms) {
       const room = rooms[rid];
-
       for (const p of Object.values(room.players))
         if (p.socketId === socket.id) p.isOnline = false;
 
-      io.to(rid).emit("playerListUpdate", room.players);
+      io.to(rid).emit("playerListUpdate", {
+        players: room.players,
+        turnOrder: room.turnOrder
+      });
     }
   });
-
 });
-
-
 
 
 // =====================================================
@@ -324,10 +342,9 @@ function startRound(room) {
 
   uids.forEach((uid, i) => {
     const p = room.players[uid];
-    p.hand = hands[i];
 
-    // 라운드 시작하면 SCOUT 임시상태 초기화
-    p.scoutBonus = false;
+    p.hand = hands[i];
+    p.scoutShowMode = false;
     p.lastScoutedCard = null;
     p.lastScoutedInfo = null;
   });
@@ -340,15 +357,19 @@ function startRound(room) {
   io.to(room.roomId).emit("roundStart", {
     round: room.round,
     players: room.players,
-    startingPlayer: room.turnOrder[room.currentTurn],
+    turnOrder: room.turnOrder
   });
 
-  uids.forEach((uid) => {
+  for (const uid of uids) {
     const p = room.players[uid];
-    if (p.isOnline) io.to(p.socketId).emit("yourHand", p.hand);
-  });
+    if (p.isOnline)
+      io.to(p.socketId).emit("yourHand", p.hand);
+  }
 
-  io.to(room.roomId).emit("turnChange", room.turnOrder[room.currentTurn]);
+  io.to(room.roomId).emit(
+    "turnChange",
+    room.turnOrder[room.currentTurn]
+  );
 }
 
 
@@ -357,6 +378,7 @@ function startRound(room) {
 // 턴 진행
 // =====================================================
 function nextTurn(room) {
+
   for (let i = 0; i < room.turnOrder.length; i++) {
     room.currentTurn = (room.currentTurn + 1) % room.turnOrder.length;
 
@@ -365,15 +387,14 @@ function nextTurn(room) {
 
     if (!p.isOnline) continue;
 
-    // 라운드 종결 조건
+    // 라운드 종료 판단
     if (room.lastShowPlayer && uid === room.lastShowPlayer) {
+
       const winner = room.lastShowPlayer;
 
-      // 점수 정산
       for (const u of Object.keys(room.players)) {
-        if (u !== winner) {
+        if (u !== winner)
           room.players[u].score -= room.players[u].hand.length;
-        }
       }
 
       io.to(room.roomId).emit("roundEnd", {
@@ -381,16 +402,14 @@ function nextTurn(room) {
         players: room.players,
       });
 
-      // 모든 라운드 완료
       if (room.round >= room.totalRounds) {
-
         let finalWinner = null;
-        let max = -9999;
+        let max = -99999;
 
-        for (const u of Object.keys(room.players)) {
-          if (room.players[u].score > max) {
-            max = room.players[u].score;
-            finalWinner = u;
+        for (const id of Object.keys(room.players)) {
+          if (room.players[id].score > max) {
+            max = room.players[id].score;
+            finalWinner = id;
           }
         }
 
@@ -402,9 +421,9 @@ function nextTurn(room) {
         return;
       }
 
-      // 다음 라운드
       room.round++;
-      room.startIndex = (room.startIndex + 1) % room.turnOrder.length;
+      room.startIndex =
+        (room.startIndex + 1) % room.turnOrder.length;
 
       startRound(room);
       return;
