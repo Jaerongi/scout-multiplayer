@@ -1,495 +1,439 @@
 // =====================================================
-// GAME UI — 옵션B 최종 안정본 (SHOW / SCOUT / SHOW&SCOUT / CANCEL)
+// SCOUT MULTIPLAYER — SERVER 옵션B 최종 안정본
+// (SHOW / SCOUT / SHOW&SCOUT / CANCEL 완전 일치)
 // =====================================================
 
-import { drawScoutCard } from "./cardEngine.js";
-import { getComboType, isStrongerCombo } from "/shared.js";
+import express from "express";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import { getComboType, isStrongerCombo } from "./shared.js";
 
-// -----------------------------------------------------
-// DOM ELEMENTS
-// -----------------------------------------------------
-const gamePlayerList = document.getElementById("gamePlayerList");
-const tableArea = document.getElementById("tableArea");
-const handArea = document.getElementById("handArea");
-const myCountSpan = document.getElementById("myCount");
-const roundInfo = document.getElementById("roundInfo");
+const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer);
 
-// Buttons
-const showBtn = document.getElementById("showBtn");
-const scoutBtn = document.getElementById("scoutBtn");
-const showScoutBtn = document.getElementById("showScoutBtn");
-const cancelShowScoutBtn = document.getElementById("cancelShowScoutBtn");
+app.use(express.static("public"));
+app.get("/shared.js", (req, res) =>
+  res.sendFile(process.cwd() + "/shared.js")
+);
 
-// Flip buttons
-const flipSelectArea = document.getElementById("flipSelectArea");
-const flipToggleBtn = document.getElementById("flipToggleBtn");
-const flipConfirmBtn = document.getElementById("flipConfirmBtn");
+const PORT = process.env.PORT || 3000;
+httpServer.listen(PORT, () => console.log("SERVER START", PORT));
 
-// SCOUT Modal
-const scoutModal = document.getElementById("scoutModal");
-const modalKeep = document.getElementById("modalKeep");
-const modalReverse = document.getElementById("modalReverse");
-const modalClose = document.getElementById("modalClose");
+// =====================================================
+// ROOMS
+// =====================================================
+const rooms = {};
 
-// -----------------------------------------------------
-// STATE
-// -----------------------------------------------------
-let players = {};
-let tableCards = [];
-let myHand = [];
-let selected = new Set();
-let turnOrder = [];
-
-let myTurn = false;
-
-let flipSelect = true;
-let flipReversed = false;
-
-let scoutMode = false;        // 일반 SCOUT
-let scoutShowMode = false;    // SHOW&SCOUT
-let insertMode = false;       // SCOUT 후 넣기 모드
-
-let scoutTargetSide = null;
-let insertCardInfo = null;
-
-let showFailModal = null;
-
-// -----------------------------------------------------
-// RENDER : PLAYERS
-// -----------------------------------------------------
-function renderPlayers() {
-  gamePlayerList.innerHTML = "";
-  const order = turnOrder.length ? turnOrder : Object.keys(players);
-
-  order.forEach((uid) => {
-    const p = players[uid];
-    if (!p) return;
-
-    const div = document.createElement("div");
-    div.className = "playerBox";
-    if (!p.isOnline) div.classList.add("offlinePlayer");
-
-    div.innerHTML = `
-      <b>${p.nickname}</b><br>
-      패: ${p.hand.length}장<br>
-      점수: ${p.score}
-    `;
-
-    gamePlayerList.appendChild(div);
-  });
+// =====================================================
+// DECK
+// =====================================================
+function createDeck() {
+  const deck = [];
+  for (let t = 1; t <= 9; t++) {
+    for (let b = t + 1; b <= 10; b++) {
+      deck.push({ top: t, bottom: b });
+    }
+  }
+  return deck;
 }
 
-// -----------------------------------------------------
-// RENDER : HAND
-// -----------------------------------------------------
-function getDisplayedHand() {
-  return flipReversed
-    ? myHand.map((c) => ({ top: c.bottom, bottom: c.top }))
-    : myHand;
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
 }
 
-function renderHand() {
-  handArea.innerHTML = "";
-  myCountSpan.innerText = myHand.length;
+function deal(n) {
+  let deck = shuffle(createDeck());
 
-  const disp = getDisplayedHand();
+  if (n === 3)
+    deck = deck.filter((c) => c.top !== 10 && c.bottom !== 10);
 
-  const createInsertButton = (pos) => {
-    const btn = document.createElement("button");
-    btn.innerText = "+ 넣기";
-    btn.className = "insert-btn";
-    btn.onclick = () => {
-      insertMode = false;
+  if (n === 2 || n === 4)
+    while (deck.length > 44) deck.pop();
 
-      socket.emit("scout", {
+  const drop = deck.length % n;
+  for (let i = 0; i < drop; i++) deck.pop();
+
+  const size = deck.length / n;
+  const hands = [];
+
+  for (let i = 0; i < n; i++) {
+    let hand = deck.splice(0, size);
+    hand = hand.map((c) =>
+      Math.random() < 0.5 ? c : { top: c.bottom, bottom: c.top }
+    );
+    hands.push(hand);
+  }
+  return hands;
+}
+
+// =====================================================
+// SOCKET
+// =====================================================
+io.on("connection", (socket) => {
+
+  // ---------------------------------------------------
+  // JOIN ROOM
+  // ---------------------------------------------------
+  socket.on("joinRoom", ({ roomId, nickname, permUid }) => {
+    if (!roomId || !nickname || !permUid) return;
+
+    socket.join(roomId);
+
+    if (!rooms[roomId]) {
+      rooms[roomId] = {
         roomId,
-        permUid: window.permUid,
-        side: insertCardInfo.side,
-        flip: insertCardInfo.flip,
-        pos,
-      });
-    };
-
-    return btn;
-  };
-
-  if (insertMode) handArea.appendChild(createInsertButton(0));
-
-  disp.forEach((c, idx) => {
-    const wrap = document.createElement("div");
-    wrap.className = "card-wrapper";
-
-    const selectable = !flipSelect && !insertMode;
-
-    if (selectable) {
-      if (selected.has(idx)) wrap.classList.add("selected");
-
-      wrap.onclick = () => {
-        if (selected.has(idx)) selected.delete(idx);
-        else selected.add(idx);
-        renderHand();
+        players: {},
+        turnOrder: [],
+        currentTurn: 0,
+        table: [],
+        lastShowPlayer: null,
+        round: 1,
+        startIndex: 0,
+        totalRounds: 0,
+        host: null,
       };
     }
 
-    wrap.appendChild(drawScoutCard(c.top, c.bottom));
-    handArea.appendChild(wrap);
+    const room = rooms[roomId];
+    const isFirst = Object.keys(room.players).length === 0;
 
-    if (insertMode) handArea.appendChild(createInsertButton(idx + 1));
+    if (!room.players[permUid]) {
+      room.players[permUid] = {
+        uid: permUid,
+        nickname,
+        socketId: socket.id,
+        isHost: isFirst,
+        isOnline: true,
+        ready: false,
+        hand: [],
+        score: 0,
+
+        // SHOW&SCOUT 전용 상태
+        scoutShowMode: false,
+        lastScoutedCard: null,
+        lastScoutedInfo: null,  // { originalIndex, side, flip, pos }
+      };
+      if (isFirst) room.host = permUid;
+    } else {
+      room.players[permUid].socketId = socket.id;
+      room.players[permUid].isOnline = true;
+    }
+
+    io.to(roomId).emit("playerListUpdate", room.players);
+
+    const gameStarted = room.turnOrder.length > 0;
+
+    if (gameStarted) {
+      const p = room.players[permUid];
+      io.to(socket.id).emit("restoreState", {
+        hand: p.hand,
+        table: room.table,
+        score: p.score,
+        round: room.round,
+        players: room.players,
+        turn: room.turnOrder[room.currentTurn],
+      });
+    }
   });
+
+  // ---------------------------------------------------
+  // READY
+  // ---------------------------------------------------
+  socket.on("playerReady", ({ roomId, permUid }) => {
+    const room = rooms[roomId];
+    if (!room) return;
+
+    if (!room.players[permUid].isHost)
+      room.players[permUid].ready = !room.players[permUid].ready;
+
+    io.to(roomId).emit("playerListUpdate", room.players);
+  });
+
+  // ---------------------------------------------------
+  // START GAME
+  // ---------------------------------------------------
+  socket.on("startGame", ({ roomId, permUid }) => {
+    const room = rooms[roomId];
+    if (!room || room.host !== permUid) return;
+
+    const readyOK = Object.values(room.players)
+      .filter((p) => !p.isHost)
+      .every((p) => p.ready);
+
+    if (!readyOK) return;
+
+    room.totalRounds = Object.keys(room.players).length;
+    room.round = 1;
+    room.startIndex = 0;
+
+    startRound(room);
+
+    io.to(roomId).emit("goGamePage");
+  });
+
+  // ---------------------------------------------------
+  // SHOW
+  // ---------------------------------------------------
+  socket.on("show", ({ roomId, permUid, cards }) => {
+    const room = rooms[roomId];
+    const p = room.players[permUid];
+    if (!room || !p) return;
+
+    // SHOW 비교 실패
+    if (room.table.length > 0 && !isStrongerCombo(cards, room.table)) {
+      if (p.scoutShowMode) {
+        io.to(p.socketId).emit("showFailed");
+        return;
+      }
+      return;
+    }
+
+    // SHOW 성공
+    p.score += room.table.length;
+
+    // 손패에서 제거
+    p.hand = p.hand.filter(
+      (h) => !cards.some((c) => c.top === h.top && c.bottom === h.bottom)
+    );
+
+    // 테이블 덮어쓰기
+    room.table = cards;
+    room.lastShowPlayer = permUid;
+
+    // SHOW&SCOUT 종료
+    p.scoutShowMode = false;
+    p.lastScoutedCard = null;
+    p.lastScoutedInfo = null;
+
+    io.to(p.socketId).emit("yourHand", p.hand);
+    io.to(roomId).emit("tableUpdate", room.table);
+    io.to(roomId).emit("playerListUpdate", room.players);
+
+    // ⭐ 손패가 0장이면 즉시 라운드 종료
+    if (p.hand.length === 0) return endRound(room, permUid);
+
+    nextTurn(room);
+  });
+
+  // ---------------------------------------------------
+  // SCOUT
+  // ---------------------------------------------------
+  socket.on("scout", ({ roomId, permUid, side, flip, pos }) => {
+    const room = rooms[roomId];
+    const p = room.players[permUid];
+
+    if (!room || !p || room.table.length === 0) return;
+
+    // 가져올 카드 위치
+    const originalIndex =
+      room.table.length === 1
+        ? 0
+        : side === "left"
+        ? 0
+        : room.table.length - 1;
+
+    let card =
+      room.table.length === 1
+        ? room.table.pop()
+        : side === "left"
+        ? room.table.shift()
+        : room.table.pop();
+
+    if (flip) card = { top: card.bottom, bottom: card.top };
+
+    pos = Math.max(0, Math.min(p.hand.length, pos));
+    p.hand.splice(pos, 0, card);
+
+    // SHOW&SCOUT 모드 → 턴 유지
+    if (p.scoutShowMode) {
+      p.lastScoutedCard = card;
+      p.lastScoutedInfo = { originalIndex, side, flip, pos };
+
+      io.to(p.socketId).emit("yourHand", p.hand);
+      io.to(roomId).emit("tableUpdate", room.table);
+
+      return;
+    }
+
+    // 일반 SCOUT → 테이블 낸 사람 점수 +1
+    if (room.lastShowPlayer && room.lastShowPlayer !== permUid) {
+      room.players[room.lastShowPlayer].score += 1;
+    }
+
+    io.to(p.socketId).emit("yourHand", p.hand);
+    io.to(roomId).emit("tableUpdate", room.table);
+    io.to(roomId).emit("playerListUpdate", room.players);
+
+    // ⭐ 손패가 0장이면 즉시 라운드 종료
+    if (p.hand.length === 0) return endRound(room, permUid);
+
+    nextTurn(room);
+  });
+
+  // ---------------------------------------------------
+  // SHOW 실패 → SCOUT 복구
+  // ---------------------------------------------------
+  socket.on("cancelShowScout", ({ roomId, permUid }) => {
+    const room = rooms[roomId];
+    const p = room.players[permUid];
+    if (!room || !p) return;
+
+    const card = p.lastScoutedCard;
+    const info = p.lastScoutedInfo;
+    if (!card || !info) return;
+
+    // 손패에서 제거
+    p.hand = p.hand.filter(
+      (h) => !(h.top === card.top && h.bottom === card.bottom)
+    );
+
+    // ⭐ 정확한 원래 위치에 복구
+    room.table.splice(info.originalIndex, 0, card);
+
+    p.lastScoutedCard = null;
+    p.lastScoutedInfo = null;
+
+    io.to(p.socketId).emit("yourHand", p.hand);
+    io.to(roomId).emit("tableUpdate", room.table);
+
+    io.to(p.socketId).emit("cancelShowScoutDone");
+  });
+
+  // ---------------------------------------------------
+  // SHOW&SCOUT 모드 시작
+  // ---------------------------------------------------
+  socket.on("startShowScout", ({ roomId, permUid }) => {
+    const room = rooms[roomId];
+    const p = room.players[permUid];
+    if (!room || !p) return;
+
+    p.scoutShowMode = true;
+    io.to(p.socketId).emit("enterScoutMode");
+  });
+
+  // ---------------------------------------------------
+  // DISCONNECT
+  // ---------------------------------------------------
+  socket.on("disconnect", () => {
+    for (const rid in rooms) {
+      const room = rooms[rid];
+      for (const p of Object.values(room.players)) {
+        if (p.socketId === socket.id) {
+          p.isOnline = false;
+        }
+      }
+      io.to(rid).emit("playerListUpdate", room.players);
+    }
+  });
+});
+
+// =====================================================
+// ROUND START
+// =====================================================
+function startRound(room) {
+  const uids = Object.keys(room.players);
+  const hands = deal(uids.length);
+
+  uids.forEach((uid, i) => {
+    const p = room.players[uid];
+    p.hand = hands[i];
+    p.scoutShowMode = false;
+    p.lastScoutedCard = null;
+    p.lastScoutedInfo = null;
+  });
+
+  room.turnOrder = [...uids];
+  room.currentTurn = room.startIndex;
+  room.table = [];
+  room.lastShowPlayer = null;
+
+  io.to(room.roomId).emit("roundStart", {
+    round: room.round,
+    players: room.players,
+    turnOrder: room.turnOrder,
+  });
+
+  uids.forEach((uid) => {
+    const p = room.players[uid];
+    if (p.isOnline) io.to(p.socketId).emit("yourHand", p.hand);
+  });
+
+  io.to(room.roomId).emit(
+    "turnChange",
+    room.turnOrder[room.currentTurn]
+  );
 }
 
-// -----------------------------------------------------
-// RENDER : TABLE
-// -----------------------------------------------------
-function renderTable() {
-  tableArea.innerHTML = "";
+// =====================================================
+// END ROUND
+// =====================================================
+function endRound(room, winner) {
 
-  if (tableCards.length === 0) {
-    tableArea.innerHTML = `<span style="color:#777">(비어 있음)</span>`;
+  // 상대방들 손패 수만큼 -점수
+  for (const uid of Object.keys(room.players)) {
+    if (uid !== winner) {
+      room.players[uid].score -= room.players[uid].hand.length;
+    }
+  }
+
+  io.to(room.roomId).emit("roundEnd", {
+    winner,
+    players: room.players,
+  });
+
+  // 게임 종료
+  if (room.round >= room.totalRounds) {
+    let finalWinner = null;
+    let max = -999999;
+
+    for (const uid of Object.keys(room.players)) {
+      const s = room.players[uid].score;
+      if (s > max) {
+        max = s;
+        finalWinner = uid;
+      }
+    }
+
+    io.to(room.roomId).emit("gameOver", {
+      winner: finalWinner,
+      players: room.players,
+    });
+
     return;
   }
 
-  tableCards.forEach((c, idx) => {
-    const wrap = document.createElement("div");
-    wrap.className = "table-card-wrapper";
-    wrap.appendChild(drawScoutCard(c.top, c.bottom));
+  room.round++;
+  room.startIndex =
+    (room.startIndex + 1) % room.turnOrder.length;
 
-    // ⭐ SHOW&SCOUT 중에는 glow 표시금지
-    const canScout =
-      myTurn &&
-      !flipSelect &&
-      scoutMode &&
-      !insertMode &&
-      (idx === 0 || idx === tableCards.length - 1);
+  startRound(room);
+}
 
-    if (canScout) {
-      wrap.classList.add("scout-glow");
+// =====================================================
+// NEXT TURN
+// =====================================================
+function nextTurn(room) {
+  for (let i = 0; i < room.turnOrder.length; i++) {
 
-      const btn = document.createElement("button");
-      btn.innerText = "가져오기";
-      btn.className = "take-btn";
+    room.currentTurn =
+      (room.currentTurn + 1) % room.turnOrder.length;
 
-      btn.onclick = () => {
-        scoutTargetSide =
-          idx === 0 ? "left" : "right";
-        scoutModal.classList.remove("hidden");
-      };
+    const uid = room.turnOrder[room.currentTurn];
+    const p = room.players[uid];
 
-      wrap.appendChild(btn);
+    if (!p.isOnline) continue;
+
+    // SHOW 마지막 플레이어에게 다시 턴이 오면 라운드 종료
+    if (room.lastShowPlayer && uid === room.lastShowPlayer) {
+      return endRound(room, room.lastShowPlayer);
     }
 
-    tableArea.appendChild(wrap);
-  });
-}
-
-// -----------------------------------------------------
-// BUTTON CONTROL
-// -----------------------------------------------------
-function updateButtons() {
-  const active = myTurn && !flipSelect && !insertMode;
-
-  const set = (btn, on) => {
-    btn.disabled = !on;
-    btn.style.opacity = on ? "1" : "0.4";
-  };
-
-  set(showBtn, active);
-  set(showScoutBtn, active);
-  set(scoutBtn, active && !scoutShowMode);  // SCOUT 회색 처리
-}
-
-// -----------------------------------------------------
-// TURN HIGHLIGHT
-// -----------------------------------------------------
-function highlightTurn(uid) {
-  const boxes = gamePlayerList.children;
-
-  turnOrder.forEach((id, i) => {
-    if (!boxes[i]) return;
-    if (id === uid) boxes[i].classList.add("turnGlow");
-    else boxes[i].classList.remove("turnGlow");
-  });
-}
-
-// -----------------------------------------------------
-// FLIP CARD DIRECTION
-// -----------------------------------------------------
-flipToggleBtn.onclick = () => {
-  flipReversed = !flipReversed;
-  renderHand();
-};
-
-flipConfirmBtn.onclick = () => {
-  flipSelect = false;
-  flipSelectArea.classList.add("hidden");
-  updateButtons();
-  renderHand();
-};
-
-// -----------------------------------------------------
-// SHOW
-// -----------------------------------------------------
-showBtn.onclick = () => {
-  if (!myTurn || flipSelect) return;
-
-  const disp = getDisplayedHand();
-  const arr = [...selected].sort((a, b) => a - b);
-
-  if (arr.length === 0) return alert("카드를 선택하세요.");
-
-  // 연속된 카드인지 검사
-  for (let i = 1; i < arr.length; i++) {
-    if (arr[i] !== arr[i - 1] + 1) {
-      return alert("연속된 카드를 선택해야 합니다.");
-    }
+    io.to(room.roomId).emit("turnChange", uid);
+    return;
   }
-
-  const chosen = arr.map((i) => disp[i]);
-
-  socket.emit("show", {
-    roomId,
-    permUid: window.permUid,
-    cards: chosen,
-  });
-};
-
-// -----------------------------------------------------
-// SHOW & SCOUT
-// -----------------------------------------------------
-showScoutBtn.onclick = () => {
-  if (!myTurn || flipSelect) return;
-
-  scoutShowMode = true;
-  scoutMode = false;
-  insertMode = false;
-
-  // SCOUT 비활성화
-  scoutBtn.disabled = true;
-  scoutBtn.style.opacity = "0.4";
-
-  // 취소버튼 즉시 활성화
-  cancelShowScoutBtn.classList.remove("hidden");
-  cancelShowScoutBtn.disabled = false;
-
-  renderTable();
-
-  socket.emit("startShowScout", {
-    roomId,
-    permUid: window.permUid,
-  });
-};
-
-// -----------------------------------------------------
-// 일반 SCOUT
-// -----------------------------------------------------
-scoutBtn.onclick = () => {
-  if (!myTurn || flipSelect) return;
-  if (tableCards.length === 0) return;
-
-  scoutMode = true;
-  renderTable();
-};
-
-// -----------------------------------------------------
-// SCOUT Modal
-// -----------------------------------------------------
-modalClose.onclick = () => scoutModal.classList.add("hidden");
-
-modalKeep.onclick = () => {
-  scoutModal.classList.add("hidden");
-
-  insertMode = true;
-  insertCardInfo = { side: scoutTargetSide, flip: false };
-
-  scoutMode = false;
-  renderHand();
-  renderTable();
-};
-
-modalReverse.onclick = () => {
-  scoutModal.classList.add("hidden");
-
-  insertMode = true;
-  insertCardInfo = { side: scoutTargetSide, flip: true };
-
-  scoutMode = false;
-  renderHand();
-  renderTable();
-};
-
-// -----------------------------------------------------
-// SHOW 실패 → 되돌리기
-// -----------------------------------------------------
-socket.on("showFailed", () => {
-  if (showFailModal) showFailModal.remove();
-
-  showFailModal = document.createElement("div");
-  showFailModal.className = "modal";
-
-  showFailModal.innerHTML = `
-    <div class="modal-box">
-      <p>SHOW 실패!</p>
-      <p>가져온 카드를 되돌릴까요?</p>
-      <br>
-      <button id="cancelShowBtn" class="btn-orange">되돌리기</button>
-      <br><br>
-      <button id="closeShowBtn" class="btn-sub">닫기</button>
-    </div>
-  `;
-
-  document.body.appendChild(showFailModal);
-
-  document.getElementById("cancelShowBtn").onclick = () => {
-    socket.emit("cancelShowScout", {
-      roomId,
-      permUid: window.permUid,
-    });
-    showFailModal.remove();
-  };
-
-  document.getElementById("closeShowBtn").onclick = () => {
-    showFailModal.remove();
-  };
-});
-
-// -----------------------------------------------------
-// 취소 버튼 (SHOW&SCOUT / SCOUT 초기화)
-// -----------------------------------------------------
-cancelShowScoutBtn.onclick = () => {
-  scoutMode = false;
-  scoutShowMode = false;
-  insertMode = false;
-  selected.clear();
-
-  cancelShowScoutBtn.classList.add("hidden");
-
-  // SCOUT 다시 활성화
-  scoutBtn.disabled = false;
-  scoutBtn.style.opacity = "1";
-
-  renderHand();
-  renderTable();
-  updateButtons();
-};
-
-// -----------------------------------------------------
-// 서버에서 취소 완료
-// -----------------------------------------------------
-socket.on("cancelShowScoutDone", () => {
-  selected.clear();
-  insertMode = false;
-
-  // SHOW&SCOUT 상태 유지 (다시 SHOW/SCOUT 가능)
-  scoutShowMode = true;
-
-  cancelShowScoutBtn.classList.remove("hidden");
-
-  renderHand();
-  renderTable();
-});
-
-// -----------------------------------------------------
-// SOCKET EVENTS
-// -----------------------------------------------------
-
-socket.on("playerListUpdate", (p) => {
-  players = p;
-  renderPlayers();
-});
-
-socket.on("yourHand", (hand) => {
-  myHand = hand;
-  selected.clear();
-  insertMode = false;
-
-  renderHand();
-  updateButtons();
-});
-
-socket.on("tableUpdate", (cards) => {
-  tableCards = cards;
-  renderTable();
-  updateButtons();
-});
-
-socket.on("enterScoutMode", () => {
-  scoutShowMode = true;
-  renderTable();
-});
-
-socket.on("roundStart", ({ round, players: p, turnOrder: t }) => {
-  players = p;
-  turnOrder = t;
-
-  tableCards = [];
-  selected.clear();
-  scoutMode = false;
-  scoutShowMode = false;
-  insertMode = false;
-
-  flipReversed = false;
-  flipSelect = true;
-
-  cancelShowScoutBtn.classList.add("hidden");
-  flipSelectArea.classList.remove("hidden");
-
-  renderPlayers();
-  renderTable();
-  renderHand();
-
-  roundInfo.innerText = `라운드 ${round}`;
-  updateButtons();
-});
-
-socket.on("turnChange", (uid) => {
-  myTurn = uid === window.permUid;
-
-  scoutMode = false;
-  insertMode = false;
-
-  highlightTurn(uid);
-  renderTable();
-  renderHand();
-  updateButtons();
-});
-
-// -----------------------------------------------------
-// 라운드 종료 / 게임 종료
-// -----------------------------------------------------
-socket.on("roundEnd", ({ winner, players }) => {
-  const name = players[winner].nickname;
-
-  const div = document.createElement("div");
-  div.className = "modal";
-
-  div.innerHTML = `
-    <div class="modal-box">
-      <h2>라운드 승자!</h2>
-      <h1>${name}</h1>
-    </div>
-  `;
-
-  document.body.appendChild(div);
-  setTimeout(() => div.remove(), 2500);
-});
-
-socket.on("gameOver", ({ winner, players }) => {
-  const name = players[winner].nickname;
-
-  const div = document.createElement("div");
-  div.className = "modal";
-  div.innerHTML = `
-    <div class="modal-box">
-      <h2>최종 우승자 🎉</h2>
-      <h1>${name}</h1>
-      <br>
-      <button id="restartBtn" class="btn-main">재경기</button>
-    </div>
-  `;
-  document.body.appendChild(div);
-
-  document.getElementById("restartBtn").onclick = () => {
-    div.remove();
-    socket.emit("startGame", { roomId, permUid: window.permUid });
-  };
-});
+}
