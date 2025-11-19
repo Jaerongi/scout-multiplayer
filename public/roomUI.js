@@ -1,78 +1,62 @@
-// ===============================
-// ROOM UI FINAL (Offline 표시 + Start 버튼 제어 + Ready 시스템)
-// ===============================
+// =====================================================
+// roomUI.js — server.js players-only 구조 호환
+// =====================================================
 
-const playerListDiv = document.getElementById("playerList");
+const roomContainer = document.getElementById("roomContainer");
+const roomPlayerList = document.getElementById("roomPlayerList");
+const startBtn = document.getElementById("startBtn");
 const readyBtn = document.getElementById("readyBtn");
-const startGameBtn = document.getElementById("startGameBtn");
-const copyInviteBtn = document.getElementById("copyInviteBtn");
+const roomTitle = document.getElementById("roomTitle");
 
-window.currentPlayers = {};
+// 하드 전역
+let currentPlayers = {};
+let isHost = false;
 
-// ===============================
-// 플레이어 리스트 렌더링
-// ===============================
+// =====================================================
+// 플레이어 목록 렌더링
+// =====================================================
 function renderRoomPlayers(players) {
-  playerListDiv.innerHTML = "";
-  const arr = Object.values(players);
+  roomPlayerList.innerHTML = "";
 
-  arr.forEach((p) => {
+  Object.values(players).forEach((p) => {
     const div = document.createElement("div");
-    div.className = "playerBox waiting";
+    div.className = "roomPlayerBox";
 
-    if (!p.isOnline) div.classList.add("offlinePlayer");
-
-    const crown = p.isHost ? "👑 " : "";
-
-    const led = !p.isHost
-      ? `<span class="ready-led ${p.ready ? "on" : "off"}"></span>`
-      : "";
+    const status = p.isOnline ? "온라인" : "오프라인";
 
     div.innerHTML = `
-      <div class="nick">${crown}${p.nickname}</div>
-      <div class="status">
-        ${p.isOnline ? (p.isHost ? "(방장)" : p.ready ? "준비완료" : "대기중") : "(오프라인)"}
-        ${led}
-      </div>
+      <b>${p.nickname}</b>
+      <span>(${status})</span>
+      ${p.isHost ? " 👑" : ""}
+      <div>${p.ready ? "READY" : ""}</div>
     `;
 
-    playerListDiv.appendChild(div);
+    roomPlayerList.appendChild(div);
   });
 }
 
-// ===============================
-// START 버튼 활성화 조건
-// ===============================
-function updateStartButtonState(players) {
-  const me = players[window.permUid];
+// =====================================================
+// 플레이어 목록 갱신
+// =====================================================
+socket.on("playerListUpdate", (data) => {
+  // 안정화: server가 players만 보내도 OK
+  // players만 담겨있는 객체로 강제 변환
+  currentPlayers = data;
+  renderRoomPlayers(currentPlayers);
 
-  if (!me || !me.isHost) {
-    startGameBtn.style.display = "none";
-    return;
+  const me = currentPlayers[window.permUid];
+  isHost = me?.isHost;
+
+  if (isHost) {
+    startBtn.style.display = "inline-block";
+    readyBtn.style.display = "none";
+  } else {
+    startBtn.style.display = "none";
+    readyBtn.style.display = "inline-block";
   }
-
-  startGameBtn.style.display = "inline-block";
-
-  const everyoneReady = Object.values(players)
-    .filter((p) => !p.isHost)
-    .every((p) => p.ready);
-
-  startGameBtn.disabled = !everyoneReady;
-}
-
-// ===============================
-// 서버에서 플레이어 목록 업데이트
-// ===============================
-socket.on("playerListUpdate", (players) => {
-  window.currentPlayers = players;
-
-  renderRoomPlayers(players);
-  updateStartButtonState(players);
 });
 
-// ===============================
-// READY 버튼
-// ===============================
+// READY
 readyBtn.onclick = () => {
   socket.emit("playerReady", {
     roomId,
@@ -80,21 +64,16 @@ readyBtn.onclick = () => {
   });
 };
 
-// ===============================
-// 게임 시작 버튼 (방장 전용)
-// ===============================
-startGameBtn.onclick = () => {
+// HOST → START
+startBtn.onclick = () => {
   socket.emit("startGame", {
     roomId,
     permUid: window.permUid,
   });
 };
 
-// ===============================
-// 초대 링크 복사
-// ===============================
-copyInviteBtn.onclick = () => {
-  const url = `${location.origin}/index.html?room=${roomId}`;
-  navigator.clipboard.writeText(url);
-  alert("초대 링크가 복사되었습니다!");
-};
+// 방 입장 시 제목 변경
+function enterRoom(roomIdValue) {
+  roomId = roomIdValue;
+  roomTitle.innerText = `방번호: ${roomId}`;
+}
