@@ -311,33 +311,36 @@ socket.on("cancelShowScout", ({ roomId, permUid }) => {
   if (!p) return;
 
   const card = p.lastScoutedCard;
-  const info = p.lastScoutedInfo;   // { originalIndex, flip, pos }
 
-  if (!card || !info) return;
+  if (!card || !p.lastTableBeforeScout) return;
 
-  // ----------------------------------------------------
-  // 손패에서 해당 카드 제거
-  // ----------------------------------------------------
+  // -----------------------------
+  // 1) 손패에서 가져온 카드 제거
+  // -----------------------------
   p.hand = p.hand.filter(
     (h) => !(h.top === card.top && h.bottom === card.bottom)
   );
 
-  // ----------------------------------------------------
-  // 정확한 index에 테이블 복구!!
-  // ----------------------------------------------------
-  room.table.splice(info.originalIndex, 0, card);
+  // -----------------------------
+  // 2) 테이블 전체 원본 복구
+  // -----------------------------
+  room.table = p.lastTableBeforeScout.map(c => ({ ...c }));
 
-  // 초기화
+  // -----------------------------
+  // 3) 백업 초기화
+  // -----------------------------
+  p.lastTableBeforeScout = null;
   p.lastScoutedCard = null;
   p.lastScoutedInfo = null;
 
-  // 클라이언트 갱신
+  // -----------------------------
+  // 4) 클라이언트 갱신
+  // -----------------------------
   io.to(p.socketId).emit("yourHand", p.hand);
   io.to(roomId).emit("tableUpdate", room.table);
-
-  // 클라이언트에서 취소 후 UI 유지용
   io.to(p.socketId).emit("cancelShowScoutDone");
 });
+
 
 // =====================================================
 // SHOW&SCOUT 모드 시작
@@ -504,3 +507,4 @@ function nextTurn(room) {
 // ※ PART 5에는 더 붙일 코드가 없다!
 //    (이 안내문은 사용자에게 전체 파일 종료 구역을 알려주기 위한 설명이며
 //     실제 server.js 파일에는 넣지 않는다.)
+
