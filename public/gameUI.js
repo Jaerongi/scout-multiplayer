@@ -46,8 +46,8 @@ let flipSelect = true;
 let flipReversed = false;
 
 let scoutMode = false;        // 일반 SCOUT
-let scoutShowMode = false;    // SHOW&SCOUT
-let insertMode = false;       // SCOUT 후 넣기 모드
+let scoutShowMode = false;    // SHOW&SCOUT 모드
+let insertMode = false;       // SCOUT 후 넣기
 
 let scoutTargetSide = null;
 let insertCardInfo = null;
@@ -74,7 +74,6 @@ function renderPlayers() {
       패: ${p.hand.length}장<br>
       점수: ${p.score}
     `;
-
     gamePlayerList.appendChild(div);
   });
 }
@@ -120,7 +119,6 @@ function renderHand() {
     wrap.className = "card-wrapper";
 
     const selectable = !flipSelect && !insertMode;
-
     if (selectable) {
       if (selected.has(idx)) wrap.classList.add("selected");
 
@@ -134,7 +132,9 @@ function renderHand() {
     wrap.appendChild(drawScoutCard(c.top, c.bottom));
     handArea.appendChild(wrap);
 
-    if (insertMode) handArea.appendChild(createInsertButton(idx + 1));
+    if (insertMode) {
+      handArea.appendChild(createInsertButton(idx + 1));
+    }
   });
 }
 
@@ -154,7 +154,7 @@ function renderTable() {
     wrap.className = "table-card-wrapper";
     wrap.appendChild(drawScoutCard(c.top, c.bottom));
 
-    // ⭐ SHOW&SCOUT 중에도 SCOUT 가능해야 함
+    // ⭐ SCOUT or SHOW&SCOUT 상태만 가져오기 버튼 표시
     const canScout =
       myTurn &&
       !flipSelect &&
@@ -166,7 +166,7 @@ function renderTable() {
       wrap.classList.add("scout-glow");
 
       const btn = document.createElement("button");
-      btn.innerText = "가져오기";
+      btn.textContent = "가져오기";
       btn.className = "take-btn";
 
       btn.onclick = () => {
@@ -195,7 +195,7 @@ function updateButtons() {
   set(showBtn, active);
   set(showScoutBtn, active);
 
-  // ⭐ SHOW&SCOUT 모드에서는 SCOUT 비활성화 + 회색
+  // ⭐ SHOW&SCOUT일 때만 SCOUT 비활성화
   set(scoutBtn, active && !scoutShowMode);
 }
 
@@ -207,13 +207,14 @@ function highlightTurn(uid) {
 
   turnOrder.forEach((id, i) => {
     if (!boxes[i]) return;
+
     if (id === uid) boxes[i].classList.add("turnGlow");
     else boxes[i].classList.remove("turnGlow");
   });
 }
 
 // -----------------------------------------------------
-// FLIP CARD DIRECTION
+// FLIP
 // -----------------------------------------------------
 flipToggleBtn.onclick = () => {
   flipReversed = !flipReversed;
@@ -241,7 +242,7 @@ showBtn.onclick = () => {
   // ⭐ 연속된 카드인지 검사
   for (let i = 1; i < arr.length; i++) {
     if (arr[i] !== arr[i - 1] + 1) {
-      return alert("연속된 카드를 선택해야 합니다.");
+      return alert("연속된 카드를 선택해야 합니다!");
     }
   }
 
@@ -261,20 +262,19 @@ showScoutBtn.onclick = () => {
   if (!myTurn || flipSelect) return;
 
   scoutShowMode = true;
-
-  // ⭐ SCOUT 기능 켜야 테이블에서 카드 가져오기 가능
-  scoutMode = true;
-
+  scoutMode = true;      // ⭐ 가져오기 허용
   insertMode = false;
 
   // SCOUT 버튼 비활성화
   scoutBtn.disabled = true;
   scoutBtn.style.opacity = "0.4";
 
-  // 취소버튼 즉시 활성화
   cancelShowScoutBtn.classList.remove("hidden");
 
   renderTable();
+
+  // ⭐ glow 갱신 안정화
+  setTimeout(() => renderTable(), 30);
 
   socket.emit("startShowScout", {
     roomId,
@@ -305,6 +305,7 @@ modalKeep.onclick = () => {
   insertCardInfo = { side: scoutTargetSide, flip: false };
 
   scoutMode = false;
+
   renderHand();
   renderTable();
 };
@@ -316,6 +317,7 @@ modalReverse.onclick = () => {
   insertCardInfo = { side: scoutTargetSide, flip: true };
 
   scoutMode = false;
+
   renderHand();
   renderTable();
 };
@@ -381,9 +383,7 @@ socket.on("cancelShowScoutDone", () => {
   selected.clear();
   insertMode = false;
 
-  // SHOW&SCOUT 유지 (즉시 다음 행동 가능)
   scoutShowMode = true;
-
   cancelShowScoutBtn.classList.remove("hidden");
 
   renderHand();
