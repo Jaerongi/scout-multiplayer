@@ -161,8 +161,8 @@ function renderTable() {
       !flipSelect &&
       scoutMode &&
       !insertMode &&
-      !usedShowScout &&   // ⭐ 가져온 이후 버튼 차단
       (idx === 0 || idx === tableCards.length - 1);
+
 
     if (canScout) {
       wrap.classList.add("scout-glow");
@@ -501,3 +501,4 @@ socket.on("gameOver", ({ winner, players }) => {
     socket.emit("startGame", { roomId, permUid: window.permUid });
   };
 });
+
