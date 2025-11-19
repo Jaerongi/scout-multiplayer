@@ -1,5 +1,5 @@
 // =====================================================
-// GAME UI — SHOW&SCOUT + 취소 기능 + 방향선택 완전 안정본
+// GAME UI — SHOW&SCOUT + 취소 + 되돌리기 + 안정 최종본
 // =====================================================
 
 import { drawScoutCard } from "./cardEngine.js";
@@ -15,7 +15,7 @@ const roundInfo = document.getElementById("roundInfo");
 const showBtn = document.getElementById("showBtn");
 const scoutBtn = document.getElementById("scoutBtn");
 const showScoutBtn = document.getElementById("showScoutBtn");
-const cancelShowScoutBtn = document.getElementById("cancelShowScoutBtn"); // NEW!!
+const cancelShowScoutBtn = document.getElementById("cancelShowScoutBtn"); // NEW
 
 const flipSelectArea = document.getElementById("flipSelectArea");
 const flipToggleBtn = document.getElementById("flipToggleBtn");
@@ -40,9 +40,9 @@ let myTurn = false;
 let flipSelect = true;
 let flipReversed = false;
 
-let scoutMode = false;           // 일반 SCOUT
-let scoutShowMode = false;       // SHOW&SCOUT
-let insertMode = false;          // 가져온 후 삽입 단계
+let scoutMode = false;          // 일반 SCOUT
+let scoutShowMode = false;      // SHOW&SCOUT
+let insertMode = false;         // + 넣기 모드
 
 let scoutTargetSide = null;
 let insertCardInfo = null;
@@ -50,12 +50,12 @@ let insertCardInfo = null;
 let showFailModal = null;
 
 // =====================================================
-// 플레이어 렌더링
+// 플레이어 리스트 렌더링
 // =====================================================
 function renderPlayers() {
   gamePlayerList.innerHTML = "";
-
   const order = turnOrder.length ? turnOrder : Object.keys(players);
+
   order.forEach((uid) => {
     const p = players[uid];
     if (!p) return;
@@ -85,10 +85,9 @@ function getDisplayedHand() {
 function renderHand() {
   handArea.innerHTML = "";
   myCountSpan.innerText = myHand.length;
-
   const disp = getDisplayedHand();
 
-  // + 넣기 버튼 생성
+  // + 넣기 버튼
   const createInsertButton = (pos) => {
     const btn = document.createElement("button");
     btn.innerText = "+ 넣기";
@@ -96,7 +95,6 @@ function renderHand() {
 
     btn.onclick = () => {
       insertMode = false;
-
       socket.emit("scout", {
         roomId,
         permUid: window.permUid,
@@ -108,7 +106,6 @@ function renderHand() {
     return btn;
   };
 
-  // 삽입 모드이면 가장 앞에 +넣기 버튼 놓기
   if (insertMode) handArea.appendChild(createInsertButton(0));
 
   disp.forEach((c, idx) => {
@@ -119,6 +116,7 @@ function renderHand() {
 
     if (selectable) {
       if (selected.has(idx)) wrap.classList.add("selected");
+
       wrap.onclick = () => {
         if (selected.has(idx)) selected.delete(idx);
         else selected.add(idx);
@@ -132,11 +130,23 @@ function renderHand() {
     if (insertMode) handArea.appendChild(createInsertButton(idx + 1));
   });
 }
+
 // =====================================================
 // 테이블 렌더링
 // =====================================================
 function renderTable() {
   tableArea.innerHTML = "";
+
+  // insertMode일 때는 glow 없이 고정 렌더링
+  if (insertMode) {
+    tableCards.forEach((c) => {
+      const w = document.createElement("div");
+      w.className = "table-card-wrapper";
+      w.appendChild(drawScoutCard(c.top, c.bottom));
+      tableArea.appendChild(w);
+    });
+    return;
+  }
 
   if (tableCards.length === 0) {
     tableArea.innerHTML = `<span style="color:#777">(비어 있음)</span>`;
@@ -152,8 +162,7 @@ function renderTable() {
       myTurn &&
       !flipSelect &&
       (scoutMode || scoutShowMode) &&
-      !insertMode &&                      // NEW!! 가져오기 후 glow 제거
-      (tableCards.length === 1 || idx === 0 || idx === tableCards.length - 1);
+      (idx === 0 || idx === tableCards.length - 1);
 
     if (canScout) {
       wrap.classList.add("scout-glow");
@@ -163,9 +172,8 @@ function renderTable() {
       btn.innerText = "가져오기";
 
       btn.onclick = () => {
-        if (tableCards.length === 1) scoutTargetSide = "left";
-        else if (idx === 0) scoutTargetSide = "left";
-        else scoutTargetSide = "right";
+        scoutTargetSide =
+          idx === 0 ? "left" : "right";
 
         scoutModal.classList.remove("hidden");
       };
@@ -181,12 +189,9 @@ function renderTable() {
 // 턴 강조
 // =====================================================
 function highlightTurn(uid) {
-  const order = turnOrder.length ? turnOrder : Object.keys(players);
   const boxes = gamePlayerList.children;
-
-  order.forEach((id, i) => {
+  turnOrder.forEach((id, i) => {
     if (!boxes[i]) return;
-
     if (id === uid) boxes[i].classList.add("turnGlow");
     else boxes[i].classList.remove("turnGlow");
   });
@@ -207,13 +212,11 @@ function updateButtons() {
   set(scoutBtn);
   set(showScoutBtn);
 
-  // SHOW&SCOUT 취소 버튼은 별도 관리
-  cancelShowScoutBtn.style.opacity = scoutShowMode ? "1" : "0.4";
   cancelShowScoutBtn.disabled = !scoutShowMode;
+  cancelShowScoutBtn.style.opacity = scoutShowMode ? "1" : "0.4";
 }
-
 // =====================================================
-// 방향 선택 (정상 동작 + insertMode 제거)
+// 방향 선택
 // =====================================================
 flipToggleBtn.onclick = () => {
   flipReversed = !flipReversed;
@@ -222,7 +225,7 @@ flipToggleBtn.onclick = () => {
 
 flipConfirmBtn.onclick = () => {
   flipSelect = false;
-  insertMode = false;     // 패 선택 막힘 방지
+  insertMode = false;       // 패 선택 불가 문제 방지
   selected.clear();
 
   flipSelectArea.classList.add("hidden");
@@ -231,14 +234,22 @@ flipConfirmBtn.onclick = () => {
 };
 
 // =====================================================
-// SHOW
+// SHOW (띄엄띄엄 선택 불가 포함)
 // =====================================================
 showBtn.onclick = () => {
   if (!myTurn || flipSelect) return;
 
-  const disp = getDisplayedHand();
-  const chosen = [...selected].map((i) => disp[i]);
+  // 띄엄띄엄 선택 불가 검사
+  const arr = [...selected].sort((a, b) => a - b);
+  for (let i = 1; i < arr.length; i++) {
+    if (arr[i] !== arr[i - 1] + 1) {
+      alert("띄엄띄엄 낼 수 없습니다. 연속된 카드를 선택하세요.");
+      return;
+    }
+  }
 
+  const disp = getDisplayedHand();
+  const chosen = arr.map((i) => disp[i]);
   if (chosen.length === 0) return alert("카드를 선택하세요.");
 
   socket.emit("show", {
@@ -257,16 +268,17 @@ showScoutBtn.onclick = () => {
   scoutMode = false;
   scoutShowMode = true;
 
-  cancelShowScoutBtn.classList.remove("hidden"); // 취소 버튼 보이기
+  cancelShowScoutBtn.classList.remove("hidden");
 
   socket.emit("startShowScout", {
     roomId,
     permUid: window.permUid,
   });
 };
+
 // =====================================================
-// SCOUT 버튼 (일반 SCOUT)
-// ======================================================
+// SCOUT (일반)
+// =====================================================
 scoutBtn.onclick = () => {
   if (!myTurn || flipSelect) return;
   if (tableCards.length === 0) return;
@@ -279,7 +291,7 @@ scoutBtn.onclick = () => {
 
 // =====================================================
 // SCOUT 모달
-// ======================================================
+// =====================================================
 modalClose.onclick = () => scoutModal.classList.add("hidden");
 
 modalKeep.onclick = () => {
@@ -288,7 +300,6 @@ modalKeep.onclick = () => {
   insertMode = true;
   insertCardInfo = { side: scoutTargetSide, flip: false };
 
-  // SCOUT glow 제거 / SCOUT 버튼 비활성화
   scoutMode = false;
   updateButtons();
   renderHand();
@@ -306,10 +317,9 @@ modalReverse.onclick = () => {
   renderHand();
   renderTable();
 };
-
 // =====================================================
-// SHOW 실패 → 취소 처리
-// ======================================================
+// SHOW 실패 → 되돌리기 모달
+// =====================================================
 socket.on("showFailed", () => {
   if (showFailModal) showFailModal.remove();
 
@@ -329,6 +339,7 @@ socket.on("showFailed", () => {
 
   document.body.appendChild(showFailModal);
 
+  // 되돌리기 실행
   document.getElementById("cancelShowBtn").onclick = () => {
     socket.emit("cancelShowScout", {
       roomId,
@@ -339,6 +350,7 @@ socket.on("showFailed", () => {
     showFailModal = null;
   };
 
+  // 그냥 닫기
   document.getElementById("closeShowBtn").onclick = () => {
     showFailModal.remove();
     showFailModal = null;
@@ -346,8 +358,8 @@ socket.on("showFailed", () => {
 });
 
 // =====================================================
-// SHOW&SCOUT → 취소 버튼 기능 (NEW🔥)
-// ======================================================
+// SHOW&SCOUT → 취소 버튼 (SCOUT glow / insertMode 모두 초기화)
+// =====================================================
 cancelShowScoutBtn.onclick = () => {
   scoutShowMode = false;
   scoutMode = false;
@@ -362,27 +374,33 @@ cancelShowScoutBtn.onclick = () => {
   renderTable();
 };
 
-// ======================================================
-// 취소 완료 후 서버 응답
-// ======================================================
+// =====================================================
+// 서버에서 되돌리기 완료 응답
+// =====================================================
 socket.on("cancelShowScoutDone", () => {
+  // SCOUT → 되돌리기 성공 후 insertMode 해제
   insertMode = false;
   selected.clear();
 
-  scoutShowMode = true;        // 여전히 SCOUT+SHOW 이어갈 수 있음
+  // SHOW&SCOUT 모드 유지 — 다시 SCOUT/SHOW 가능
+  scoutShowMode = true;
   cancelShowScoutBtn.classList.remove("hidden");
 
   renderHand();
   renderTable();
 });
-// ======================================================
+
+// =====================================================
 // SOCKET EVENTS
-// ======================================================
+// =====================================================
+
+// 플레이어 리스트 업데이트
 socket.on("playerListUpdate", (p) => {
   players = p;
   renderPlayers();
 });
 
+// 라운드 시작
 socket.on("roundStart", ({ round, players: p, turnOrder: t }) => {
   players = p;
   turnOrder = t;
@@ -409,6 +427,7 @@ socket.on("roundStart", ({ round, players: p, turnOrder: t }) => {
   updateButtons();
 });
 
+// 내 패 업데이트
 socket.on("yourHand", (hand) => {
   myHand = hand;
   selected.clear();
@@ -418,15 +437,15 @@ socket.on("yourHand", (hand) => {
   updateButtons();
 });
 
+// 테이블 업데이트
 socket.on("tableUpdate", (cards) => {
   tableCards = cards;
   renderTable();
   updateButtons();
 });
-
-// ======================================================
+// =====================================================
 // 턴 변경
-// ======================================================
+// =====================================================
 socket.on("turnChange", (uid) => {
   myTurn = uid === window.permUid;
 
@@ -439,9 +458,9 @@ socket.on("turnChange", (uid) => {
   updateButtons();
 });
 
-// ======================================================
+// =====================================================
 // SHOW&SCOUT 모드 서버 알림
-// ======================================================
+// =====================================================
 socket.on("enterScoutMode", () => {
   scoutShowMode = true;
   scoutMode = false;
@@ -451,9 +470,9 @@ socket.on("enterScoutMode", () => {
   renderTable();
 });
 
-// ======================================================
-// 라운드 종료
-// ======================================================
+// =====================================================
+// 라운드 종료 (승자 팝업)
+// =====================================================
 socket.on("roundEnd", ({ winner, players }) => {
   const name = players[winner].nickname;
 
@@ -472,9 +491,9 @@ socket.on("roundEnd", ({ winner, players }) => {
   setTimeout(() => div.remove(), 2500);
 });
 
-// ======================================================
-// 게임 종료
-// ======================================================
+// =====================================================
+// 게임 종료 (최종 우승자)
+// =====================================================
 socket.on("gameOver", ({ winner, players }) => {
   const name = players[winner].nickname;
 
