@@ -455,6 +455,25 @@ socket.on("turnChange", (uid) => {
   scoutMode = false;
   insertMode = false;
 
+  socket.on("turnChange", (uid) => {
+  myTurn = uid === window.permUid;
+
+  scoutMode = false;
+  insertMode = false;
+
+  // ⭐ 내 턴이면 SCOUT 다시 활성화
+  if (myTurn && !scoutShowMode) {
+    scoutBtn.disabled = false;
+    scoutBtn.style.opacity = "1";
+  }
+
+  highlightTurn(uid);
+  renderTable();
+  renderHand();
+  updateButtons();
+});
+
+  
   highlightTurn(uid);
   renderTable();
   renderHand();
@@ -501,4 +520,5 @@ socket.on("gameOver", ({ winner, players }) => {
     socket.emit("startGame", { roomId, permUid: window.permUid });
   };
 });
+
 
