@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<title>🎴 스카우트</title>
-<link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8" />
+  <title>🎴 스카우트</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
@@ -78,13 +78,24 @@
         <button id="scoutBtn" class="btn-orange same">SCOUT</button>
         <button id="showScoutBtn" class="btn-purple same">SHOW & SCOUT</button>
       </div>
-    </div>
-  </div>
 
-  <!-- SCOUT 모달 -->
+      <!-- SHOW&SCOUT 취소 버튼 (NEW!!) -->
+      <div class="action-row">
+        <button id="cancelShowScoutBtn" class="btn-sub same hidden">취소</button>
+      </div>
+
+    </div> <!-- mainBoard -->
+
+  </div> <!-- game-layout -->
+
+
+  <!-- ======================== -->
+  <!-- SCOUT 모달               -->
+  <!-- ======================== -->
   <div id="scoutModal" class="modal hidden">
     <div class="modal-box">
-      <p style="margin-bottom:12px;">어떻게 가져올까요?</p>
+      <p>어떻게 가져올까요?</p>
+      <br>
       <button id="modalKeep" class="btn-green small">그대로 가져오기</button>
       <button id="modalReverse" class="btn-orange small">반대로 가져오기</button>
       <br><br>
@@ -92,43 +103,33 @@
     </div>
   </div>
 
-  <!-- 삽입 위치 모달 -->
-  <div id="insertModal" class="modal hidden">
-    <div class="modal-box" id="insertModalContent"></div>
-  </div>
+</div> <!-- END gamePage -->
 
-</div>
 
-<!-- SOCKET.IO -->
+<!-- ======================== -->
+<!-- SOCKET.IO + JS MODULES   -->
+<!-- ======================== -->
 <script src="/socket.io/socket.io.js"></script>
-
-<!-- MODULES -->
 <script type="module" src="./socket.js"></script>
 <script type="module" src="./roomUI.js"></script>
 <script type="module" src="./gameUI.js"></script>
 
-<!-- ========================================================= -->
-<!-- 초대 링크 자동 입장 (닉네임 2번 입력되는 문제 해결)       -->
-<!-- ========================================================= -->
+
+<!-- ======================== -->
+<!-- 초대 링크 자동 감지       -->
+<!-- ======================== -->
 <script>
 window.addEventListener("DOMContentLoaded", () => {
   const params = new URLSearchParams(location.search);
   const invitedRoom = params.get("room");
 
   if (invitedRoom) {
-    // 여기서는 닉네임을 묻지 않음!! (중복입력 방지)
     window.roomId = invitedRoom;
-
-    // 초대 손님은 항상 새로운 permUid 생성
     window.permUid = crypto.randomUUID();
 
-    // 닉네임은 socket.js에서 단 한 번만 입력받음
     window.showPage("startPage");
 
-    // 자동으로 닉네임 입력창에 포커스
     document.getElementById("nicknameInput").focus();
-
-    // 방 번호 표시
     roomTitle.innerText = `방번호: ${invitedRoom}`;
   }
 });
