@@ -185,7 +185,7 @@ socket.on("startGame", ({ roomId, permUid }) => {
 // SHOW
 // =====================================================
 // =====================================================
-// SHOW
+// SHOW (완전 정상 완전체)
 // =====================================================
 socket.on("show", ({ roomId, permUid, cards }) => {
   const room = rooms[roomId];
@@ -202,7 +202,10 @@ socket.on("show", ({ roomId, permUid, cards }) => {
     return;
   }
 
-  // 손패에서 제출된 카드 제거
+  // 점수 계산 (기존 테이블 카드 개수만큼)
+  p.score += room.table.length;
+
+  // 손패에서 제출 카드 제거
   p.hand = p.hand.filter(
     (h) => !cards.some(
       (c) => c.top === h.top && c.bottom === h.bottom
@@ -213,27 +216,6 @@ socket.on("show", ({ roomId, permUid, cards }) => {
   room.table = cards;
   room.lastShowPlayer = permUid;
 
-  // 클라이언트 반영
-  io.to(p.socketId).emit("yourHand", p.hand);
-  io.to(roomId).emit("tableUpdate", room.table);
-
-  nextTurn(room);
-});  // ←⭐ 이 닫는 괄호가 정확히 맞아야 함
-
-
-
-  // ---------- SHOW 성공 ----------
-  p.score += room.table.length;
-
-  // 손패 제거
-  p.hand = p.hand.filter(
-    (h) => !cards.some((c) => c.top === h.top && c.bottom === h.bottom)
-  );
-
-  // 테이블 덮어쓰기
-  room.table = cards;
-  room.lastShowPlayer = permUid;
-
   // SHOW&SCOUT 모드 종료
   if (p.scoutShowMode) {
     p.scoutShowMode = false;
@@ -241,6 +223,7 @@ socket.on("show", ({ roomId, permUid, cards }) => {
     p.lastScoutedInfo = null;
   }
 
+  // 클라이언트 업데이트
   io.to(p.socketId).emit("yourHand", p.hand);
   io.to(roomId).emit("tableUpdate", room.table);
   io.to(roomId).emit("playerListUpdate", room.players);
@@ -521,6 +504,7 @@ function nextTurn(room) {
 // ※ PART 5에는 더 붙일 코드가 없다!
 //    (이 안내문은 사용자에게 전체 파일 종료 구역을 알려주기 위한 설명이며
 //     실제 server.js 파일에는 넣지 않는다.)
+
 
 
 
