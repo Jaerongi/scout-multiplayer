@@ -99,16 +99,41 @@
 
 </div>
 
-<!-- SOCKET.IO -->
+<!-- =============================== -->
+<!-- 전역 공통: SOCKET / socket.js  -->
+<!-- =============================== -->
 <script src="/socket.io/socket.io.js"></script>
-
-<!-- MODULES -->
 <script type="module" src="./socket.js"></script>
-<script type="module" src="./roomUI.js"></script>
-<script type="module" src="./gameUI.js"></script>
 
 <!-- ========================================================= -->
-<!-- 초대 링크 자동 입장 (닉네임 2번 입력되는 문제 해결)       -->
+<!-- 페이지 전환마다 필요한 JS만 동적으로 로딩하는 시스템     -->
+<!-- ========================================================= -->
+<script>
+window.loadedScripts = {
+  room: false,
+  game: false
+};
+
+window.showPage = async function(pageName) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('visible'));
+  document.getElementById(pageName).classList.add('visible');
+
+  // 방 화면 → roomUI.js 로딩
+  if (pageName === "roomPage" && !window.loadedScripts.room) {
+    await import("./roomUI.js");
+    window.loadedScripts.room = true;
+  }
+
+  // 게임 화면 → gameUI.js 로딩
+  if (pageName === "gamePage" && !window.loadedScripts.game) {
+    await import("./gameUI.js");
+    window.loadedScripts.game = true;
+  }
+};
+</script>
+
+<!-- ========================================================= -->
+<!-- 초대 링크 자동 입장                                         -->
 <!-- ========================================================= -->
 <script>
 window.addEventListener("DOMContentLoaded", () => {
@@ -116,19 +141,12 @@ window.addEventListener("DOMContentLoaded", () => {
   const invitedRoom = params.get("room");
 
   if (invitedRoom) {
-    // 여기서는 닉네임을 묻지 않음!! (중복입력 방지)
     window.roomId = invitedRoom;
-
-    // 초대 손님은 항상 새로운 permUid 생성
     window.permUid = crypto.randomUUID();
-
-    // 닉네임은 socket.js에서 단 한 번만 입력받음
     window.showPage("startPage");
 
-    // 자동으로 닉네임 입력창에 포커스
     document.getElementById("nicknameInput").focus();
 
-    // 방 번호 표시
     roomTitle.innerText = `방번호: ${invitedRoom}`;
   }
 });
