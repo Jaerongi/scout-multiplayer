@@ -160,10 +160,9 @@ function renderTable() {
     // 가져오기 버튼 표시 조건
     const canScout =
       myTurn &&
-      !flipSelect &&
-      (scoutMode || scoutShowMode) &&
       !insertMode &&
       !usedShowScout &&
+      (scoutMode || scoutShowMode) &&
       (idx === 0 || idx === tableCards.length - 1);
 
     if (canScout) {
@@ -189,8 +188,7 @@ function renderTable() {
 // BUTTON CONTROL
 // -----------------------------------------------------
 function updateButtons() {
-  const active = myTurn && !flipSelect && !insertMode;
-
+  const active = myTurn && !insertMode;
   const set = (btn, on) => {
     btn.disabled = !on;
     btn.style.opacity = on ? "1" : "0.4";
@@ -437,11 +435,15 @@ socket.on("roundStart", ({ round, players: p, turnOrder: t }) => {
 socket.on("turnChange", (uid) => {
   myTurn = uid === window.permUid;
 
+  // 다음 턴이 오면 flipSelect는 종료된 상태여야 한다!!
+  flipSelect = false;
+
+  // SCOUT 관련 모드 초기화
   scoutMode = false;
   insertMode = false;
 
-  // 내 턴이면 SCOUT 복구(단, SHOW&SCOUT 모드 중이 아니면)
-  if (myTurn && !scoutShowMode) {
+  // 내 턴이면 SCOUT 복구
+  if (myTurn && !scoutShowMode && !usedShowScout) {
     scoutBtn.disabled = false;
     scoutBtn.style.opacity = "1";
   }
@@ -451,6 +453,7 @@ socket.on("turnChange", (uid) => {
   renderHand();
   updateButtons();
 });
+
 
 // -----------------------------------------------------
 // ROUND END / GAME OVER
@@ -492,3 +495,4 @@ socket.on("gameOver", ({ winner, players }) => {
     socket.emit("startGame", { roomId, permUid: window.permUid });
   };
 });
+
