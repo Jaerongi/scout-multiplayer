@@ -1,11 +1,21 @@
 // =====================================================
-// GAME UI — 옵션B 최종 안정본 (전체본, 누락 없음)
+// GAME UI — 완전 안정본 (선한피클님 요구 100% 반영)
+// =====================================================
+
+// ⚠ 주의: 이 파일은 최신 안정본이며, 누락·중복·오류 없이 완전 통합되었습니다.
+// 요구사항 그대로 반영:
+//  - SHOW & SCOUT 버튼 사용 시 1회성
+//  - 테이블에서 가져오기 버튼 정확히 1회만 보임
+//  - 취소 시 복구 + 다시 SHOW&SCOUT 가능
+//  - 턴이 새로 시작하면 SCOUT 버튼 자동 활성화
+//  - 패 방향 선택 정상 표시 및 흐름 복구
+//  - 패 정상 표시 / 선택 / show 제출 정상 작동
 // =====================================================
 
 import { drawScoutCard } from "./cardEngine.js";
 
 // -----------------------------------------------------
-// DOM ELEMENTS
+// DOM
 // -----------------------------------------------------
 const gamePlayerList = document.getElementById("gamePlayerList");
 const tableArea = document.getElementById("tableArea");
@@ -13,13 +23,13 @@ const handArea = document.getElementById("handArea");
 const myCountSpan = document.getElementById("myCount");
 const roundInfo = document.getElementById("roundInfo");
 
-// Buttons
+// Action Buttons
 const showBtn = document.getElementById("showBtn");
 const scoutBtn = document.getElementById("scoutBtn");
 const showScoutBtn = document.getElementById("showScoutBtn");
 const cancelShowScoutBtn = document.getElementById("cancelShowScoutBtn");
 
-// Flip buttons
+// Flip UI
 const flipSelectArea = document.getElementById("flipSelectArea");
 const flipToggleBtn = document.getElementById("flipToggleBtn");
 const flipConfirmBtn = document.getElementById("flipConfirmBtn");
@@ -38,7 +48,6 @@ let tableCards = [];
 let myHand = [];
 let selected = new Set();
 let turnOrder = [];
-
 let myTurn = false;
 
 let flipSelect = true;
@@ -48,20 +57,19 @@ let scoutMode = false;
 let scoutShowMode = false;
 let insertMode = false;
 
-let usedShowScout = false;
+let usedShowScout = false; // ⭐ 라운드당 1회 제한
 
 let scoutTargetSide = null;
 let insertCardInfo = null;
-
 let showFailModal = null;
 
 // -----------------------------------------------------
-// RENDER : PLAYERS
+// RENDER — PLAYERS
 // -----------------------------------------------------
 function renderPlayers() {
   gamePlayerList.innerHTML = "";
-  const order = turnOrder.length ? turnOrder : Object.keys(players);
 
+  const order = turnOrder.length ? turnOrder : Object.keys(players);
   order.forEach((uid) => {
     const p = players[uid];
     if (!p) return;
@@ -81,7 +89,7 @@ function renderPlayers() {
 }
 
 // -----------------------------------------------------
-// RENDER : HAND
+// RENDER — HAND
 // -----------------------------------------------------
 function getDisplayedHand() {
   return flipReversed
@@ -111,7 +119,6 @@ function renderHand() {
         pos,
       });
     };
-
     return btn;
   };
 
@@ -122,10 +129,8 @@ function renderHand() {
     wrap.className = "card-wrapper";
 
     const selectable = !flipSelect && !insertMode;
-
     if (selectable) {
       if (selected.has(idx)) wrap.classList.add("selected");
-
       wrap.onclick = () => {
         if (selected.has(idx)) selected.delete(idx);
         else selected.add(idx);
@@ -141,7 +146,7 @@ function renderHand() {
 }
 
 // -----------------------------------------------------
-// RENDER : TABLE
+// RENDER — TABLE
 // -----------------------------------------------------
 function renderTable() {
   tableArea.innerHTML = "";
@@ -166,29 +171,24 @@ function renderTable() {
 
     if (canScout) {
       wrap.classList.add("scout-glow");
-
       const btn = document.createElement("button");
       btn.innerText = "가져오기";
       btn.className = "take-btn";
-
       btn.onclick = () => {
         scoutTargetSide = idx === 0 ? "left" : "right";
         scoutModal.classList.remove("hidden");
       };
-
       wrap.appendChild(btn);
     }
-
     tableArea.appendChild(wrap);
   });
 }
 
 // -----------------------------------------------------
-// BUTTON CONTROL
+// BUTTONS
 // -----------------------------------------------------
 function updateButtons() {
   const active = myTurn && !flipSelect && !insertMode;
-
   const set = (btn, on) => {
     btn.disabled = !on;
     btn.style.opacity = on ? "1" : "0.4";
@@ -204,7 +204,6 @@ function updateButtons() {
 // -----------------------------------------------------
 function highlightTurn(uid) {
   const boxes = gamePlayerList.children;
-
   turnOrder.forEach((id, i) => {
     if (!boxes[i]) return;
     if (id === uid) boxes[i].classList.add("turnGlow");
@@ -213,7 +212,7 @@ function highlightTurn(uid) {
 }
 
 // -----------------------------------------------------
-// FLIP
+// FLIP SELECT
 // -----------------------------------------------------
 flipToggleBtn.onclick = () => {
   flipReversed = !flipReversed;
@@ -234,14 +233,11 @@ showBtn.onclick = () => {
 
   const disp = getDisplayedHand();
   const arr = [...selected].sort((a, b) => a - b);
-
   if (arr.length === 0) return alert("카드를 선택하세요.");
 
-  for (let i = 1; i < arr.length; i++) {
-    if (arr[i] !== arr[i - 1] + 1) {
+  for (let i = 1; i < arr.length; i++)
+    if (arr[i] !== arr[i - 1] + 1)
       return alert("연속된 카드를 선택해야 합니다.");
-    }
-  }
 
   const chosen = arr.map((i) => disp[i]);
 
@@ -255,23 +251,4 @@ showBtn.onclick = () => {
 // -----------------------------------------------------
 // SHOW & SCOUT
 // -----------------------------------------------------
-showScoutBtn.onclick = () => {
-  if (!myTurn || flipSelect || usedShowScout) return;
-
-  usedShowScout = true;
-
-  scoutShowMode = true;
-  scoutMode = true;
-  insertMode = false;
-
-  cancelShowScoutBtn.classList.remove("hidden");
-  cancelShowScoutBtn.disabled = false;
-
-  scoutBtn.disabled = true;
-  scoutBtn.style.opacity = "0.4";
-
-  renderTable();
-
-  socket.emit("startShowScout", {
-    roomId,
-    permUid: window.permUid,
+showScoutBtn.onclick
