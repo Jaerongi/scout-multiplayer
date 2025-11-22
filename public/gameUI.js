@@ -156,14 +156,12 @@ function renderTable() {
     // ⭐ 가져오기 버튼 조건 (완전 정리됨)
     const canScout =
       myTurn &&
-      !flipSelect &&
-      (scoutMode || scoutShowMode) &&
       !insertMode &&
-      !usedShowScout[window.permUid] &&
+      (scoutMode || scoutShowMode) &&
       (idx === 0 || idx === tableCards.length - 1);
 
     if (canScout) {
-      wrap.classList.add("scout-glow");
+      wrap.classSCList.add("scout-glow");
 
       const btn = document.createElement("button");
       btn.innerText = "가져오기";
@@ -240,20 +238,29 @@ showBtn.onclick = () => {
   const disp = getDisplayedHand();
   const arr = [...selected].sort((a, b) => a - b);
 
-  if (arr.length === 0) return alert("카드를 선택하세요.");
+  if (arr.length === 0) {
+    alert("카드를 선택하세요.");
+    return;
+  }
 
+  // ❌ 연속되지 않은 패 → 서버로 요청 보내지 말고 바로 alert
   for (let i = 1; i < arr.length; i++) {
-    if (arr[i] !== arr[i - 1] + 1) return alert("연속된 카드를 선택해야 합니다.");
+    if (arr[i] !== arr[i - 1] + 1) {
+      alert("연속된 카드를 선택해야 합니다!");
+      return;
+    }
   }
 
   const chosen = arr.map((i) => disp[i]);
 
+  // ✅ 여기까지 왔을 때만 서버에 요청
   socket.emit("show", {
     roomId,
     permUid: window.permUid,
     cards: chosen,
   });
 };
+
 
 // -----------------------------------------------------
 // SHOW & SCOUT — 라운드당 1번
@@ -446,7 +453,7 @@ socket.on("turnChange", (uid) => {
   selected.clear();
 
   // ⭐ SHOW&SCOUT 모드 초기화 (턴 넘어가면 자동 해제)
-  scoutShowMode = false;
+//  scoutShowMode = false;
 
   // ⭐ 내 턴일 때 SCOUT / SHOW / SHOW&SCOUT 정상 활성화
   if (myTurn) {
@@ -505,4 +512,5 @@ socket.on("gameOver", ({ winner, players }) => {
     socket.emit("startGame", { roomId, permUid: window.permUid });
   };
 });
+
 
