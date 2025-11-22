@@ -389,11 +389,17 @@ socket.on("roundStart", ({ round, players: p, turnOrder: t }) => {
 socket.on("turnChange", (uid) => {
   myTurn = uid === window.permUid;
 
+  // 턴 변경 시 SCOUT 관련 초기화
   scoutMode = false;
   insertMode = false;
   selected.clear();
 
-  if (!scoutShowMode) {
+  // ⭐ 핵심 FIX — flipSelect 강제 OFF (show 비활성화 문제 해결)
+  flipSelect = false;
+  flipSelectArea.classList.add("hidden");
+
+  // ⭐ SHOW&SCOUT 모드 아닐 때는 항상 SCOUT 복구
+  if (myTurn && !scoutShowMode) {
     scoutBtn.disabled = false;
     scoutBtn.style.opacity = "1";
   }
@@ -417,3 +423,4 @@ socket.on("roundEnd", ({ winner, players }) => {
 socket.on("gameOver", ({ winner, players }) => {
   alert(`최종 우승자: ${players[winner].nickname}`);
 });
+
