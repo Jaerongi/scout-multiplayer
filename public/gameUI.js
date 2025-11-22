@@ -182,7 +182,7 @@ function renderTable() {
 // BUTTON CONTROL
 // -----------------------------------------------------
 function updateButtons() {
-  const active = myTurn && !flipSelect && !insertMode;
+  const active = myTurn && !flipSelect && !insertMode;   // ★ 수정됨
 
   const set = (btn, on) => {
     btn.disabled = !on;
@@ -193,6 +193,7 @@ function updateButtons() {
   set(showScoutBtn, active && !usedShowScout[window.permUid]);
   set(scoutBtn, active && !scoutShowMode && !usedShowScout[window.permUid]);
 }
+
 
 // -----------------------------------------------------
 // FLIP SELECT
@@ -389,20 +390,11 @@ socket.on("roundStart", ({ round, players: p, turnOrder: t }) => {
 socket.on("turnChange", (uid) => {
   myTurn = uid === window.permUid;
 
-  // 턴 변경 시 SCOUT 관련 초기화
   scoutMode = false;
   insertMode = false;
   selected.clear();
 
-  // ⭐ 핵심 FIX — flipSelect 강제 OFF (show 비활성화 문제 해결)
-  flipSelect = false;
-  flipSelectArea.classList.add("hidden");
-
-  // ⭐ SHOW&SCOUT 모드 아닐 때는 항상 SCOUT 복구
-  if (myTurn && !scoutShowMode) {
-    scoutBtn.disabled = false;
-    scoutBtn.style.opacity = "1";
-  }
+  scoutShowMode = false;   // ★ 반드시 필요 (SHOW&SCOUT 안썼는데 차단되는 문제 해결)
 
   highlightTurn(uid);
   renderTable();
@@ -423,4 +415,5 @@ socket.on("roundEnd", ({ winner, players }) => {
 socket.on("gameOver", ({ winner, players }) => {
   alert(`최종 우승자: ${players[winner].nickname}`);
 });
+
 
