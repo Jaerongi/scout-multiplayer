@@ -158,7 +158,9 @@ function renderTable() {
       myTurn &&
       !insertMode &&
       (scoutMode || scoutShowMode) &&
+      !usedShowScout[window.permUid] &&
       (idx === 0 || idx === tableCards.length - 1);
+
 
     if (canScout) {
       wrap.classSCList.add("scout-glow");
@@ -512,5 +514,6 @@ socket.on("gameOver", ({ winner, players }) => {
     socket.emit("startGame", { roomId, permUid: window.permUid });
   };
 });
+
 
 
