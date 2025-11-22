@@ -178,26 +178,43 @@ function renderTable() {
     tableArea.appendChild(wrap);
   });
 }
+// ----------------------------------------------------
+// 하이라이트
+function highlightTurn(targetUid) {
+  const boxes = gamePlayerList.children;
+
+  Object.values(players).forEach((player, i) => {
+    const box = boxes[i];
+    if (!box) return;
+
+    if (player.uid === targetUid) box.classList.add("turnGlow");
+    else box.classList.remove("turnGlow");
+  });
+}
+
+
 
 // -----------------------------------------------------
 // BUTTON CONTROL
 // -----------------------------------------------------
 function updateButtons() {
-  const active = myTurn && !insertMode;
+  const active = myTurn && !insertMode;  // ← flipSelect 제거
 
   const set = (btn, on) => {
     btn.disabled = !on;
     btn.style.opacity = on ? "1" : "0.4";
   };
 
+  // SHOW는 항상 가능 (내 턴이면)
   set(showBtn, active);
 
-  // ⭐ SHOW&SCOUT 1회 제한(내 턴 기준)
+  // SHOW&SCOUT는 라운드당 1번 (플레이어별)
   set(showScoutBtn, active && !usedShowScout[window.permUid]);
 
   // 일반 SCOUT
-  set(scoutBtn, active && !scoutShowMode && !insertMode);
+  set(scoutBtn, active && !scoutShowMode && !usedShowScout[window.permUid]);
 }
+
 
 // -----------------------------------------------------
 // FLIP SELECT
@@ -423,11 +440,16 @@ socket.on("roundStart", ({ round, players: p, turnOrder: t }) => {
 socket.on("turnChange", (uid) => {
   myTurn = uid === window.permUid;
 
+  // 매 턴 SCOUT 관련 플래그 초기화
   scoutMode = false;
   insertMode = false;
+  selected.clear();
 
-  // ⭐ SHOW&SCOUT 모드가 아닌 경우만 SCOUT 복구
-  if (!scoutShowMode) {
+  // ⭐ SHOW&SCOUT 모드 초기화 (턴 넘어가면 자동 해제)
+  scoutShowMode = false;
+
+  // ⭐ 내 턴일 때 SCOUT / SHOW / SHOW&SCOUT 정상 활성화
+  if (myTurn) {
     scoutBtn.disabled = false;
     scoutBtn.style.opacity = "1";
   }
@@ -437,6 +459,7 @@ socket.on("turnChange", (uid) => {
   renderHand();
   updateButtons();
 });
+
 
 // -----------------------------------------------------
 // ROUND END
@@ -482,3 +505,4 @@ socket.on("gameOver", ({ winner, players }) => {
     socket.emit("startGame", { roomId, permUid: window.permUid });
   };
 });
+
