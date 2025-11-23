@@ -93,47 +93,98 @@ function renderHand() {
 
   const disp = getDisplayedHand();
 
-  const createInsertBtn = (pos) => {
-    const btn = document.createElement("button");
-    btn.className = "insert-btn";
-    btn.innerText = "+ 넣기";
-    btn.onclick = () => {
-      insertMode = false;
+  // -------------------------------------------
+  // 🔵 위쪽 + 버튼 줄
+  // -------------------------------------------
+  const plusRow = document.createElement("div");
+  plusRow.style.display = "flex";
+  plusRow.style.alignItems = "center";
+  plusRow.style.position = "relative";
+  plusRow.style.height = "35px";
+  plusRow.style.marginBottom = "5px";
+
+  disp.forEach((_, idx) => {
+    const plus = document.createElement("button");
+    plus.innerText = "+";
+    plus.className = "insert-btn-top";
+
+    plus.style.position = "absolute";
+    plus.style.left = `${idx * 55}px`;   // ← 오버랩 위치 조정
+    plus.style.top = "0";
+
+    plus.onclick = () => {
+      if (!insertMode) return;
       socket.emit("scout", {
         roomId,
         permUid: window.permUid,
         side: insertCardInfo.side,
         flip: insertCardInfo.flip,
-        pos,
+        pos: idx,
       });
+      insertMode = false;
     };
-    return btn;
+
+    plusRow.appendChild(plus);
+  });
+
+  // 마지막 + 버튼 (맨 뒤)
+  const lastPlus = document.createElement("button");
+  lastPlus.innerText = "+";
+  lastPlus.className = "insert-btn-top";
+  lastPlus.style.position = "absolute";
+  lastPlus.style.left = `${disp.length * 55}px`;
+
+  lastPlus.onclick = () => {
+    if (!insertMode) return;
+    socket.emit("scout", {
+      roomId,
+      permUid: window.permUid,
+      side: insertCardInfo.side,
+      flip: insertCardInfo.flip,
+      pos: disp.length,
+    });
+    insertMode = false;
   };
 
-  if (insertMode) handArea.appendChild(createInsertBtn(0));
+  plusRow.appendChild(lastPlus);
+  handArea.appendChild(plusRow);
 
-  disp.forEach((card, idx) => {
-    const wrap = document.createElement("div");
-    wrap.className = "card-wrapper";
+  // -------------------------------------------
+  // 🔵 카드 겹치는 영역
+  // -------------------------------------------
+  const wrap = document.createElement("div");
+  wrap.style.position = "relative";
+  wrap.style.height = "160px"; // 카드 높이만큼 공간 확보
 
-    const selectable = !flipSelect && !insertMode;
+  disp.forEach((c, idx) => {
+    const cardWrap = document.createElement("div");
+    cardWrap.style.position = "absolute";
+    cardWrap.style.left = `${idx * 55}px`;  // ← 겹침 정도 조절
+    cardWrap.style.top = "0";
+    cardWrap.style.cursor = "pointer";
 
-    if (selectable) {
-      if (selected.has(idx)) wrap.classList.add("selected");
+    const cardDOM = drawScoutCard(c.top, c.bottom);
 
-      wrap.onclick = () => {
+    // 선택 표시
+    if (!flipSelect && !insertMode) {
+      if (selected.has(idx)) {
+        cardDOM.style.outline = "3px solid yellow";
+      }
+
+      cardWrap.onclick = () => {
         if (selected.has(idx)) selected.delete(idx);
         else selected.add(idx);
         renderHand();
       };
     }
 
-    wrap.appendChild(drawScoutCard(card.top, card.bottom));
-    handArea.appendChild(wrap);
-
-    if (insertMode) handArea.appendChild(createInsertBtn(idx + 1));
+    cardWrap.appendChild(cardDOM);
+    wrap.appendChild(cardWrap);
   });
+
+  handArea.appendChild(wrap);
 }
+
 
 // -----------------------------------------------------
 // RENDER TABLE
@@ -415,6 +466,7 @@ socket.on("roundEnd", ({ winner, players }) => {
 socket.on("gameOver", ({ winner, players }) => {
   alert(`최종 우승자: ${players[winner].nickname}`);
 });
+
 
 
 
