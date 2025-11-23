@@ -1,284 +1,168 @@
-/* ======================================================
-   PREMIUM BOARDGAME THEME
-====================================================== */
-
+/* ===========================
+   기본 스타일
+=========================== */
 body {
   margin: 0;
   padding: 0;
-  background: radial-gradient(circle at center, #1b1b1b, #0c0c0c 80%);
-  color: #f4e9cf;
+  background: #2f2156; /* deep purple */
   font-family: "Pretendard", sans-serif;
-  overflow-x: hidden;
+  color: #f8e8b8; /* golden yellow */
 }
 
-/* Page control */
-.page { display: none; }
-.page.visible { display: block; }
-
-/* Common panels */
-.board-panel,
-.sideBoard,
-.mainBoard,
-.player-list-board {
-  background: rgba(30, 30, 30, 0.92);
-  border: 2px solid rgba(255, 215, 130, 0.35);
-  border-radius: 16px;
-  box-shadow: 0 0 25px rgba(0,0,0,0.6);
-  padding: 22px;
-  max-width: 1200px;
-  margin: 20px auto;
-}
-
-/* Titles */
-.game-title,
-.title-board {
+/* 상단 제목 */
+#topBar {
+  background: #3b2a69;
+  padding: 18px;
   text-align: center;
-  color: #ffecc5;
-  font-size: 36px;
-  margin-bottom: 15px;
+  border-bottom: 3px solid #d8b665;
+}
+
+.game-title {
+  font-size: 32px;
+  font-weight: 900;
+  color: #fcebc9;
+  letter-spacing: 2px;
+}
+
+/* 메인 영역 */
+#mainContainer {
+  display: flex;
+  padding: 20px;
+  gap: 20px;
+}
+
+/* 왼쪽: 보드 본체 */
+#gameBoard {
+  flex: 1;
+  background: #3b2a69;
+  padding: 20px;
+  border-radius: 12px;
+  border: 2px solid #f0d77c;
+}
+
+/* 오른쪽: 플레이어 리스트 */
+#playerBoard {
+  width: 260px;
+  background: #3b2a69;
+  padding: 20px;
+  border-radius: 12px;
+  border: 2px solid #f0d77c;
 }
 
 .section-title {
-  font-size: 26px;
-  margin-top: 12px;
-  color: #f5e3b8;
-}
-
-/* Buttons */
-button {
-  background: linear-gradient(#3b301a, #221c11);
-  border: 1px solid rgba(255, 215, 130, 0.5);
-  color: #ffeec7;
-  padding: 12px 22px;
-  border-radius: 8px;
-  font-size: 18px;
-  cursor: pointer;
-}
-
-button:hover {
-  background: linear-gradient(#4a3d23, #2c2415);
-  border-color: #ffd76e;
-}
-
-.btn-main     { background: linear-gradient(#4c3b22, #2d2517); }
-.btn-green    { background: linear-gradient(#3a5f2c, #233a1c); }
-.btn-orange   { background: linear-gradient(#824515, #532a0c); }
-.btn-purple   { background: linear-gradient(#4f2a6a, #2e1740); }
-.btn-sub      { background: linear-gradient(#2e2e2e, #1a1a1a); }
-
-/* Player list */
-.playerBox {
-  background: rgba(50, 50, 50, 0.75);
-  border: 1px solid rgba(255, 215, 130, 0.3);
-  border-radius: 12px;
-  padding: 14px;
-  font-size: 18px;
+  font-size: 20px;
   margin-bottom: 10px;
+  color: #ffdf7f;
 }
 
-.offlinePlayer {
-  opacity: 0.3;
-  filter: grayscale(1);
-}
-
-.turnGlow {
-  box-shadow: 0 0 12px #ffd76e;
-  border-color: #ffd76e !important;
-}
-
-/* READY LED */
-.ready-led {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  margin-left: 6px;
-  border-radius: 50%;
-  background: #444;
-  border: 1px solid #999;
-}
-
-.ready-led.on  { background: #33ff66; }
-.ready-led.off { background: #444; }
-
-
-/* ======================================================
-   HAND AREA (내 패)
-====================================================== */
-
-#handArea {
-  display: flex;
-  justify-content: center;     /* ⭐ 중앙 정렬 */
-  align-items: center;
-  flex-wrap: nowrap;
-  padding: 20px 0;
-  overflow-x: auto;
-  gap: 0;                      /* 기본 간격 제거 */
-}
-
-.card-wrapper {
-  position: relative;
-  margin-left: -42px;           /* ⭐ 카드 겹치기 핵심 */
-  transition: transform .15s;
-}
-
-.card-wrapper:first-child {
-  margin-left: 0;
-}
-
-/* 선택 시 */
-.card-wrapper.selected {
-  transform: translateY(-12px);
-  z-index: 20;
-  border: 2px solid #ffd76e;
-  border-radius: 12px;
-  box-shadow: 0 0 12px #ffd76e;
-}
-
-/* hover 효과 */
-.card-wrapper:hover {
-  transform: translateY(-8px);
-  z-index: 12;
-}
-
-/* 카드 내부 숫자 위치 */
-.card .top-num,
-.card .top-number {
-  position: absolute;
-  top: 6px;
-  left: 6px;
-  color: white;
-  font-size: 22px;
-  font-weight: 700;
-}
-
-.card .bottom-num,
-.card .bottom-number {
-  position: absolute;
-  bottom: 6px;
-  left: 6px;
-  color: white;
-  font-size: 22px;
-  font-weight: 700;
-}
-
-/* +넣기 버튼 */
-.insert-btn {
-  background: #4a7bff;
-  color: white;
-  border-radius: 10px;
-  padding: 6px 10px;
-  font-size: 16px;
-  border: none;
-  cursor: pointer;
-  margin: 0 8px;
-}
-
-.insert-btn:hover {
-  transform: scale(1.08);
-  background: #6f93ff;
-}
-
-
-/* ======================================================
-   TABLE AREA (테이블 카드)
-====================================================== */
-
-#tableArea {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  padding: 20px 0;
-}
-
-.table-card-wrapper {
-  position: relative;
+/* ===========================
+   카드 스타일 (룰북 스타일)
+=========================== */
+.card {
+  width: 60px;
+  height: 90px;
+  background: #fffdfa;
+  border-radius: 8px;
+  border: 2px solid #c2c2c2;
+  margin-right: 8px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  justify-content: space-between;
+  padding: 6px;
+  cursor: pointer;
+  position: relative;
 }
 
-/* SCOUT HIGHLIGHT */
-.scout-glow {
-  border: 2px solid #ffd76e !important;
-  box-shadow: 0 0 15px #ffea8a;
-  border-radius: 12px;
-  padding: 4px;
+.card .topNum {
+  font-size: 18px;
+  font-weight: bold;
+  text-align: left;
 }
 
-/* TAKE 버튼 */
-.take-btn {
-  background: linear-gradient(#6a571e, #4a3b14);
-  border: 1px solid #e7c46a;
-  color: #fff6d1;
-  padding: 4px 10px;
-  font-size: 14px;
-  border-radius: 6px;
-  margin-top: 4px;
+.card .bottomNum {
+  font-size: 18px;
+  font-weight: bold;
+  text-align: right;
 }
 
-.take-btn:hover {
-  background: linear-gradient(#7a6522, #5a4a18);
-  border-color: #ffe48b;
+/* 좌·우 막대 (룰북 스타일) */
+.card::before {
+  content: "";
+  position: absolute;
+  width: 6px;
+  height: 80%;
+  background: #ff7c2a; /* 주황 */
+  left: -2px;
+  top: 10%;
+  border-radius: 2px;
 }
 
+.card::after {
+  content: "";
+  position: absolute;
+  width: 6px;
+  height: 80%;
+  background: #00b27a; /* 초록 */
+  right: -2px;
+  top: 10%;
+  border-radius: 2px;
+}
 
-/* ======================================================
-   MODAL
-====================================================== */
+/* 선택 강조 */
+.card.selected {
+  border-color: #ffea7a;
+  box-shadow: 0 0 10px #ffea7a;
+}
 
-.modal {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.65);
+/* ===========================
+   영역 레이아웃
+=========================== */
+#tableCards, #handArea {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  padding: 10px 0;
+  min-height: 100px;
 }
 
-.modal.hidden { display: none !important; }
-
-.modal-box {
-  background: rgba(45,45,45,0.95);
-  border: 2px solid rgba(255,215,130,0.55);
-  border-radius: 14px;
-  padding: 30px;
-  width: 320px;
-  text-align: center;
+/* ===========================
+   버튼 스타일
+=========================== */
+.purple-btn {
+  background: #4f3a8a;
+  border: 2px solid #f0d77c;
+  color: #f0e6ff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  margin-right: 10px;
+  cursor: pointer;
+  font-size: 16px;
 }
 
-
-/* ======================================================
-   ACTION ROW
-====================================================== */
-
-.action-row {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  padding: 20px;
-  position: sticky;
-  bottom: 0;
-  background: rgba(15,15,15,0.9);
-  border-top: 1px solid rgba(255,215,130,0.2);
+.gray-btn {
+  background: #6b6b6b;
+  border: 2px solid #dcdcdc;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  margin-right: 10px;
+  cursor: pointer;
+  font-size: 16px;
 }
 
-.action-row button {
-  font-size: 22px;
-  padding: 14px 26px;
+.yellow-btn {
+  background: #f0d77c;
+  border: 2px solid #c6a34a;
+  color: #5a4300;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
 }
 
-
-/* ======================================================
-   MOBILE UI
-====================================================== */
-@media (max-width:600px) {
-  .game-title { font-size: 28px; }
-  .section-title { font-size: 20px; }
-
-  .card-wrapper canvas {
-    width: 85px;
-    height: 120px;
-  }
-}
+/* SCOUT 삽입 위치 + 버튼 */
+.insertSpot {
+  width: 22px;
+  height: 80px;
+  background: rgba(255,255,255,0.08);
+  border: 2px dash
