@@ -1,7 +1,6 @@
 // ======================================================
 // GAME UI — SCOUT 방향 선택 / SHOW / SCOUT / TURN UI
 // (삽입 모달 제거 + +넣기 버튼 + 라운드 승자 + 최종 우승)
-// 21 57
 // ======================================================
 
 import { drawScoutCard } from "./cardEngine.js";
@@ -73,7 +72,7 @@ function renderPlayers() {
 }
 
 // ======================================================
-// 내 패 렌더링 (+넣기 버튼 적용)
+// 현재 보이는 패(뒤집힌 상태 반영)
 // ======================================================
 function getDisplayedHand() {
   return flipReversed
@@ -81,6 +80,28 @@ function getDisplayedHand() {
     : myHand;
 }
 
+// ======================================================
+// 선택 조합 유효성 검사 (RUN or SET 맞는지)
+// ======================================================
+function isValidSelection(disp, indices) {
+  if (indices.length <= 1) return true;
+
+  const cards = indices.map((i) => disp[i]);
+  const nums = cards.map((c) => c.top).sort((a, b) => a - b);
+
+  const allSame = nums.every((n) => n === nums[0]);
+  if (allSame) return true;
+
+  for (let i = 1; i < nums.length; i++) {
+    if (nums[i] !== nums[i - 1] + 1) return false;
+  }
+
+  return true;
+}
+
+// ======================================================
+// 내 패 렌더링 (+넣기 버튼 적용)
+// ======================================================
 function renderHand() {
   handArea.innerHTML = "";
   myCountSpan.innerText = myHand.length;
@@ -111,7 +132,6 @@ function renderHand() {
     return btn;
   };
 
-  // 첫 번째 위치
   if (insertMode) handArea.appendChild(createInsertButton(0));
 
   disp.forEach((c, i) => {
@@ -125,9 +145,22 @@ function renderHand() {
         if (flipSelect) return alert("패 방향을 먼저 확정하세요!");
         if (insertMode) return;
 
-        if (selected.has(i)) selected.delete(i);
-        else selected.add(i);
+        const newSet = new Set(selected);
 
+        // 기존 선택이면 해제 허용
+        if (newSet.has(i)) {
+          newSet.delete(i);
+        } else {
+          // 새로 선택하려 함
+          newSet.add(i);
+        }
+
+        const idxArr = Array.from(newSet);
+        if (!isValidSelection(disp, idxArr)) {
+          return; // 조합 깨지면 선택 불가
+        }
+
+        selected = newSet;
         renderHand();
       };
     }
@@ -135,7 +168,6 @@ function renderHand() {
     wrap.appendChild(drawScoutCard(c.top, c.bottom));
     handArea.appendChild(wrap);
 
-    // 카드 뒤에 +넣기 버튼
     if (insertMode) handArea.appendChild(createInsertButton(i + 1));
   });
 }
@@ -214,6 +246,17 @@ function updateActionButtons() {
 }
 
 // ======================================================
+// 선택된 카드 -> 현재 방향(top/bottom) 그대로 서버 전달
+// ======================================================
+function getChosenCards() {
+  const disp = getDisplayedHand();
+  return Array.from(selected).map(i => ({
+    top: disp[i].top,
+    bottom: disp[i].bottom,
+  }));
+}
+
+// ======================================================
 // SHOW
 // ======================================================
 showBtn.onclick = () => {
@@ -229,7 +272,6 @@ showBtn.onclick = () => {
   });
 };
 
-
 // ======================================================
 // SCOUT 버튼
 // ======================================================
@@ -242,7 +284,7 @@ scoutBtn.onclick = () => {
 };
 
 // ======================================================
-// SCOUT 모달 (삽입 모달 없이 insertMode만)
+// SCOUT 모달
 // ======================================================
 modalClose.onclick = () => scoutModal.classList.add("hidden");
 
@@ -393,20 +435,3 @@ socket.on("turnChange", (uid) => {
   renderHand();
   updateActionButtons();
 });
-// ======================================================
-// 선택된 카드 -> 실제 방향 반영된 카드 객체로 변환
-// ======================================================
-function getChosenCards() {
-  const disp = getDisplayedHand();   // 화면에 보이는 상태 (뒤집힘 반영됨)
-
-  return Array.from(selected).map(i => {
-    const d = disp[i];
-
-    
-    return { 
-      top: d.top, 
-      bottom: d.bottom 
-    };
-  });
-}
-
