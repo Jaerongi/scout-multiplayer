@@ -2,7 +2,7 @@
 // SCOUT UI — 완성본
 // ==============================
 
-let socket = null;
+let socket = window.socket;
 let myPermUid = null;
 
 let myHand = [];
@@ -356,4 +356,5 @@ function makeCardElement(card, index = null) {
 
   return div;
 }
+
 
