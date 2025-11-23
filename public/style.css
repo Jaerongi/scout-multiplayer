@@ -294,4 +294,13 @@ button:hover {
   right: 6px;
 }
 
+.scout-card::after {
+  content: "TEST";
+  color: red;
+  font-size: 30px;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
 
