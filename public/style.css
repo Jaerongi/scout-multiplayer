@@ -234,6 +234,7 @@ button:hover {
 
 /* SCOUT 카드 기본 프레임 */
 .scout-card {
+  display: block;
   width: 80px;
   height: 120px;
   border-radius: 12px;
@@ -276,6 +277,7 @@ button:hover {
   bottom: 6px;
   right: 6px;
 }
+
 
 
 
