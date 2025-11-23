@@ -64,6 +64,7 @@ io.on("connection", socket => {
     joinPlayer(roomId, socket, userName, permUid);
   });
 
+  
   // -------------------------
   // 게임 시작
   // -------------------------
@@ -211,7 +212,11 @@ function joinPlayer(roomId, socket, userName, permUid) {
 
   socket.join(roomId);
   updateRoom(roomId);
+
+  // 🔥 반드시 필요함 — 클라이언트로 “방 입장 성공” 신호 보내기
+  socket.emit("joinedRoom", roomId);
 }
+
 
 function updateRoom(roomId) {
   const room = rooms[roomId];
@@ -250,3 +255,4 @@ const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
   console.log("SCOUT server running on port", PORT);
 });
+
