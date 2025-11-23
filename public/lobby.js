@@ -1,48 +1,37 @@
 let lobbySocket = null;
 
 window.addEventListener("DOMContentLoaded", () => {
-  lobbySocket = io();
-
   document.getElementById("createRoomBtn").onclick = createRoom;
   document.getElementById("joinRoomBtn").onclick = joinRoom;
-
   document.getElementById("startGameBtn").onclick = () => {
-    lobbySocket.emit("startGame", window.roomId);
+    window.socket.emit("startGame", window.roomId);
   };
+
+  // 서버가 join 성공 시
+  window.socket.on("joinedRoom", roomId => {
+    window.roomId = roomId;
+    enterGamePage();
+  });
 });
 
 function createRoom() {
   const userName = document.getElementById("userNameInput").value.trim();
   const roomId = document.getElementById("newRoomId").value.trim();
 
-  if (!userName || !roomId) {
-    alert("닉네임과 방 ID를 입력하세요!");
-    return;
-  }
-
   const permUid = generatePermUid();
   window.myPermUid = permUid;
-  window.roomId = roomId;
 
-  lobbySocket.emit("createRoom", { roomId, userName, permUid });
-  enterGamePage();
+  window.socket.emit("createRoom", { roomId, userName, permUid });
 }
 
 function joinRoom() {
   const userName = document.getElementById("userNameInput").value.trim();
   const roomId = document.getElementById("joinRoomId").value.trim();
 
-  if (!userName || !roomId) {
-    alert("닉네임과 방 ID를 입력하세요!");
-    return;
-  }
-
   const permUid = generatePermUid();
   window.myPermUid = permUid;
-  window.roomId = roomId;
 
-  lobbySocket.emit("joinRoom", { roomId, userName, permUid });
-  enterGamePage();
+  window.socket.emit("joinRoom", { roomId, userName, permUid });
 }
 
 function enterGamePage() {
