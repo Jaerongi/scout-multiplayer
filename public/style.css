@@ -165,4 +165,8 @@ body {
   width: 22px;
   height: 80px;
   background: rgba(255,255,255,0.08);
-  border: 2px dash
+  border: 2px dashed #ffed9b;
+  border-radius: 6px;
+  margin-right: 6px;
+  cursor: pointer;
+}
