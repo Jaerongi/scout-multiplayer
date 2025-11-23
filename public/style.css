@@ -120,11 +120,6 @@ button:hover {
   box-shadow: 0 0 10px #e6c05a;
 }
 
-.card-wrapper canvas {
-  width: 110px;
-  height: 160px;
-}
-
 /* TABLE */
 .tableBoard {
   display: flex;
@@ -229,11 +224,12 @@ button:hover {
     font-size: 16px;
     padding: 10px 16px;
   }
+.card-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
-  .card-wrapper canvas {
-    width: 85px;
-    height: 120px;
-  }
 }
 
 /* SCOUT 카드 기본 프레임 */
@@ -281,6 +277,8 @@ button:hover {
   bottom: 6px;
   right: 6px;
 }
+
+
 
 
 
