@@ -170,3 +170,42 @@ body {
   margin-right: 6px;
   cursor: pointer;
 }
+/* ===========================
+   라운드 종료 팝업
+=========================== */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(20, 0, 40, 0.65);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.modal-content {
+  background: #3b2a69;
+  border: 3px solid #f0d77c;
+  border-radius: 12px;
+  padding: 30px;
+  width: 380px;
+  text-align: center;
+}
+
+.modal-title {
+  font-size: 26px;
+  color: #ffdf7f;
+  margin-bottom: 20px;
+}
+
+#roundResultList {
+  text-align: left;
+  margin-top: 10px;
+  color: #ffeec0;
+  font-size: 18px;
+  line-height: 28px;
+}
+
