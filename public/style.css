@@ -1,6 +1,6 @@
-/* ====================================================== */
-/* PREMIUM BOARDGAME THEME                                */
-/* ====================================================== */
+/* ======================================================
+   PREMIUM BOARDGAME THEME
+====================================================== */
 
 body {
   margin: 0;
@@ -11,11 +11,11 @@ body {
   overflow-x: hidden;
 }
 
-/* page control */
+/* Page control */
 .page { display: none; }
 .page.visible { display: block; }
 
-/* common panels */
+/* Common panels */
 .board-panel,
 .sideBoard,
 .mainBoard,
@@ -29,7 +29,7 @@ body {
   margin: 20px auto;
 }
 
-/* titles */
+/* Titles */
 .game-title,
 .title-board {
   text-align: center;
@@ -44,7 +44,7 @@ body {
   color: #f5e3b8;
 }
 
-/* buttons */
+/* Buttons */
 button {
   background: linear-gradient(#3b301a, #221c11);
   border: 1px solid rgba(255, 215, 130, 0.5);
@@ -66,7 +66,7 @@ button:hover {
 .btn-purple   { background: linear-gradient(#4f2a6a, #2e1740); }
 .btn-sub      { background: linear-gradient(#2e2e2e, #1a1a1a); }
 
-/* players */
+/* Player list */
 .playerBox {
   background: rgba(50, 50, 50, 0.75);
   border: 1px solid rgba(255, 215, 130, 0.3);
@@ -86,7 +86,7 @@ button:hover {
   border-color: #ffd76e !important;
 }
 
-/* READY Indicator */
+/* READY LED */
 .ready-led {
   display: inline-block;
   width: 10px;
@@ -100,47 +100,104 @@ button:hover {
 .ready-led.on  { background: #33ff66; }
 .ready-led.off { background: #444; }
 
-/* HAND */
-.handBoard {
+
+/* ======================================================
+   HAND AREA (내 패)
+====================================================== */
+
+#handArea {
   display: flex;
+  justify-content: center;     /* ⭐ 중앙 정렬 */
+  align-items: center;
   flex-wrap: nowrap;
+  padding: 20px 0;
   overflow-x: auto;
-  gap: 10px;
-  padding: 10px;
+  gap: 0;                      /* 기본 간격 제거 */
 }
 
 .card-wrapper {
-  border: 2px solid transparent;
-  border-radius: 10px;
-  cursor: pointer;
+  position: relative;
+  margin-left: -42px;           /* ⭐ 카드 겹치기 핵심 */
+  transition: transform .15s;
 }
 
+.card-wrapper:first-child {
+  margin-left: 0;
+}
+
+/* 선택 시 */
 .card-wrapper.selected {
-  border-color: #ffd76e;
-  box-shadow: 0 0 10px #e6c05a;
+  transform: translateY(-12px);
+  z-index: 20;
+  border: 2px solid #ffd76e;
+  border-radius: 12px;
+  box-shadow: 0 0 12px #ffd76e;
 }
 
-.card-wrapper canvas {
-  width: 110px;
-  height: 160px;
+/* hover 효과 */
+.card-wrapper:hover {
+  transform: translateY(-8px);
+  z-index: 12;
 }
 
-/* TABLE */
-.tableBoard {
+/* 카드 내부 숫자 위치 */
+.card .top-num,
+.card .top-number {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  color: white;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.card .bottom-num,
+.card .bottom-number {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  color: white;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+/* +넣기 버튼 */
+.insert-btn {
+  background: #4a7bff;
+  color: white;
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  margin: 0 8px;
+}
+
+.insert-btn:hover {
+  transform: scale(1.08);
+  background: #6f93ff;
+}
+
+
+/* ======================================================
+   TABLE AREA (테이블 카드)
+====================================================== */
+
+#tableArea {
   display: flex;
-  gap: 14px;
   justify-content: center;
-  padding: 12px;
+  gap: 12px;
+  padding: 20px 0;
 }
 
 .table-card-wrapper {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
 }
 
-/* SCOUT glow */
+/* SCOUT HIGHLIGHT */
 .scout-glow {
   border: 2px solid #ffd76e !important;
   box-shadow: 0 0 15px #ffea8a;
@@ -148,7 +205,7 @@ button:hover {
   padding: 4px;
 }
 
-/* TAKE BUTTON */
+/* TAKE 버튼 */
 .take-btn {
   background: linear-gradient(#6a571e, #4a3b14);
   border: 1px solid #e7c46a;
@@ -156,7 +213,7 @@ button:hover {
   padding: 4px 10px;
   font-size: 14px;
   border-radius: 6px;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 .take-btn:hover {
@@ -164,7 +221,11 @@ button:hover {
   border-color: #ffe48b;
 }
 
-/* MODAL */
+
+/* ======================================================
+   MODAL
+====================================================== */
+
 .modal {
   position: fixed;
   top: 0; left: 0;
@@ -176,9 +237,7 @@ button:hover {
   z-index: 9999;
 }
 
-.modal.hidden {
-  display: none !important;
-}
+.modal.hidden { display: none !important; }
 
 .modal-box {
   background: rgba(45,45,45,0.95);
@@ -189,21 +248,11 @@ button:hover {
   text-align: center;
 }
 
-/* Flip Select Area */
-.flip-area {
-  background: rgba(40,40,40,0.75);
-  padding: 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,215,130,0.4);
-  margin-bottom: 12px;
-  text-align: center;
-}
 
-.flip-area.hidden {
-  display: none !important;
-}
+/* ======================================================
+   ACTION ROW
+====================================================== */
 
-/* BUTTON ROW */
 .action-row {
   display: flex;
   justify-content: center;
@@ -220,107 +269,16 @@ button:hover {
   padding: 14px 26px;
 }
 
-/* mobile UI */
+
+/* ======================================================
+   MOBILE UI
+====================================================== */
 @media (max-width:600px) {
   .game-title { font-size: 28px; }
   .section-title { font-size: 20px; }
-
-  button {
-    font-size: 16px;
-    padding: 10px 16px;
-  }
 
   .card-wrapper canvas {
     width: 85px;
     height: 120px;
   }
 }
-/* +버튼이 나오는 윗줄 */
-.insert-top-row {
-  display: flex;
-  justify-content: flex-start;
-  gap: 16px;
-  padding: 10px 0;
-  margin-bottom: 10px;
-}
-
-.insert-top-btn {
-  width: 36px;
-  height: 36px;
-  font-size: 22px;
-  font-weight: bold;
-  border-radius: 50%;
-  border: none;
-  background: #457cff;
-  color: white;
-  cursor: pointer;
-  box-shadow: 0 0 6px rgba(0,0,0,0.2);
-}
-
-.insert-top-btn:hover {
-  transform: scale(1.1);
-}
-
-/* 카드 그리드 – 자동 줄바꿈 */
-.hand-card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-  gap: 12px;.insert-btn-top {
-  width: 30px;
-  height: 30px;
-  font-size: 22px;
-  font-weight: bold;
-  border-radius: 50%;
-  border: none;
-  background: #4a7bff;
-  color: white;
-  cursor: pointer;
-}
-
-.insert-btn-top:hover {
-  background: #6f93ff;
-}
-
-  width: 100%;
-}
-
-/* 카드 */
-.card-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.scout-card {
-  width: 90px;
-  height: 120px;
-  background: #1e1e1e;
-  border-radius: 10px;
-  border: 2px solid #3a4bff;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  padding: 8px;
-  box-sizing: border-box;
-}
-
-.scout-card .top-num {
-  position: absolute;
-  top: 6px;
-  left: 6px;
-  font-size: 26px;
-  font-weight: bold;
-  color: white;
-}
-
-.scout-card .bottom-num {
-  position: absolute;
-  bottom: 6px;
-  right: 6px;
-  font-size: 26px;
-  font-weight: bold;
-  color: white;
-}
-
-
