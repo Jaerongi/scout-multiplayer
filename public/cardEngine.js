@@ -18,29 +18,33 @@ export const COLOR_MAP = {
 // ================================
 // drawScoutCard (canvas 기반 카드 렌더링)
 // ================================
-export function drawScoutCard(top, bottom, w = 90, h = 130) {
-  const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext("2d");
+export function drawScoutCard(top, bottom) {
+  const card = document.createElement("div");
+  card.className = "scout-card";
 
-  const mid = h / 2;
+  const topNum = document.createElement("div");
+  topNum.className = "num-circle num-top";
+  topNum.innerText = top;
 
-  // 상단 영역
-  ctx.fillStyle = COLOR_MAP[top];
-  ctx.fillRect(0, 0, w, mid);
+  const botNum = document.createElement("div");
+  botNum.className = "num-circle num-bottom";
+  botNum.innerText = bottom;
 
-  // 하단 영역
-  ctx.fillStyle = COLOR_MAP[bottom];
-  ctx.fillRect(0, mid, w, mid);
+  card.appendChild(topNum);
+  card.appendChild(botNum);
 
-  // 숫자 (흰색)
-  ctx.fillStyle = "#fff";
-  ctx.font = "bold 28px Pretendard, sans-serif";
-  ctx.textAlign = "center";
+  const colors = [
+    ["#3DB2FF", "#00DFA2"],
+    ["#FF6D28", "#FFD93D"],
+    ["#6A5ACD", "#48C9B0"],
+    ["#FF6363", "#FFA36C"],
+    ["#4CD137", "#9AECDB"],
+  ];
 
-  ctx.fillText(top, w / 2, mid / 1.5);
-  ctx.fillText(bottom, w / 2, mid + mid / 1.3);
+  const pick = colors[Math.floor(Math.random() * colors.length)];
+  card.style.setProperty("--left-color", pick[0]);
+  card.style.setProperty("--right-color", pick[1]);
 
-  return canvas;
+  return card;
 }
+
