@@ -281,3 +281,79 @@ document.getElementById("nextRoundBtn").onclick = () => {
   socket.emit("startGame", window.roomId); // 새 라운드
 };
 
+// 드래그 변수
+let draggingCard = null;
+let dragOffsetX = 0;
+let dragOffsetY = 0;
+
+function makeCardElement(card, index = null) {
+  const div = document.createElement("div");
+  div.className = "card";
+
+  // (기존 top/bottom 렌더링)
+  const t = document.createElement("div");
+  t.className = "topNum";
+  t.innerText = card.direction === "top" ? card.top : card.bottom;
+
+  const b = document.createElement("div");
+  b.className = "bottomNum";
+  b.innerText = card.direction === "top" ? card.bottom : card.top;
+
+  div.appendChild(t);
+  div.appendChild(b);
+
+  /* =============================
+     A. 선택(클릭)
+  ============================== */
+  div.onclick = () => {
+    if (window.isScoutMode) return;
+
+    if (div.classList.contains("selected")) {
+      div.classList.remove("selected");
+      selectedCards = selectedCards.filter(c => c.id !== card.id);
+    } else {
+      div.classList.add("selected");
+      selectedCards.push(card);
+    }
+  };
+
+  /* =============================
+     B. 드래그 UI
+  ============================== */
+
+  // 마우스 다운 → 드래그 시작
+  div.onmousedown = e => {
+    draggingCard = div;
+
+    dragOffsetX = e.offsetX;
+    dragOffsetY = e.offsetY;
+
+    div.classList.add("dragging");
+    document.body.appendChild(div);
+
+    e.preventDefault();
+  };
+
+  // 마우스 이동
+  window.onmousemove = e => {
+    if (!draggingCard) return;
+
+    draggingCard.style.left = (e.pageX - dragOffsetX) + "px";
+    draggingCard.style.top = (e.pageY - dragOffsetY) + "px";
+  };
+
+  // 마우스 업 → 드롭 처리
+  window.onmouseup = () => {
+    if (!draggingCard) return;
+
+    draggingCard.classList.remove("dragging");
+
+    // 정확한 위치(패 영역 등)에 떨어뜨렸는지 판별 가능
+    // BUT 현재는 "시각적 드래그 효과"만 적용한 상태.
+
+    draggingCard = null;
+  };
+
+  return div;
+}
+
