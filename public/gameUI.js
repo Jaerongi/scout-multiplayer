@@ -36,6 +36,9 @@ function setupSocketEvents() {
     tableOwner = data.tableOwner;
     turnIndex = data.turnIndex;
 
+    // ⭐ 핵심: myPermUid가 아직 안 세팅된 상황이면 렌더링하지 않음
+    if (!myPermUid) return;
+
     const me = players.find(p => p.permUid === myPermUid);
     if (me) myHand = me.hand;
 
@@ -49,6 +52,9 @@ function setupSocketEvents() {
     players = data.players;
     tableCombo = data.tableCombo || [];
     turnIndex = data.turnIndex;
+
+    // ⭐ myPermUid 준비 안된 경우 무시
+    if (!myPermUid) return;
 
     const me = players.find(p => p.permUid === myPermUid);
     if (me) myHand = me.hand;
@@ -259,7 +265,7 @@ function makeCardElement(card, index = null) {
 }
 
 // ==============================
-// SCOUT 또는 SCOUT+SHOW 삽입 처리
+// SCOUT or SCOUT+SHOW
 // ==============================
 function scoutInsert(idx) {
   const targetCard = tableCombo[0];
@@ -318,7 +324,7 @@ function autoShowAfterScout() {
   });
 }
 
-// 기본 싱글 콤보만 생성 (추후 확장 가능)
+// 기본 싱글 콤보만 생성
 function generateBasicCombos(hand) {
   return hand.map(c => ({
     cards: [c],
