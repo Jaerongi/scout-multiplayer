@@ -214,3 +214,49 @@ function scoutInsert(idx) {
   window.isScoutMode = false;
   renderHand();
 }
+
+document.getElementById("ssBtn").onclick = () => {
+  if (!tableCombo || tableCombo.length === 0) {
+    alert("테이블 카드가 없습니다.");
+    return;
+  }
+
+  // SCOUT + SHOW 모드 시작
+  window.isSsMode = true;
+  startScoutMode(true);  // SCOUT 모드 재사용
+};
+function scoutInsert(idx) {
+  const targetCard = tableCombo[0];
+  const direction = "top";
+
+  if (window.isSsMode) {
+    // SCOUT 먼저 서버에 전송
+    socket.emit("scout", {
+      roomId: window.roomId,
+      card: targetCard,
+      direction,
+      insertIndex: idx
+    });
+
+    // SCOUT 반영 후 → SHOW 실행
+    setTimeout(() => {
+      autoShowAfterScout();
+    }, 200);
+
+    window.isScoutMode = false;
+    window.isSsMode = false;
+    renderHand();
+    return;
+  }
+
+  // 일반 SCOUT
+  socket.emit("scout", {
+    roomId: window.roomId,
+    card: targetCard,
+    direction,
+    insertIndex: idx
+  });
+
+  window.isScoutMode = false;
+  renderHand();
+}
