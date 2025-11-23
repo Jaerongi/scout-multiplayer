@@ -16,7 +16,7 @@ export const COLOR_MAP = {
 };
 
 // ================================
-// drawScoutCard (canvas 기반 카드 렌더링)
+// drawScoutCard (물결 배경 버전)
 // ================================
 export function drawScoutCard(top, bottom) {
   const card = document.createElement("div");
@@ -42,9 +42,9 @@ export function drawScoutCard(top, bottom) {
   ];
 
   const pick = colors[Math.floor(Math.random() * colors.length)];
+
   card.style.setProperty("--left-color", pick[0]);
   card.style.setProperty("--right-color", pick[1]);
 
   return card;
 }
-
