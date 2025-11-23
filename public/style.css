@@ -240,32 +240,31 @@ button:hover {
 .scout-card {
   width: 80px;
   height: 120px;
-  border-radius: 10px;
-  background: linear-gradient(to right, var(--left-color) 50%, var(--right-color) 50%);
-  position: relative;
-  border: 2px solid #fff;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+  border-radius: 12px;
   overflow: hidden;
+  position: relative;
+  background: var(--left-color);
+  border: 2px solid #0b1a3d;
 }
 
-/* SCOUT 대표적인 곡선 경계선 */
-.scout-card::before {
+/* 대각선 물결 경계선 */
+.scout-card::after {
   content: "";
   position: absolute;
-  top: 0;
-  left: 40%;
-  width: 60%;
-  height: 100%;
+  inset: 0;
   background: var(--right-color);
+
+  /* ↘ 방향으로 흐르는 S형 대각선 */
   clip-path: path(
-    "M 0 0 
-     C 20 20, 20 100, 0 120 
-     L 80 120 
-     L 80 0 
+    "M 0 0
+     L 40 0
+     C 55 20, 65 40, 50 60
+     C 35 80, 45 100, 70 120
+     L 0 120
      Z"
   );
-  opacity: 0.95;
 }
+
 
 /* 숫자 원 공통 */
 .num-circle {
@@ -293,3 +292,4 @@ button:hover {
   bottom: 6px;
   right: 6px;
 }
+
