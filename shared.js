@@ -1,119 +1,64 @@
-// =============================
-// SCOUT shared rules (Final Version)
-// =============================
+// ===================================
+// SCOUT SHARED ENGINE v3.6
+// ===================================
 
-// 카드 생성 (45장)
-export function createDeck() {
+// 공식 45장 덱 생성
+export function createOfficialDeck() {
   const deck = [];
-  let id = 1;
-
-  for (let i = 0; i < 45; i++) {
-    const top = rand(1, 10);
-    const bottom = rand(1, 10);
-
-    deck.push({
-      id: id++,
-      top,
-      bottom,
-    });
+  for (let t = 1; t <= 9; t++) {
+    for (let b = t + 1; b <= 10; b++) {
+      deck.push({ top: t, bottom: b });
+    }
   }
-
-  shuffle(deck);
-  return deck;
+  return deck; // 45장
 }
 
-// 랜덤 숫자
-function rand(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+// 카드 숫자 추출 (top 기준)
+export function getValues(cards) {
+  return cards.map(c => c.top);
 }
 
-// 피셔-예이츠 셔플
-function shuffle(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
+// RUN 판정
+export function isRun(cards) {
+  const v = getValues(cards).sort((a, b) => a - b);
+  for (let i = 1; i < v.length; i++) {
+    if (v[i] !== v[i - 1] + 1) return false;
   }
+  return true;
 }
 
-// --------------------------------------------------------------
-// 선택한 카드의 실제 값 구하기 (top 또는 bottom)
-// --------------------------------------------------------------
-export function getCardValue(card, direction = "top") {
-  return direction === "top" ? card.top : card.bottom;
+// SET 판정
+export function isSet(cards) {
+  const v = getValues(cards);
+  return v.every(n => n === v[0]);
 }
 
-// --------------------------------------------------------------
-// 콤보 타입 판별
-// --------------------------------------------------------------
-export function getComboType(combo) {
-  if (!combo || combo.length === 0) return null;
-  if (combo.length === 1) return "single";
-
-  const nums = combo.map(c => c.value);
-
-  // SET: 모든 숫자가 동일
-  const setCheck = nums.every(n => n === nums[0]);
-  if (setCheck) return "set";
-
-  // RUN: 오름차순 or 내림차순
-  const asc = nums.slice().sort((a, b) => a - b);
-  const desc = nums.slice().sort((a, b) => b - a);
-
-  const isAsc = nums.every((v, i) => v === asc[i]);
-  const isDesc = nums.every((v, i) => v === desc[i]);
-
-  if (isAsc || isDesc) return "run";
-
-  return null;
+// 조합 타입
+export function getComboType(cards) {
+  if (cards.length === 0) return "invalid";
+  if (isSet(cards)) return "set";
+  if (isRun(cards)) return "run";
+  return "invalid";
 }
 
-// --------------------------------------------------------------
-// 콤보 강함 비교
-// --------------------------------------------------------------
-export function isStrongerCombo(newCombo, oldCombo) {
-  // oldCombo가 없음 → 항상 새 콤보가 강함
-  if (!oldCombo) return true;
+// 조합 비교 규칙
+export function isStrongerCombo(newC, oldC) {
+  if (oldC.length === 0) return true;
 
-  const t1 = getComboType(newCombo);
-  const t2 = getComboType(oldCombo);
+  // 1) 장수 우선
+  if (newC.length !== oldC.length)
+    return newC.length > oldC.length;
 
-  if (!t1 || !t2) return false;
+  const newType = getComboType(newC);
+  const oldType = getComboType(oldC);
 
-  const typeRank = { single: 1, set: 2, run: 3 };
+  // 2) SET > RUN
+  if (newType !== oldType)
+    return newType === "set";
 
-  // 1) 콤보 종류 비교
-  if (typeRank[t1] > typeRank[t2]) return true;
-  if (typeRank[t1] < typeRank[t2]) return false;
+  // 3) 숫자 큰쪽이 승리
+  const newMax = Math.max(...newC.map(c => c.top));
+  const oldMax = Math.max(...oldC.map(c => c.top));
 
-  // 2) 같은 콤보 종류라면 상세 비교
-  const v1 = newCombo.map(c => c.value);
-  const v2 = oldCombo.map(c => c.value);
-
-  // SET 비교 (개수 → 숫자)
-  if (t1 === "set") {
-    if (v1.length > v2.length) return true;
-    if (v1.length < v2.length) return false;
-
-    // 개수 같으면 숫자 비교
-    return v1[0] > v2[0];
-  }
-
-  // RUN 비교 (길이 → 첫 숫자)
-  if (t1 === "run") {
-    if (v1.length > v2.length) return true;
-    if (v1.length < v2.length) return false;
-
-    // 길이 같으면 시작 숫자 비교
-    return v1[0] > v2[0];
-  }
-
-  // SINGLE 비교
-  return v1[0] > v2[0];
-}
-
-// --------------------------------------------------------------
-// SCOUT 삽입 검증
-// --------------------------------------------------------------
-export function canInsertAt(handLength, index) {
-  return index >= 0 && index <= handLength; // 보통 끝까지 가능
+  return newMax > oldMax;
 }
