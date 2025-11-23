@@ -237,37 +237,27 @@ button:hover {
 }
 
 /* SCOUT 카드 기본 프레임 */
+/* SCOUT 카드 기본 프레임 */
 .scout-card {
   width: 80px;
   height: 120px;
   border-radius: 12px;
   overflow: hidden;
   position: relative;
-  background: var(--left-color);
+  background-color: var(--left-color);
   border: 2px solid #0b1a3d;
 }
 
-/* 대각선 물결 경계선 */
+/* 대각선 물결 경계선 (svg clipPath 사용) */
 .scout-card::after {
   content: "";
   position: absolute;
   inset: 0;
-  background-color: var(--left-color);
-
-  /* 대각선 물결 (완전 정상 작동 버전) */
-  clip-path: path(
-    "M 0% 0%
-     L 45% 0%
-     C 60% 25%, 60% 55%, 45% 75%
-     L 100% 100%
-     L 0% 100%
-     Z"
-  );
+  background-color: var(--right-color);
+  clip-path: url(#diagonal-wave);
 }
 
-
-
-/* 숫자 원 공통 */
+/* 숫자 공통 */
 .num-circle {
   width: 28px;
   height: 28px;
@@ -275,32 +265,23 @@ button:hover {
   color: white;
   border-radius: 50%;
   font-size: 16px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: absolute;
   font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
 }
 
-/* top 숫자 위치 (좌측 상단) */
+/* 숫자 위치 */
 .num-top {
   top: 6px;
   left: 6px;
 }
-
-/* bottom 숫자 위치 (우측 하단) */
 .num-bottom {
   bottom: 6px;
   right: 6px;
 }
 
-.scout-card::after {
-  content: "TEST";
-  color: red;
-  font-size: 30px;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
+
 
 
