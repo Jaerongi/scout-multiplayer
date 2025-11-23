@@ -1,107 +1,73 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>SCOUT 온라인</title>
-  <link rel="stylesheet" href="style.css" />
-
-  <script defer src="/socket.io/socket.io.js"></script>
-  <script defer src="socket.js"></script>
-  <script defer src="lobby.js"></script>
-  <script defer src="gameUI.js"></script>
+  <meta charset="UTF-8">
+  <title>SCOUT MULTIPLAYER</title>
+  <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
+  <!-- START PAGE -->
+  <div id="startPage" class="page" style="display:none;">
+    <h2>SCOUT MULTIPLAYER</h2>
 
-  <!-- ===================================== -->
-  <!-- 1) 로비 화면 -->
-  <!-- ===================================== -->
-  <div id="lobbyPage">
+    <div style="margin-top:30px;">
+      <button id="makeRoomBtn" class="btn-big">방 만들기</button>
+    </div>
 
-    <div class="lobby-box">
+    <div style="margin-top:20px;">
+      <button onclick="location.href='/admin.html'" class="btn-small">관리자 권한</button>
+    </div>
 
-      <div class="lobby-title">SCOUT 온라인</div>
-
-      <!-- 사용자 정보 -->
-      <input id="userNameInput" class="input" placeholder="닉네임 입력" />
-
-      <!-- 방 생성 -->
-      <div class="lobby-section">
-        <div class="section-title">방 생성</div>
-        <input id="newRoomId" class="input" placeholder="방 ID 입력" />
-        <button id="createRoomBtn" class="purple-btn">방 만들기</button>
-      </div>
-
-      <!-- 방 참가 -->
-      <div class="lobby-section">
-        <div class="section-title">방 참가</div>
-        <input id="joinRoomId" class="input" placeholder="방 ID 입력" />
-        <button id="joinRoomBtn" class="yellow-btn">입장하기</button>
-      </div>
-
+    <div style="margin-top:20px;">
+      <button onclick="logout()" class="btn-small">로그아웃</button>
     </div>
   </div>
 
-  <!-- ===================================== -->
-  <!-- 2) 실제 게임 페이지 -->
-  <!-- ===================================== -->
-  <div id="gamePage" style="display:none;">
+  <!-- ROOM PAGE -->
+  <div id="roomPage" class="page" style="display:none;">
+    <h2 id="roomTitle">방번호:</h2>
 
-    <div id="topBar">
-      <div class="game-title">SCOUT 온라인</div>
-      <button id="startGameBtn" class="yellow-btn" style="float:right; margin-right:20px;">
-        게임 시작
-      </button>
+    <div style="margin-top:15px;">
+      <button id="copyInviteBtn" class="btn-small">초대 링크 복사</button>
     </div>
 
-    <div id="mainContainer">
+    <h3 style="margin-top:30px;">참가자 리스트</h3>
+    <div id="playerList" class="player-list-box"></div>
 
-      <!-- 왼쪽: 보드 본체 -->
-      <div id="gameBoard">
-
-        <!-- 테이블 카드 -->
-        <div id="tableArea">
-          <div class="section-title">현재 테이블</div>
-          <div id="tableCards"></div>
-        </div>
-
-        <!-- 내 패 -->
-        <div id="handAreaContainer">
-          <div class="section-title">내 패</div>
-          <div id="handArea"></div>
-        </div>
-
-        <!-- 조작 버튼 -->
-        <div id="actionButtons">
-          <button id="showBtn" class="purple-btn">SHOW</button>
-          <button id="scoutBtn" class="purple-btn">SCOUT</button>
-          <button id="passBtn" class="gray-btn">PASS</button>
-          <button id="ssBtn" class="yellow-btn">SCOUT & SHOW</button>
-        </div>
-
-      </div>
-
-      <!-- 오른쪽: 플레이어 -->
-      <div id="playerBoard">
-        <div class="section-title">플레이어 목록</div>
-        <div id="playerList"></div>
-      </div>
-
+    <div style="margin-top:30px;">
+      <button id="readyBtn" class="btn-big">준비</button>
     </div>
-        </div>
-      <!-- 라운드 종료 UI -->
-      <div id="roundEndModal" class="modal" style="display:none;">
-        <div class="modal-content">
-          <div class="modal-title">라운드 종료</div>
-      
-          <div id="roundResultList"></div>
-      
-          <button id="nextRoundBtn" class="yellow-btn" style="margin-top:20px;">
-            다음 라운드 시작
-          </button>
-        </div>
-      </div>
 
+    <div style="margin-top:20px;">
+      <button id="startGameBtn" class="btn-big">게임 시작</button>
+    </div>
+  </div>
+
+  <!-- GAME PAGE -->
+  <div id="gamePage" class="page" style="display:none;">
+    <div id="roundInfo" class="round-info"></div>
+    <div id="turnInfo" class="turn-info"></div>
+
+    <div id="tableArea" class="table-area"></div>
+    <div id="handArea" class="hand-area"></div>
+    <div id="popupArea"></div>
+  </div>
+
+  <!-- LOAD SOCKET FIRST -->
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="/socket.js"></script>
+
+  <!-- UI FILES (소켓 뒤에 와야 함) -->
+  <script src="/roomUI.js"></script>
+  <script src="/gameUI.js"></script>
+
+  <script>
+    function logout() {
+      localStorage.removeItem("scout_userId");
+      location.href = "/login.html";
+    }
+  </script>
 </body>
 </html>
 

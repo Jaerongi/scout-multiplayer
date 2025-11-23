@@ -1,230 +1,237 @@
-/* ===========================
-   기본 스타일
-=========================== */
+/* ====================================================== */
+/* PREMIUM BOARDGAME THEME                                */
+/* ====================================================== */
+
 body {
   margin: 0;
   padding: 0;
-  background: #2f2156; /* deep purple */
+  background: radial-gradient(circle at center, #1b1b1b, #0c0c0c 80%);
+  color: #f4e9cf;
   font-family: "Pretendard", sans-serif;
-  color: #f8e8b8; /* golden yellow */
+  overflow-x: hidden;
 }
 
-/* 상단 제목 */
-#topBar {
-  background: #3b2a69;
-  padding: 18px;
+/* page control */
+.page { display: none; }
+.page.visible { display: block; }
+
+/* common panels */
+.board-panel,
+.sideBoard,
+.mainBoard,
+.player-list-board {
+  background: rgba(30, 30, 30, 0.92);
+  border: 2px solid rgba(255, 215, 130, 0.35);
+  border-radius: 16px;
+  box-shadow: 0 0 25px rgba(0,0,0,0.6);
+  padding: 22px;
+  max-width: 1200px;
+  margin: 20px auto;
+}
+
+/* titles */
+.game-title,
+.title-board {
   text-align: center;
-  border-bottom: 3px solid #d8b665;
-}
-
-.game-title {
-  font-size: 32px;
-  font-weight: 900;
-  color: #fcebc9;
-  letter-spacing: 2px;
-}
-
-/* 메인 영역 */
-#mainContainer {
-  display: flex;
-  padding: 20px;
-  gap: 20px;
-}
-
-/* 왼쪽: 보드 본체 */
-#gameBoard {
-  flex: 1;
-  background: #3b2a69;
-  padding: 20px;
-  border-radius: 12px;
-  border: 2px solid #f0d77c;
-}
-
-/* 오른쪽: 플레이어 리스트 */
-#playerBoard {
-  width: 260px;
-  background: #3b2a69;
-  padding: 20px;
-  border-radius: 12px;
-  border: 2px solid #f0d77c;
+  color: #ffecc5;
+  font-size: 36px;
+  margin-bottom: 15px;
 }
 
 .section-title {
-  font-size: 20px;
-  margin-bottom: 10px;
-  color: #ffdf7f;
+  font-size: 26px;
+  margin-top: 12px;
+  color: #f5e3b8;
 }
 
-/* ===========================
-   카드 스타일 (룰북 스타일)
-=========================== */
-.card {
-  width: 60px;
-  height: 90px;
-  background: #fffdfa;
+/* buttons */
+button {
+  background: linear-gradient(#3b301a, #221c11);
+  border: 1px solid rgba(255, 215, 130, 0.5);
+  color: #ffeec7;
+  padding: 12px 22px;
   border-radius: 8px;
-  border: 2px solid #c2c2c2;
-  margin-right: 8px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: linear-gradient(#4a3d23, #2c2415);
+  border-color: #ffd76e;
+}
+
+.btn-main     { background: linear-gradient(#4c3b22, #2d2517); }
+.btn-green    { background: linear-gradient(#3a5f2c, #233a1c); }
+.btn-orange   { background: linear-gradient(#824515, #532a0c); }
+.btn-purple   { background: linear-gradient(#4f2a6a, #2e1740); }
+.btn-sub      { background: linear-gradient(#2e2e2e, #1a1a1a); }
+
+/* players */
+.playerBox {
+  background: rgba(50, 50, 50, 0.75);
+  border: 1px solid rgba(255, 215, 130, 0.3);
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.offlinePlayer {
+  opacity: 0.3;
+  filter: grayscale(1);
+}
+
+.turnGlow {
+  box-shadow: 0 0 12px #ffd76e;
+  border-color: #ffd76e !important;
+}
+
+/* READY Indicator */
+.ready-led {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: #444;
+  border: 1px solid #999;
+}
+
+.ready-led.on  { background: #33ff66; }
+.ready-led.off { background: #444; }
+
+/* HAND */
+.handBoard {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 10px;
+  padding: 10px;
+}
+
+.card-wrapper {
+  border: 2px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.card-wrapper.selected {
+  border-color: #ffd76e;
+  box-shadow: 0 0 10px #e6c05a;
+}
+
+.card-wrapper canvas {
+  width: 110px;
+  height: 160px;
+}
+
+/* TABLE */
+.tableBoard {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  padding: 12px;
+}
+
+.table-card-wrapper {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding: 6px;
-  cursor: pointer;
-  position: relative;
+  align-items: center;
+  gap: 6px;
 }
 
-.card .topNum {
-  font-size: 18px;
-  font-weight: bold;
-  text-align: left;
+/* SCOUT glow */
+.scout-glow {
+  border: 2px solid #ffd76e !important;
+  box-shadow: 0 0 15px #ffea8a;
+  border-radius: 12px;
+  padding: 4px;
 }
 
-.card .bottomNum {
-  font-size: 18px;
-  font-weight: bold;
-  text-align: right;
-}
-
-/* 좌·우 막대 (룰북 스타일) */
-.card::before {
-  content: "";
-  position: absolute;
-  width: 6px;
-  height: 80%;
-  background: #ff7c2a; /* 주황 */
-  left: -2px;
-  top: 10%;
-  border-radius: 2px;
-}
-
-.card::after {
-  content: "";
-  position: absolute;
-  width: 6px;
-  height: 80%;
-  background: #00b27a; /* 초록 */
-  right: -2px;
-  top: 10%;
-  border-radius: 2px;
-}
-
-/* 선택 강조 */
-.card.selected {
-  border-color: #ffea7a;
-  box-shadow: 0 0 10px #ffea7a;
-}
-
-/* ===========================
-   영역 레이아웃
-=========================== */
-#tableCards, #handArea {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  padding: 10px 0;
-  min-height: 100px;
-}
-
-/* ===========================
-   버튼 스타일
-=========================== */
-.purple-btn {
-  background: #4f3a8a;
-  border: 2px solid #f0d77c;
-  color: #f0e6ff;
-  padding: 12px 20px;
-  border-radius: 8px;
-  margin-right: 10px;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-.gray-btn {
-  background: #6b6b6b;
-  border: 2px solid #dcdcdc;
-  color: #fff;
-  padding: 12px 20px;
-  border-radius: 8px;
-  margin-right: 10px;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-.yellow-btn {
-  background: #f0d77c;
-  border: 2px solid #c6a34a;
-  color: #5a4300;
-  padding: 12px 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-/* SCOUT 삽입 위치 + 버튼 */
-.insertSpot {
-  width: 22px;
-  height: 80px;
-  background: rgba(255,255,255,0.08);
-  border: 2px dashed #ffed9b;
+/* TAKE BUTTON */
+.take-btn {
+  background: linear-gradient(#6a571e, #4a3b14);
+  border: 1px solid #e7c46a;
+  color: #fff6d1;
+  padding: 4px 10px;
+  font-size: 14px;
   border-radius: 6px;
-  margin-right: 6px;
-  cursor: pointer;
+  margin-top: 2px;
 }
-/* ===========================
-   라운드 종료 팝업
-=========================== */
+
+.take-btn:hover {
+  background: linear-gradient(#7a6522, #5a4a18);
+  border-color: #ffe48b;
+}
+
+/* MODAL */
 .modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(20, 0, 40, 0.65);
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.65);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 2000;
+  z-index: 9999;
 }
 
-.modal-content {
-  background: #3b2a69;
-  border: 3px solid #f0d77c;
-  border-radius: 12px;
+.modal.hidden {
+  display: none !important;
+}
+
+.modal-box {
+  background: rgba(45,45,45,0.95);
+  border: 2px solid rgba(255,215,130,0.55);
+  border-radius: 14px;
   padding: 30px;
-  width: 380px;
+  width: 320px;
   text-align: center;
 }
 
-.modal-title {
-  font-size: 26px;
-  color: #ffdf7f;
-  margin-bottom: 20px;
+/* Flip Select Area */
+.flip-area {
+  background: rgba(40,40,40,0.75);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,215,130,0.4);
+  margin-bottom: 12px;
+  text-align: center;
 }
 
-#roundResultList {
-  text-align: left;
-  margin-top: 10px;
-  color: #ffeec0;
-  font-size: 18px;
-  line-height: 28px;
+.flip-area.hidden {
+  display: none !important;
 }
 
-/* 카드 등장 애니메이션 */
-.card {
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+/* BUTTON ROW */
+.action-row {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
+  position: sticky;
+  bottom: 0;
+  background: rgba(15,15,15,0.9);
+  border-top: 1px solid rgba(255,215,130,0.2);
 }
 
-.card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 8px 16px rgba(255, 255, 255, 0.15);
+.action-row button {
+  font-size: 22px;
+  padding: 14px 26px;
 }
 
-/* 드래그 */
-.card.dragging {
-  position: absolute;
-  z-index: 9999;
-  pointer-events: none;
-  opacity: 0.8;
-  transform: rotate(4deg);
-}
+/* mobile UI */
+@media (max-width:600px) {
+  .game-title { font-size: 28px; }
+  .section-title { font-size: 20px; }
 
+  button {
+    font-size: 16px;
+    padding: 10px 16px;
+  }
+
+  .card-wrapper canvas {
+    width: 85px;
+    height: 120px;
+  }
+}
