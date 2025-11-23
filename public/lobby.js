@@ -1,18 +1,17 @@
 let lobbySocket = null;
 
 window.addEventListener("DOMContentLoaded", () => {
+
   document.getElementById("createRoomBtn").onclick = createRoom;
   document.getElementById("joinRoomBtn").onclick = joinRoom;
-  document.getElementById("startGameBtn").onclick = () => {
-    window.socket.emit("startGame", window.roomId);
-  };
-
   // 서버가 join 성공 시
-  window.socket.on("joinedRoom", roomId => {
+  window.socket.on("joinedRoom", (roomId) => {
+    console.log("joinedRoom received:", roomId);
     window.roomId = roomId;
-    enterGamePage();
+    enterGamePage();   // ⭐ 반드시 여기서만 화면 전환
   });
 });
+
 
 function createRoom() {
   const userName = document.getElementById("userNameInput").value.trim();
