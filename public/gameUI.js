@@ -219,9 +219,7 @@ function updateActionButtons() {
 showBtn.onclick = () => {
   if (!myTurn || flipSelect) return;
 
-  const disp = getDisplayedHand();
-  const chosen = Array.from(selected).map((i) => disp[i]);
-
+  const chosen = getChosenCards();
   if (chosen.length === 0) return alert("카드를 선택하세요!");
 
   socket.emit("show", {
@@ -230,6 +228,7 @@ showBtn.onclick = () => {
     cards: chosen,
   });
 };
+
 
 // ======================================================
 // SCOUT 버튼
@@ -394,3 +393,20 @@ socket.on("turnChange", (uid) => {
   renderHand();
   updateActionButtons();
 });
+// ======================================================
+// 선택된 카드 -> 실제 방향 반영된 카드 객체로 변환
+// ======================================================
+function getChosenCards() {
+  const disp = getDisplayedHand();   // 화면에 보이는 상태 (뒤집힘 반영됨)
+
+  return Array.from(selected).map(i => {
+    const d = disp[i];
+
+    
+    return { 
+      top: d.top, 
+      bottom: d.bottom 
+    };
+  });
+}
+
