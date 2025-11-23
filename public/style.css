@@ -250,11 +250,11 @@ button:hover {
 
 /* 대각선 물결 경계선 (svg clipPath 사용) */
 .scout-card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-color: var(--right-color);
-  clip-path: url(#diagonal-wave);
+  content:"";
+  position:absolute;
+  inset:0;
+  background:var(--right-color);
+  clip-path:url(#diagonal-wave);
 }
 
 /* 숫자 공통 */
@@ -281,6 +281,7 @@ button:hover {
   bottom: 6px;
   right: 6px;
 }
+
 
 
 
