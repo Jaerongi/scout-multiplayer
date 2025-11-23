@@ -72,11 +72,10 @@ io.on("connection", socket => {
     const room = rooms[roomId];
     if (!room) return;
 
-    // 덱 생성
     room.deck = createDeck();
 
-    // 각 플레이어 핸드 6장씩 분배
     room.players.forEach(p => {
+      // 6장 분배
       p.hand = room.deck.splice(0, 6).map(c => ({
         ...c,
         direction: "top"
@@ -114,19 +113,16 @@ io.on("connection", socket => {
       return;
     }
 
-    // 기존보다 강해야 함
     if (room.tableCombo && !isStrongerCombo(combo, room.tableCombo)) {
       socket.emit("errorMessage", "기존 콤보보다 강해야 합니다.");
       return;
     }
 
-    // 플레이어 패에서 카드 제거
     combo.forEach(c => {
       const idx = player.hand.findIndex(h => h.id === c.id);
       if (idx >= 0) player.hand.splice(idx, 1);
     });
 
-    // 테이블 갱신
     room.tableCombo = combo;
     room.tableOwner = player.permUid;
 
@@ -144,23 +140,17 @@ io.on("connection", socket => {
     if (!player) return;
 
     const owner = room.players.find(p => p.permUid === room.tableOwner);
-    if (owner) owner.score += 1; // 룰북: SCOUT 당한 사람 1점
+    if (owner) owner.score += 1;
 
     if (!canInsertAt(player.hand.length, insertIndex)) {
       socket.emit("errorMessage", "해당 위치에 넣을 수 없습니다.");
       return;
     }
 
-    // 플레이어 패에 삽입
-    player.hand.splice(insertIndex, 0, {
-      ...card,
-      direction
-    });
+    player.hand.splice(insertIndex, 0, { ...card, direction });
 
-    // 테이블에서 카드 제거
     room.tableCombo.shift();
-
-    if (room.tableCombo.length === 0) {
+    if (!room.tableCombo.length) {
       room.tableCombo = null;
       room.tableOwner = null;
     }
@@ -185,7 +175,7 @@ io.on("connection", socket => {
       const room = rooms[roomId];
       const p = room.players.find(p => p.sid === socket.id);
       if (p) {
-        p.sid = null; // 재접속 위해 남겨둠
+        p.sid = null;
         updateRoom(roomId);
       }
     }
@@ -193,7 +183,7 @@ io.on("connection", socket => {
 });
 
 // ===========================================
-// 공통 함수들
+// 공통 함수
 // ===========================================
 
 function joinPlayer(roomId, socket, userName, permUid) {
@@ -206,7 +196,7 @@ function joinPlayer(roomId, socket, userName, permUid) {
     p.sid = socket.id;
     p.userName = userName;
   } else {
-    // 신규 참가자
+    // 신규 입장
     room.players.push({
       sid: socket.id,
       permUid,
@@ -217,10 +207,9 @@ function joinPlayer(roomId, socket, userName, permUid) {
   }
 
   socket.join(roomId);
-
   updateRoom(roomId);
 
-  // ⭐ 클라이언트에게 "입장 성공" 신호를 보내는 필수 코드
+  // ⭐ 방 입장 성공 신호
   socket.emit("joinedRoom", roomId);
 }
 
@@ -239,7 +228,6 @@ function updateRoom(roomId) {
 function nextTurn(roomId) {
   const room = rooms[roomId];
   if (!room) return;
-
   room.turnIndex = (room.turnIndex + 1) % room.players.length;
   updateRoom(roomId);
 }
@@ -254,7 +242,7 @@ function sanitize(players) {
 }
 
 // ===========================================
-// Railway용 서버 실행
+// Railway 서버 실행
 // ===========================================
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
