@@ -265,7 +265,22 @@ button:hover {
 .hand-card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-  gap: 12px;
+  gap: 12px;.insert-btn-top {
+  width: 30px;
+  height: 30px;
+  font-size: 22px;
+  font-weight: bold;
+  border-radius: 50%;
+  border: none;
+  background: #4a7bff;
+  color: white;
+  cursor: pointer;
+}
+
+.insert-btn-top:hover {
+  background: #6f93ff;
+}
+
   width: 100%;
 }
 
@@ -275,4 +290,5 @@ button:hover {
   justify-content: center;
   align-items: center;
 }
+
 
