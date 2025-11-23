@@ -307,7 +307,9 @@ function sanitize(players) {
 }
 
 // 서버 실행
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
   console.log("SCOUT server running on port", PORT);
 });
+
+
