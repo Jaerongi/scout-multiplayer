@@ -16,7 +16,7 @@ let isScoutMode = false;
 let isSsMode = false;
 
 window.addEventListener("DOMContentLoaded", () => {
-  // socket.js에서 생성한 전역 socket을 가져옴
+  // socket.js에서 생성한 전역 socket 사용
   socket = window.socket;
   myPermUid = window.myPermUid;
 
@@ -81,6 +81,13 @@ function setupSocketEvents() {
 // 버튼 동작
 // ==============================
 function setupButtons() {
+
+  // ⭐ 게임 시작 버튼 (필수)
+  document.getElementById("startGameBtn").onclick = () => {
+    socket.emit("startGame", window.roomId);
+  };
+
+  // SHOW
   document.getElementById("showBtn").onclick = () => {
     if (selectedCards.length === 0) {
       alert("카드를 선택하세요!");
@@ -96,6 +103,7 @@ function setupButtons() {
     renderHand();
   };
 
+  // SCOUT
   document.getElementById("scoutBtn").onclick = () => {
     if (!tableCombo || tableCombo.length === 0) {
       alert("스카우트할 카드가 없습니다.");
@@ -107,6 +115,7 @@ function setupButtons() {
     renderHand();
   };
 
+  // PASS
   document.getElementById("passBtn").onclick = () => {
     socket.emit("pass", window.roomId);
   };
@@ -123,7 +132,7 @@ function setupButtons() {
     renderHand();
   };
 
-  // 라운드 종료 후 다음 라운드 시작
+  // 라운드 종료 후 다음 라운드
   document.getElementById("nextRoundBtn").onclick = () => {
     document.getElementById("roundEndModal").style.display = "none";
     socket.emit("startGame", window.roomId);
@@ -141,10 +150,10 @@ function renderPlayers() {
     const div = document.createElement("div");
     div.className = "playerItem";
 
-    const mark = (i === turnIndex) ? "▶ " : "";
+    const turnMark = (i === turnIndex) ? "▶ " : "";
     const name = p.userName || `Player-${p.permUid.slice(-4)}`;
 
-    div.innerText = `${mark}${name} (${p.score}점)`;
+    div.innerText = `${turnMark}${name} (${p.score}점)`;
 
     area.appendChild(div);
   });
@@ -207,9 +216,7 @@ function makeCardElement(card, index = null) {
   div.appendChild(t);
   div.appendChild(b);
 
-  // ======================
-  // 클릭 선택
-  // ======================
+  // 선택
   div.onclick = () => {
     if (isScoutMode) return;
 
@@ -222,9 +229,7 @@ function makeCardElement(card, index = null) {
     }
   };
 
-  // ======================
-  // 드래그 효과
-  // ======================
+  // 드래그 (시각 효과)
   let dragging = false;
   let offsetX = 0;
   let offsetY = 0;
@@ -254,7 +259,7 @@ function makeCardElement(card, index = null) {
 }
 
 // ==============================
-// SCOUT & SCOUT+SHOW 삽입 처리
+// SCOUT 또는 SCOUT+SHOW 삽입 처리
 // ==============================
 function scoutInsert(idx) {
   const targetCard = tableCombo[0];
@@ -313,7 +318,7 @@ function autoShowAfterScout() {
   });
 }
 
-// 매우 기본적인 싱글 콤보만 생성 (set/run 확장 가능)
+// 기본 싱글 콤보만 생성 (추후 확장 가능)
 function generateBasicCombos(hand) {
   return hand.map(c => ({
     cards: [c],
