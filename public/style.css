@@ -235,3 +235,44 @@ button:hover {
     height: 120px;
   }
 }
+/* +버튼이 나오는 윗줄 */
+.insert-top-row {
+  display: flex;
+  justify-content: flex-start;
+  gap: 16px;
+  padding: 10px 0;
+  margin-bottom: 10px;
+}
+
+.insert-top-btn {
+  width: 36px;
+  height: 36px;
+  font-size: 22px;
+  font-weight: bold;
+  border-radius: 50%;
+  border: none;
+  background: #457cff;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(0,0,0,0.2);
+}
+
+.insert-top-btn:hover {
+  transform: scale(1.1);
+}
+
+/* 카드 그리드 – 자동 줄바꿈 */
+.hand-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+
+/* 카드 */
+.card-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
