@@ -113,13 +113,10 @@ button:hover {
 .card-wrapper {
   width: 80px !important;
   height: 120px !important;
+  flex: 0 0 80px !important; /* shrink 방지 */
   display: flex;
   justify-content: center;
   align-items: center;
-  border: none !important;
-  border-radius: 0 !important;
-  flex-shrink: 0 !important;
-  cursor: pointer;
 }
 
 .card-wrapper.selected {
@@ -224,14 +221,10 @@ button:hover {
 
 /* SCOUT 카드 */
 .scout-card {
+  width: 80px !important;
+  height: 120px !important;
   display: block;
-  width: 80px;
-  height: 120px;
-  border-radius: 12px;
-  overflow: hidden;
-  position: relative;
-  background-color: var(--left-color);
-  border: 2px solid #0b1a3d;
+  flex-shrink: 0 !important;
 }
 
 /* 물결 clip-path 적용 */
@@ -268,3 +261,4 @@ button:hover {
   bottom: 6px;
   right: 6px;
 }
+
