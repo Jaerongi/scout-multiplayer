@@ -260,3 +260,24 @@ function scoutInsert(idx) {
   window.isScoutMode = false;
   renderHand();
 }
+socket.on("roundEnd", data => {
+  const list = document.getElementById("roundResultList");
+  list.innerHTML = "";
+
+  data.players.forEach(p => {
+    const div = document.createElement("div");
+    div.innerText = `${p.userName}: ${p.score}점`;
+    list.appendChild(div);
+  });
+
+  // 팝업 표시
+  document.getElementById("roundEndModal").style.display = "flex";
+});
+
+// 다음 라운드
+document.getElementById("nextRoundBtn").onclick = () => {
+  document.getElementById("roundEndModal").style.display = "none";
+
+  socket.emit("startGame", window.roomId); // 새 라운드
+};
+
