@@ -56,9 +56,13 @@ export function drawScoutCard(top, bottom) {
   img.loading = "lazy";
   img.decoding = "async";
 
-  const file = getCardFile(top, bottom);
-  img.src = `cards/${file}`;
+const baseFile = getCardFile(top, bottom);
 
+  if (top > bottom) {
+    img.src = `cards/${baseFile.replace(".png", "_flip.png")}`;
+  } else {
+    img.src = `cards/${baseFile}`;
+  }
 
   card.appendChild(img);
   return card;
