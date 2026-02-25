@@ -59,10 +59,6 @@ export function drawScoutCard(top, bottom) {
   const file = getCardFile(top, bottom);
   img.src = `cards/${file}`;
 
-  // If flipped (top > bottom), rotate to match orientation
-  if (top > bottom) {
-    img.style.transform = "rotate(180deg)";
-  }
 
   card.appendChild(img);
   return card;
