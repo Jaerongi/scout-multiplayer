@@ -57,13 +57,11 @@ export function drawScoutCard(top, bottom) {
   img.decoding = "async";
 
 const baseFile = getCardFile(top, bottom);
+img.src = `/cards/${baseFile}`;   // 절대경로 추천
 
-  if (top > bottom) {
-    img.src = `cards/${baseFile.replace(".png", "_flip.png")}`;
-  } else {
-    img.src = `cards/${baseFile}`;
-  }
-
+if (top > bottom) {
+  img.style.transform = "rotate(180deg)";
+}
   card.appendChild(img);
   return card;
 }
