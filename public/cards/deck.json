@@ -1,0 +1,274 @@
+{
+  "cards": [
+    {
+      "id": 1,
+      "top": 1,
+      "bottom": 2,
+      "file": "001_1-2.png"
+    },
+    {
+      "id": 2,
+      "top": 1,
+      "bottom": 3,
+      "file": "002_1-3.png"
+    },
+    {
+      "id": 3,
+      "top": 1,
+      "bottom": 4,
+      "file": "003_1-4.png"
+    },
+    {
+      "id": 4,
+      "top": 1,
+      "bottom": 5,
+      "file": "004_1-5.png"
+    },
+    {
+      "id": 5,
+      "top": 1,
+      "bottom": 6,
+      "file": "005_1-6.png"
+    },
+    {
+      "id": 6,
+      "top": 1,
+      "bottom": 7,
+      "file": "006_1-7.png"
+    },
+    {
+      "id": 7,
+      "top": 1,
+      "bottom": 8,
+      "file": "007_1-8.png"
+    },
+    {
+      "id": 8,
+      "top": 1,
+      "bottom": 9,
+      "file": "008_1-9.png"
+    },
+    {
+      "id": 9,
+      "top": 1,
+      "bottom": 10,
+      "file": "009_1-10.png"
+    },
+    {
+      "id": 10,
+      "top": 2,
+      "bottom": 3,
+      "file": "010_2-3.png"
+    },
+    {
+      "id": 11,
+      "top": 2,
+      "bottom": 4,
+      "file": "011_2-4.png"
+    },
+    {
+      "id": 12,
+      "top": 2,
+      "bottom": 5,
+      "file": "012_2-5.png"
+    },
+    {
+      "id": 13,
+      "top": 2,
+      "bottom": 6,
+      "file": "013_2-6.png"
+    },
+    {
+      "id": 14,
+      "top": 2,
+      "bottom": 7,
+      "file": "014_2-7.png"
+    },
+    {
+      "id": 15,
+      "top": 2,
+      "bottom": 8,
+      "file": "015_2-8.png"
+    },
+    {
+      "id": 16,
+      "top": 2,
+      "bottom": 9,
+      "file": "016_2-9.png"
+    },
+    {
+      "id": 17,
+      "top": 2,
+      "bottom": 10,
+      "file": "017_2-10.png"
+    },
+    {
+      "id": 18,
+      "top": 3,
+      "bottom": 4,
+      "file": "018_3-4.png"
+    },
+    {
+      "id": 19,
+      "top": 3,
+      "bottom": 5,
+      "file": "019_3-5.png"
+    },
+    {
+      "id": 20,
+      "top": 3,
+      "bottom": 6,
+      "file": "020_3-6.png"
+    },
+    {
+      "id": 21,
+      "top": 3,
+      "bottom": 7,
+      "file": "021_3-7.png"
+    },
+    {
+      "id": 22,
+      "top": 3,
+      "bottom": 8,
+      "file": "022_3-8.png"
+    },
+    {
+      "id": 23,
+      "top": 3,
+      "bottom": 9,
+      "file": "023_3-9.png"
+    },
+    {
+      "id": 24,
+      "top": 3,
+      "bottom": 10,
+      "file": "024_3-10.png"
+    },
+    {
+      "id": 25,
+      "top": 4,
+      "bottom": 5,
+      "file": "025_4-5.png"
+    },
+    {
+      "id": 26,
+      "top": 4,
+      "bottom": 6,
+      "file": "026_4-6.png"
+    },
+    {
+      "id": 27,
+      "top": 4,
+      "bottom": 7,
+      "file": "027_4-7.png"
+    },
+    {
+      "id": 28,
+      "top": 4,
+      "bottom": 8,
+      "file": "028_4-8.png"
+    },
+    {
+      "id": 29,
+      "top": 4,
+      "bottom": 9,
+      "file": "029_4-9.png"
+    },
+    {
+      "id": 30,
+      "top": 4,
+      "bottom": 10,
+      "file": "030_4-10.png"
+    },
+    {
+      "id": 31,
+      "top": 5,
+      "bottom": 6,
+      "file": "031_5-6.png"
+    },
+    {
+      "id": 32,
+      "top": 5,
+      "bottom": 7,
+      "file": "032_5-7.png"
+    },
+    {
+      "id": 33,
+      "top": 5,
+      "bottom": 8,
+      "file": "033_5-8.png"
+    },
+    {
+      "id": 34,
+      "top": 5,
+      "bottom": 9,
+      "file": "034_5-9.png"
+    },
+    {
+      "id": 35,
+      "top": 5,
+      "bottom": 10,
+      "file": "035_5-10.png"
+    },
+    {
+      "id": 36,
+      "top": 6,
+      "bottom": 7,
+      "file": "036_6-7.png"
+    },
+    {
+      "id": 37,
+      "top": 6,
+      "bottom": 8,
+      "file": "037_6-8.png"
+    },
+    {
+      "id": 38,
+      "top": 6,
+      "bottom": 9,
+      "file": "038_6-9.png"
+    },
+    {
+      "id": 39,
+      "top": 6,
+      "bottom": 10,
+      "file": "039_6-10.png"
+    },
+    {
+      "id": 40,
+      "top": 7,
+      "bottom": 8,
+      "file": "040_7-8.png"
+    },
+    {
+      "id": 41,
+      "top": 7,
+      "bottom": 9,
+      "file": "041_7-9.png"
+    },
+    {
+      "id": 42,
+      "top": 7,
+      "bottom": 10,
+      "file": "042_7-10.png"
+    },
+    {
+      "id": 43,
+      "top": 8,
+      "bottom": 9,
+      "file": "043_8-9.png"
+    },
+    {
+      "id": 44,
+      "top": 8,
+      "bottom": 10,
+      "file": "044_8-10.png"
+    },
+    {
+      "id": 45,
+      "top": 9,
+      "bottom": 10,
+      "file": "045_9-10.png"
+    }
+  ]
+}
