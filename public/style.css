@@ -1,0 +1,444 @@
+/* ====================================================== */
+/* SCOUT — NEW THEME (Midnight Neon / Glass UI)           */
+/* - Keeps existing class names so the JS keeps working   */
+/* - Adds a small design system with CSS variables        */
+/* ====================================================== */
+
+:root{
+  /* surfaces */
+  --bg0:#070A12;
+  --bg1:#0B1022;
+  --panel: rgba(255,255,255,0.06);
+  --panel-2: rgba(255,255,255,0.08);
+  --border: rgba(255,255,255,0.14);
+  --border-strong: rgba(255,255,255,0.22);
+
+  /* text */
+  --text:#EAF0FF;
+  --muted: rgba(234,240,255,0.68);
+
+  /* accents */
+  --a1:#7C5CFF;   /* purple */
+  --a2:#19D3FF;   /* cyan */
+  --good:#22C55E;
+  --warn:#F59E0B;
+  --bad:#EF4444;
+
+  /* shadows */
+  --shadow: 0 18px 60px rgba(0,0,0,0.55);
+  --shadow-soft: 0 10px 30px rgba(0,0,0,0.35);
+
+  /* radii */
+  --r-lg: 18px;
+  --r-md: 12px;
+  --r-sm: 10px;
+
+  /* sizing */
+  --card-w: 110px;
+  --card-h: 160px;
+}
+
+*{ box-sizing:border-box; }
+
+html, body { height:100%; }
+
+body{
+  margin:0;
+  padding:0;
+  color:var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Pretendard", "Segoe UI", Roboto, "Noto Sans KR", Arial, sans-serif;
+  overflow-x:hidden;
+
+  background:
+    radial-gradient(1200px 600px at 15% 10%, rgba(124,92,255,0.22), transparent 55%),
+    radial-gradient(900px 500px at 85% 20%, rgba(25,211,255,0.18), transparent 55%),
+    radial-gradient(900px 600px at 50% 100%, rgba(245,158,11,0.10), transparent 60%),
+    linear-gradient(180deg, var(--bg0), var(--bg1));
+}
+
+/* page control */
+.page{ display:none; }
+.page.visible{ display:block; }
+
+/* common containers / panels */
+.board-panel,
+.sideBoard,
+.mainBoard,
+.player-list-board{
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
+  padding: 22px;
+  max-width: 1200px;
+  margin: 18px auto;
+  backdrop-filter: blur(10px);
+}
+
+.board-panel.wide{ max-width: 920px; }
+
+.panel-center{
+  min-height: calc(100vh - 40px);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap: 12px;
+}
+
+/* titles */
+.game-title,
+.title-board{
+  text-align:center;
+  margin:0 0 14px;
+  letter-spacing: -0.02em;
+}
+
+.game-title{
+  font-size: 40px;
+  font-weight: 800;
+  background: linear-gradient(90deg, var(--a1), var(--a2));
+  -webkit-background-clip:text;
+  background-clip:text;
+  color: transparent;
+  text-shadow: 0 8px 30px rgba(124,92,255,0.25);
+}
+
+/* start screen hand preview (fanned & overlapped like holding cards) */
+.start-hand-preview{
+  position: relative;
+  width: min(560px, 92vw);
+  height: calc(var(--card-h) * 0.9);
+  margin: 6px auto 8px;
+  pointer-events: none;
+}
+
+.start-hand-preview .scout-card{
+  position: absolute;
+  top: 6px;
+  left: 0;
+  transform-origin: 20% 110%;
+  filter: drop-shadow(0 18px 26px rgba(0,0,0,0.45));
+}
+
+.start-hand-preview .scout-card .num-circle{
+  transform: scale(0.95);
+}
+
+.title-board{
+  font-size: 22px;
+  font-weight: 750;
+  color: var(--text);
+}
+
+.section-title{
+  font-size: 16px;
+  font-weight: 750;
+  color: var(--muted);
+  margin: 14px 0 10px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* inputs */
+.input-box,
+input{
+  width:100%;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: rgba(0,0,0,0.25);
+  color: var(--text);
+  outline: none;
+  font-size: 16px;
+}
+
+.input-box::placeholder,
+input::placeholder{ color: rgba(234,240,255,0.45); }
+
+.input-box:focus,
+input:focus{
+  border-color: rgba(25,211,255,0.55);
+  box-shadow: 0 0 0 4px rgba(25,211,255,0.12);
+}
+
+/* buttons */
+button{
+  appearance:none;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+  padding: 12px 16px;
+  font-size: 16px;
+  font-weight: 750;
+  cursor:pointer;
+  transition: transform 120ms ease, background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+button:hover{
+  transform: translateY(-1px);
+  border-color: var(--border-strong);
+  background: rgba(255,255,255,0.09);
+  box-shadow: var(--shadow-soft);
+}
+button:active{ transform: translateY(0px) scale(0.99); }
+
+.btn-main{
+  border-color: rgba(124,92,255,0.45);
+  background: linear-gradient(135deg, rgba(124,92,255,0.35), rgba(25,211,255,0.18));
+}
+.btn-sub{
+  background: rgba(255,255,255,0.05);
+}
+.btn-green{
+  border-color: rgba(34,197,94,0.50);
+  background: linear-gradient(135deg, rgba(34,197,94,0.35), rgba(34,197,94,0.12));
+}
+.btn-orange{
+  border-color: rgba(245,158,11,0.55);
+  background: linear-gradient(135deg, rgba(245,158,11,0.30), rgba(245,158,11,0.12));
+}
+.btn-purple{
+  border-color: rgba(124,92,255,0.55);
+  background: linear-gradient(135deg, rgba(124,92,255,0.35), rgba(124,92,255,0.12));
+}
+
+button.small{ padding: 10px 12px; font-size: 14px; }
+
+/* ROOM */
+.player-list-board{ padding: 10px; }
+.playerBox{
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 14px;
+  font-size: 15px;
+  margin: 10px 0;
+}
+.offlinePlayer{ opacity: 0.35; filter: grayscale(1); }
+.turnGlow{
+  border-color: rgba(25,211,255,0.70) !important;
+  box-shadow: 0 0 0 4px rgba(25,211,255,0.12), 0 0 24px rgba(25,211,255,0.22);
+}
+
+.ready-led{
+  display:inline-block;
+  width: 10px;
+  height: 10px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.20);
+  border: 1px solid rgba(255,255,255,0.30);
+}
+.ready-led.on{ background: var(--good); border-color: rgba(34,197,94,0.7); }
+.ready-led.off{ background: rgba(255,255,255,0.20); }
+
+.room-bottom-row{
+  display:flex;
+  gap: 10px;
+  justify-content:center;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+/* GAME LAYOUT */
+.game-layout{
+  display:grid;
+  grid-template-columns: 260px 1fr;
+  gap: 16px;
+  align-items:start;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px 16px;
+}
+
+.sideBoard{ position: sticky; top: 16px; }
+
+.mainBoard{
+  background: var(--panel);
+}
+
+/* TABLE */
+.tableBoard{
+  display:flex;
+  gap: 12px;
+  justify-content:center;
+  padding: 12px;
+  border-radius: var(--r-lg);
+  background: rgba(0,0,0,0.18);
+  border: 1px dashed rgba(255,255,255,0.14);
+  min-height: calc(var(--card-h) + 26px);
+}
+
+.table-card-wrapper{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap: 8px;
+}
+
+/* HAND */
+.handBoard{
+  display:flex;
+  flex-wrap: nowrap;
+  overflow-x:auto;
+  gap: 10px;
+  padding: 12px;
+  border-radius: var(--r-lg);
+  background: rgba(0,0,0,0.16);
+  border: 1px solid rgba(255,255,255,0.10);
+}
+
+.card-wrapper{
+  border: 1px solid transparent;
+  border-radius: 14px;
+  cursor:pointer;
+  padding: 4px;
+}
+
+.card-wrapper.selected{
+  border-color: rgba(25,211,255,0.75);
+  box-shadow: 0 0 0 4px rgba(25,211,255,0.12);
+}
+
+/* Scout highlight */
+.scout-glow{
+  border: 1px solid rgba(245,158,11,0.9) !important;
+  box-shadow: 0 0 0 4px rgba(245,158,11,0.16), 0 0 24px rgba(245,158,11,0.20);
+  border-radius: 14px;
+  padding: 4px;
+}
+
+/* Buttons inside game */
+.take-btn{
+  padding: 6px 10px;
+  font-size: 13px;
+  border-radius: 999px;
+  border-color: rgba(245,158,11,0.55);
+  background: rgba(245,158,11,0.12);
+}
+.take-btn:hover{ background: rgba(245,158,11,0.18); }
+
+.insert-btn{
+  padding: 10px 12px;
+  border-radius: 999px;
+  border-style: dashed;
+  background: rgba(124,92,255,0.08);
+}
+
+/* MODAL */
+.modal{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.68);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index: 9999;
+}
+.modal.hidden{ display:none !important; }
+
+.modal-box{
+  width: 340px;
+  background: rgba(10,14,28,0.82);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
+  padding: 22px;
+  text-align:center;
+  backdrop-filter: blur(12px);
+}
+
+/* Flip Select Area */
+.flip-area{
+  background: rgba(0,0,0,0.18);
+  padding: 14px;
+  border-radius: var(--r-lg);
+  border: 1px solid rgba(255,255,255,0.14);
+  margin-bottom: 12px;
+  text-align:center;
+}
+.flip-area.hidden{ display:none !important; }
+
+/* ACTION ROW */
+.action-row{
+  display:flex;
+  justify-content:center;
+  gap: 12px;
+  padding: 14px;
+  position: sticky;
+  bottom: 0;
+  background: rgba(7,10,18,0.78);
+  border-top: 1px solid rgba(255,255,255,0.10);
+  backdrop-filter: blur(10px);
+}
+
+.action-row button{
+  font-size: 16px;
+  padding: 12px 16px;
+  min-width: 140px;
+}
+
+/* ====================================================== */
+/* SCOUT CARD (IMAGE DECK)                                */
+/* ====================================================== */
+.scout-card{
+  width: var(--card-w);
+  height: var(--card-h);
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+}
+
+.scout-card.image-card{
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: 0 8px 22px rgba(0,0,0,0.35);
+}
+
+.scout-card.image-card .card-img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit: cover;
+}
+
+/* number overlays (used to keep numbers upright even if logic flips) */
+.scout-card .num-circle{
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight: 900;
+  font-size: 15px;
+  letter-spacing: -0.02em;
+  color: var(--chip-fg, #fff);
+  background: var(--chip-bg, rgba(0,0,0,0.72));
+  border: 2px solid var(--chip-border, rgba(255,255,255,0.22));
+  position:absolute;
+  z-index: 2;
+  box-shadow:
+    0 10px 22px rgba(0,0,0,0.35),
+    0 0 0 1px rgba(255,255,255,0.10) inset,
+    0 0 18px 2px var(--chip-glow, rgba(255,255,255,0.18));
+  text-shadow: 0 1px 0 rgba(0,0,0,0.35);
+}
+
+.scout-card .num-top{ top: 8px; left: 8px; }
+.scout-card .num-bottom{ bottom: 8px; right: 8px; }
+
+/* ====================================================== */
+/* RESPONSIVE                                              */
+/* ====================================================== */
+@media (max-width: 920px){
+  .game-layout{ grid-template-columns: 1fr; }
+  .sideBoard{ position: static; }
+}
+
+@media (max-width: 600px){
+  :root{ --card-w: 92px; --card-h: 134px; }
+  .game-title{ font-size: 30px; }
+  .action-row button{ min-width: 110px; font-size: 14px; }
+}

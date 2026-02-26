@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SCOUT LOGIN</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+<div class="board-panel panel-center" style="max-width:420px;">
+  <h1 class="game-title" style="font-size:34px; margin-bottom:6px;">SCOUT LOGIN</h1>
+
+  <input id="nicknameInput" class="input-box" placeholder="닉네임 입력" maxlength="12">
+
+  <button id="loginBtn" class="btn-main">로그인</button>
+</div>
+
+<script>
+document.getElementById("loginBtn").onclick = async () => {
+  const nickname = nicknameInput.value.trim();
+  if (!nickname) return alert("닉네임을 입력하세요!");
+
+  const res = await fetch("/api/login", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({nickname})
+  });
+
+  const data = await res.json();
+  if (!data.ok) return alert("로그인 실패!");
+
+  // userId 저장
+  localStorage.setItem("scout_userId", data.userId);
+
+  // 초대방 있는지 확인
+  const invited = localStorage.getItem("inviteRoom");
+  if (invited) {
+    localStorage.removeItem("inviteRoom");
+    location.href = "/index.html?room=" + invited;
+  } else {
+    location.href = "/index.html";
+  }
+};
+</script>
+
+</body>
+</html>
