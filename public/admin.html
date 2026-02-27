@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>관리자 페이지</title>
+
+<style>
+body {
+  background:#121212;
+  color:#fff;
+  font-family:Arial, sans-serif;
+  padding:40px;
+}
+h2 {
+  font-size:28px;
+  margin-bottom:20px;
+}
+input {
+  width:200px;
+  padding:10px;
+  border-radius:6px;
+  border:none;
+  font-size:16px;
+}
+button {
+  padding:10px 15px;
+  margin-left:5px;
+  border:none;
+  border-radius:6px;
+  background:#4caf50;
+  color:white;
+  font-size:16px;
+  cursor:pointer;
+}
+#userList div {
+  background:#1f1f1f;
+  padding:10px;
+  margin-top:8px;
+  border-radius:6px;
+  display:flex;
+  justify-content:space-between;
+}
+.deleteBtn {
+  background:#ff5252;
+  padding:5px 13px;
+  border-radius:6px;
+}
+</style>
+
+</head>
+<body>
+
+<h2>관리자 로그인</h2>
+
+<div id="loginBox">
+  <input id="adminId" placeholder="관리자 ID"><br><br>
+  <input id="adminPw" type="password" placeholder="비밀번호"><br><br>
+  <button onclick="adminLogin()">로그인</button>
+</div>
+
+<div id="adminPanel" style="display:none;">
+  <h2>등록된 닉네임 목록</h2>
+  <div id="userList"></div>
+</div>
+
+<script>
+async function adminLogin() {
+  const id = adminId.value.trim();
+  const pw = adminPw.value.trim();
+
+  const res = await fetch("/api/admin/login", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({ id, pw })
+  });
+
+  const data = await res.json();
+
+  if (!data.ok) {
+    alert("로그인 실패");
+    return;
+  }
+
+  loginBox.style.display = "none";
+  adminPanel.style.display = "block";
+
+  loadUsers();
+}
+
+async function loadUsers() {
+  const res = await fetch("/api/admin/users");
+  const list = await res.json();
+
+  userList.innerHTML = "";
+
+  list.forEach(name => {
+    const div = document.createElement("div");
+    div.innerHTML = `
+      <span>${name}</span>
+      <button class="deleteBtn" onclick="deleteUser('${name}')">삭제</button>
+    `;
+    userList.appendChild(div);
+  });
+}
+
+async function deleteUser(nickname) {
+  if (!confirm(`${nickname} 닉네임을 삭제할까요?`)) return;
+
+  const res = await fetch("/api/admin/deleteUser", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({ nickname })
+  });
+
+  const data = await res.json();
+  if (data.ok) loadUsers();
+  else alert("삭제 실패");
+}
+</script>
+
+</body>
+</html>
